@@ -50,19 +50,19 @@ export default class TaskDocument extends React.Component {
 
         postData(`/api/task/document?projectId=${task.Selected.projectId}&workstreamId=${task.Selected.workstreamId}`, data, (c) => {
             if (c.data.type == "checklist") {
-                const currentChecklist = task.Selected.checklist;
+                const updatedChecklist = _.map(c.data.result, (o) => { return { ...o, isCompleted: 1 } });
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: {
-                        ...task.Selected, checklist: _(currentChecklist)
-                            .differenceBy(c.data.result, 'id')
-                            .concat(c.data.result)
+                        ...task.Selected, checklist: _(task.Selected.checklist)
+                            .differenceBy(updatedChecklist, 'id')
+                            .concat(updatedChecklist)
                             .sortBy('dateAdded')
                             .reverse()
                             .value()
                     }
                 });
-                dispatch({ type: "UPDATE_CHECKLIST", List: c.data.result });
+                dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
             } else {
                 const currentDocumentlist = task.Selected.tag_task;
                 dispatch({
@@ -71,9 +71,12 @@ export default class TaskDocument extends React.Component {
                 });
             }
 
+            $(`#task-documents`).modal('hide');
+
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
             dispatch({ type: 'SET_DOCUMENT_FILES', Files: "" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+
             showToast("success", "Task Document successfully updated.");
         });
     }
@@ -97,6 +100,7 @@ export default class TaskDocument extends React.Component {
         const { checklist = [] } = task.Selected;
         const { Files = [], Loading, Selected } = document;
         const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
+        const checklistTagged = (typeof Selected.tagged == "undefined") ? [] : Selected.tagged;
 
         return (
             <form id="task-document-form">
@@ -138,21 +142,26 @@ export default class TaskDocument extends React.Component {
                             })
                         }
                     </div>
-                    <div class="form-group">
-                        <label for="email">Tag Checklist:</label>
-                        <DropDown multiple={true}
-                            required={false}
-                            options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
-                            selected={(typeof Selected.tagged == "undefined") ? [] : Selected.tagged}
-                            onChange={(e) => this.setDropDownMultiple("tagged", e)}
-                            placeholder={"Search or select document checklist"}
-                            isClearable={(checklist.length > 0)}
-                            disabled={(Loading == "SUBMITTING")}
-                        />
-                    </div>
+                    {
+                        (Selected.document_type == "checklist_document") && <div class="form-group">
+                            <label for="email">Tag Checklist:<span class="text-red">*</span></label>
+                            <DropDown multiple={true}
+                                required={false}
+                                options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
+                                selected={checklistTagged}
+                                onChange={(e) => this.setDropDownMultiple("tagged", e)}
+                                placeholder={"Search or select document checklist"}
+                                isClearable={(checklist.length > 0)}
+                                disabled={(Loading == "SUBMITTING")}
+                            />
+                        </div>
+                    }
                 </div>
                 {
-                    (Files.length > 0) && <a class="btn btn-violet" onClick={this.handleSubmit} disabled={(Loading == "SUBMITTING")}>
+                    (
+                        (Files.length > 0 && Selected.document_type == "checklist_document" && (checklistTagged.length > 0)) ||
+                        (Files.length > 0 && Selected.document_type == "task_document")
+                    ) && <a class="btn btn-violet" onClick={this.handleSubmit} disabled={(Loading == "SUBMITTING")}>
                         <span>
                             {
                                 (Loading == "SUBMITTING") ? "Uploading..." : "Create Task Document"

@@ -4,6 +4,7 @@ import moment from 'moment';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import ReactTooltip from 'react-tooltip';
 
 import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
 import { DeleteModal, MentionConvert } from "../../globalComponents";
@@ -372,7 +373,8 @@ export default class TaskDetails extends React.Component {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
             } else {
                 const checklist = _.map(task.Selected.checklist, (o) => {
-                    return { ...o, tagDocuments: _.filter(o.tagDocuments, (o) => { return o.id != document.Selected.id }) }
+                    const checklistDocument = _.filter(o.tagDocuments, (o) => { return o.documentId != document.Selected.id });
+                    return { ...o, tagDocuments: checklistDocument, isCompleted: (checklistDocument.length > 0) ? 1 : 0 }
                 });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
             }
@@ -582,7 +584,13 @@ export default class TaskDetails extends React.Component {
                                             <a class="logo-action text-grey" onClick={() => this.starredTask()}>
                                                 <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
                                             </a>
-                                            <a class="logo-action text-grey" onClick={() => { $(`#task-documents`).modal('show'); }}>
+                                            <a
+                                                class="logo-action text-grey"
+                                                onClick={() => {
+                                                    $(`#task-documents`).modal('show');
+                                                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ['document_type']: 'task_document' } });
+                                                }}
+                                            >
                                                 <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true"></i>
                                             </a>
                                             <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
@@ -791,6 +799,26 @@ export default class TaskDetails extends React.Component {
                                                                                         <span class="fa fa-trash"></span></a>
                                                                                 }
                                                                             </div>
+                                                                            {
+                                                                                (child.length > 0) && <ReactTooltip id={`attachment-${index}`} aria-haspopup='true' type={'light'} class="updates-tooltip">
+                                                                                    <div class="wrapper">
+                                                                                        <div class="header">
+                                                                                            <p class="text-left m0"><strong>Checklist</strong></p>
+                                                                                        </div>
+                                                                                        {
+                                                                                            _.map(child, (o, key) => {
+                                                                                                return (
+                                                                                                    <div key={key}>
+                                                                                                        <div class="list">
+                                                                                                            <p class="m0 text-left title">{o.substring(0, 30)}{(o.length > 30) ? "..." : ""}</p>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                )
+                                                                                            })
+                                                                                        }
+                                                                                    </div>
+                                                                                </ReactTooltip>
+                                                                            }
                                                                         </div>
                                                                     )
                                                                 })
@@ -805,9 +833,16 @@ export default class TaskDetails extends React.Component {
                                             <div class="row mb20">
                                                 <div class="col-md-12 bb pb20">
                                                     <div>
-                                                        <h3>
+                                                        <h3 class="mb0">
                                                             Checklist
                                                         </h3>
+                                                        <p class="mb10">
+                                                            <a
+                                                                onClick={() => {
+                                                                    $(`#task-documents`).modal('show');
+                                                                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ['document_type']: 'checklist_document' } });
+                                                                }}>Upload Checklist Document</a>
+                                                        </p>
                                                         <div id="checklist">
                                                             {
                                                                 _.map(checklist, (checklistObj, index) => {
@@ -994,7 +1029,11 @@ export default class TaskDetails extends React.Component {
                     <div class="modal-dialog modal-md">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                                <a class="text-grey" data-dismiss="modal" aria-label="Close"
+                                    onClick={() => {
+                                        dispatch({ type: 'SET_DOCUMENT_FILES', Files: "" });
+                                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+                                    }}>
                                     <span>
                                         <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
                                         <strong>Back</strong>
