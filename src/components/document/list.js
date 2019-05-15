@@ -25,11 +25,11 @@ class List extends React.Component {
             <div>
                 <div class="row">
                     <div class="col-lg-12">
-                        {/* {(document.ActiveTab === "active" || document.ActiveTab === "library") &&
+                        {(document.ActiveTab === "active" || document.ActiveTab === "library") &&
                             < div class="card mb20">
                                 <DocumentFilter />
                             </div>
-                        } */}
+                        }
                         <div class="card">
                             <div class="mb20 bb">
                                 <DocumentActionTab />

@@ -132,7 +132,7 @@ exports.get = {
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
-                ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {},
+                ? { dateAdded: { [Op.between]: [moment(parseInt(queryString.uploadFrom)).add(8, 'hours').toDate(), moment(parseInt(queryString.uploadTo)).add(8, 'hours').toDate()] } } : {},
             // ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
             //     [Op.or]: {
             //         ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
@@ -145,12 +145,11 @@ exports.get = {
             //     }
             // } : {}
         }
-
-        if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
+        if (typeof queryString.fileName !== 'undefined' && queryString.fileName !== '') {
             documentWhereObj = {
                 ...documentWhereObj,
                 [Op.or]: [
-                    { origin: { [Op.like]: `%${queryString.search}%` } },
+                    { origin: { [Op.like]: `%${queryString.fileName}%` } },
                 ]
             }
         }
@@ -186,7 +185,8 @@ exports.get = {
         if (typeof queryString.uploadedBy !== 'undefined' && queryString.uploadedBy !== '') {
             _.find(associationStack, { as: 'user' }).where = {
                 [Op.or]: [
-                    { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } },
+                    { firstName: { [Op.like]: `%${queryString.uploadedBy}%` } },
+                    { lastName: { [Op.like]: `%${queryString.uploadedBy}%` } },
                 ]
             };
             _.find(associationStack, { as: 'user' }).required = true;
