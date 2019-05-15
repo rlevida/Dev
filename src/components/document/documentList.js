@@ -373,7 +373,7 @@ class DocumentList extends React.Component {
                                     <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
                                     {(folder.SelectedFolderName.length > 0) &&
                                         folder.SelectedFolderName.map((e, index) => {
-                                            const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                                            const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;
                                             return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {fName}</a> </span>
                                         })
                                     }
