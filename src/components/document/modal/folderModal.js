@@ -104,7 +104,7 @@ class FolderModal extends React.Component {
 
         postData(`/api/document`, dataToSubmit, (c) => {
             const { result } = { ...c.data }
-            if (document.Filter.status === 'sort') {
+            if (document.ActiveTab === 'sort') {
                 if (document.Selected.folderId) {
                     const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
                     dispatch({ type: "SET_FOLDER_LIST", list: newList });
@@ -117,7 +117,7 @@ class FolderModal extends React.Component {
                 dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
             }
 
-            if (document.Filter.status === "library") {
+            if (document.ActiveTab === "library") {
                 const resultArr = result.map((e) => {
                     const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
                     return { id: e.id, name: fName }

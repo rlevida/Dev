@@ -42,46 +42,25 @@ class DocumentNew extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser, document, folder, match } = this.props;
+        const { dispatch, loggedUser, document, match } = this.props;
         const projectId = match.params.projectId;
-        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document`;
-        if (status === 'active' || status === 'sort') {
+        const { ActiveTab } = { ...document };
+        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document`;
+
+        if (ActiveTab === 'active' || document.ActiveTab === 'sort') {
             requestUrl += `&folderId=null&type=document`
         }
 
-        if (status === 'library') {
+        if (ActiveTab === 'library') {
             requestUrl += `&folderId=null&type=folder`
         }
-        // if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
-        //     requestUrl += `&isCompleted=${isCompleted}`
-        // }
-        // if (typeof search !== 'undefined' && search !== '') {
-        //     requestUrl += `&search=${search}`
-        // }
-        // if (typeof tags !== 'undefined') {
-        //     _.filter(tags, (t) => {
-        //         const tagType = t.value.split('-')[0];
-        //         const tagId = t.value.split('-')[1];
-        //         if (tagType === 'workstream') {
-        //             requestUrl += `&workstream=${tagId}`
-        //         }
-        //     })
-        // }
-        // if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
-        //     requestUrl += `&uploadedBy=${uploadedBy}`
-        // }
-        // if (typeof members !== 'undefined' && members !== '') {
-        //     _.map(members, (e) => {
-        //         requestUrl += `&members=${e.value}`
-        //     })
-        // }
-        // if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
-        //     requestUrl += `&uploadFrom=${uploadFrom}`
-        // }
-        // if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
-        //     requestUrl += `&uploadTo=${uploadTo}`
-        // }
+
+        if (ActiveTab === "archived") {
+            requestUrl += `&isArchived=1`;
+        } else {
+            requestUrl += `&isArchived=0`;
+        }
+
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
             dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
@@ -151,24 +130,24 @@ class DocumentNew extends React.Component {
                     </div>
                     {
                         (document.Loading === "") &&
-                            <div class="col-lg-4 col-md-6">
-                                <div class="card-header">
-                                    <h4>Library</h4>
-                                </div>
-                                <div class="card-body m0">
-                                    <div id="library">
-                                        {
-                                            ((folder.List).length > 0) && <div>
-                                                {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
-                                                    return (
-                                                        <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
-                                                    )
-                                                })}
-                                            </div>
-                                        }
-                                    </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card-header">
+                                <h4>Library</h4>
+                            </div>
+                            <div class="card-body m0">
+                                <div id="library">
+                                    {
+                                        ((folder.List).length > 0) && <div>
+                                            {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                                return (
+                                                    <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                                                )
+                                            })}
+                                        </div>
+                                    }
                                 </div>
                             </div>
+                        </div>
                     }
 
                 </div>

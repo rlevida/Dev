@@ -27,7 +27,7 @@ export default function reducer(state = {
         new: 0,
         library: 0
     },
-    ActiveTab: 'document',
+    ActiveTab: 'active',
     DocumentToSave: [],
     DocumentUploadLoading: false,
     Files: [],

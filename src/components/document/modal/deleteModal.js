@@ -32,7 +32,7 @@ class DeleteModal extends React.Component {
         getData(`${requestUrl}`, {}, (c) => {
             const { result, count } = { ...c.data };
             let list = [];
-            if (document.Filter.status === "trash") {
+            if (document.ActiveTab === "trash") {
                 list = result;
             } else {
                 list = document.List.concat(result)
@@ -47,7 +47,7 @@ class DeleteModal extends React.Component {
         const { document, dispatch, loggedUser, match } = { ...this.props };
         const { current_page, last_page } = { ...document.Count };
         const projectId = match.params.projectId;
-        if (document.Filter.status !== "trash") {
+        if (document.ActiveTab !== "trash") {
             putData(`/api/document/${document.Selected.id}`, {
                 isActive: 0, usersId: loggedUser.data.id,
                 oldDocument: document.Selected.origin,
@@ -67,7 +67,7 @@ class DeleteModal extends React.Component {
                 }
                 $(`#deleteModal`).modal("hide");
             })
-        } else if (document.Filter.status === "trash") {
+        } else if (document.ActiveTab === "trash") {
             const documentIds = document.List.map((e) => { return e.id });
             putData(`/api/document/empty/${document.Selected.id}`, {
                 documentIds: documentIds, data: { isDeleted: 1 }
@@ -92,7 +92,7 @@ class DeleteModal extends React.Component {
                     <div class="modal-content">
                         <div class="modal-body">
                             <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
-                            {document.Filter.status !== "trash" ?
+                            {document.ActiveTab !== "trash" ?
                                 <span>
                                     <p class="warning text-center">Delete this {Selected.type}?</p>
                                     <p class="warning text-center"><strong>{Selected.origin}</strong></p>
