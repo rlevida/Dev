@@ -492,6 +492,7 @@ exports.post = {
                                 model: Document,
                                 as: 'document',
                                 where: whereObj,
+                                required: true
                             },
                         ],
                         order: Sequelize.literal('documentNameCount DESC'),
@@ -967,7 +968,6 @@ exports.put = {
         const usersId = body.usersId;
         const oldDocument = body.oldDocument;
         const newDocument = body.newDocument;
-
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
 
         const whereObj = {
@@ -977,24 +977,25 @@ exports.put = {
         }
 
         sequence.create().then((nextThen) => {
-            if (typeof body.isDeleted !== 'undefined' && typeof body.isArchived !== 'undefined') {
-                nextThen()
-            } else {
-                Document
-                    .findAll({
-                        where: whereObj,
-                        order: Sequelize.literal('documentNameCount DESC'),
-                        raw: true
-                    })
-                    .then((res) => {
-                        if (res.length > 0) {
-                            body.documentNameCount = res[0].documentNameCount + 1
-                        } else {
-                            body.documentNameCount = 0;
-                        }
-                        nextThen()
-                    })
-            }
+           nextThen()
+            // if (typeof body.isDeleted !== 'undefined' && typeof body.isArchived !== 'undefined') {
+            //     nextThen()
+            // } else {
+            //     Document
+            //         .findAll({
+            //             where: whereObj,
+            //             order: Sequelize.literal('documentNameCount DESC'),
+            //             raw: true
+            //         })
+            //         .then((res) => {
+            //             if (res.length > 0) {
+            //                 body.documentNameCount = res[0].documentNameCount + 1
+            //             } else {
+            //                 body.documentNameCount = 0;
+            //             }
+            //             nextThen()
+            //         })
+            // }
         }).then((nextThen) => {
             try {
                 Document
