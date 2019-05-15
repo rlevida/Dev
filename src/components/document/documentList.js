@@ -51,33 +51,43 @@ class DocumentList extends React.Component {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
         const { status, tagWorkstream } = document.Filter;
-        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
-        if (typeof folder.Selected.id !== "undefined") {
-            requestUrl += `&folderId=${folder.Selected.id}`;
-        }
-
-        if (status === 'active' || status === 'sort') {
-            requestUrl += `&type=document&folderId=null`;
-        }
-
-        if (status === 'library') {
-            requestUrl += `&folderId=null&type=folder`;
-        }
-
-        if (tagWorkstream) {
-            requestUrl += `&workstream=${tagWorkstream}`;
-        }
-
-        if (status === "archived") {
-            requestUrl += `&isArchived=1`;
+        if (document.Filter.status === "trash") {
+            requestUrl += `&isActive=0`
         } else {
-            requestUrl += `&isArchived=0`;
+            requestUrl += `&isActive=1`;
+            if (typeof folder.Selected.id !== "undefined") {
+                requestUrl += `&folderId=${folder.Selected.id}`;
+            }
+
+            if (status === 'active' || status === 'sort') {
+                requestUrl += `&type=document&folderId=null`;
+            }
+
+            if (status === 'library') {
+                requestUrl += `&folderId=null&type=folder`;
+            }
+
+            if (tagWorkstream) {
+                requestUrl += `&workstream=${tagWorkstream}`;
+            }
+
+            if (status === "archived") {
+                requestUrl += `&isArchived=1`;
+            } else {
+                requestUrl += `&isArchived=0`;
+            }
         }
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data };
-            console.log(result)
-            dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
+            let list = [];
+            if (document.Filter.status !== "trash" && document.Filter.status !== "archived") {
+                list = document.List.concat(result);
+            } else {
+                list = result;
+            }
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: list, count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });
     }
@@ -326,18 +336,23 @@ class DocumentList extends React.Component {
     restore(data) {
         const { dispatch, document, match } = { ...this.props };
         const { Filter } = { ...document };
+        const { last_page, current_page } = { ...document.Count };
         const projectId = match.params.projectId;
         let dataToSubmit = {};
 
         if (Filter.status === "trash") {
-            dataToSubmit = { isDeleted: 0, projectId: projectId }
+            dataToSubmit = { isActive: 1, projectId: projectId }
         } else if (Filter.status === "archived") {
             dataToSubmit = { isArchived: 0, projectId: projectId }
         }
 
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
             const { result } = { ...c.data }
-            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result });
+            if (last_page > current_page && document.List.length < 10) {
+                this.fetchData(1)
+            } else {
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result });
+            }
             showToast("success", `Successfully restored to ${data.folderId === null && data.type === "document" ? 'active files' : 'library'}.`);
         })
     }

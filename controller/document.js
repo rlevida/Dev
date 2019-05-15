@@ -115,7 +115,7 @@ exports.get = {
         const limit = 10;
         let associationStack = _.cloneDeep(associationFindAllStack)
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * parseInt(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
         const documentLinkWhereObj = {
@@ -1329,6 +1329,20 @@ exports.put = {
                 })
         } catch (err) {
             cb({ status: false, error: err })
+        }
+    },
+    empty: (req, cb) => {
+        const id = req.body.documentIds
+        const body = req.body.data;
+
+        try {
+            Document
+                .update(body, { where: { id: id } })
+                .then(res => {
+                    cb({ status: true });
+                })
+        } catch (err) {
+            cb({ status: false, message: err })
         }
     }
 }
