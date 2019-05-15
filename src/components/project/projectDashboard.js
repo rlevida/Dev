@@ -51,6 +51,10 @@ export default class ProjectDashboard extends React.Component {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
                 dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+                dispatch({ type: "SET_STARRED_LIST", list: [], count: {} });
+                _.map(["task", "notes", "document"], (type) => {
+                    dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
+                })
                 this.fetchProjectStatus();
                 this.fetchCompletionRate(1);
             }

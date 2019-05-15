@@ -26,22 +26,29 @@ export default class Component extends React.Component {
         });
     }
     componentDidMount() {
-        const { type = "", starred } = { ...this.props };
+        const { type = "", starred, project_id } = { ...this.props };
         if (typeof starred.Count[type] == "undefined" || _.isEmpty(starred.Count[type])) {
-            this.fetchData({ page: 1, type });
+            this.fetchData({ page: 1, type, project_id });
         }
     }
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_STARRED_LIST", list: [], count: {} });
     }
-    fetchData({ page, type }) {
-        const { loggedUser, dispatch, starred, project_id = "" } = { ...this.props };
+
+    componentWillReceiveProps(props) {
+        const { type = "", starred, project_id } = { ...props };
+        if (props.project_id != this.props.project_id) {
+            this.fetchData({ page: 1, type, project_id });
+        }
+    }
+
+    fetchData({ page, type, project_id: projectId }) {
+        const { loggedUser, dispatch, starred } = { ...this.props };
         const { Count } = starred;
-        const reqUrl = `/api/starred?page=${page}&userId=${loggedUser.data.id}&isActive=1&type=${type}&projectId=${project_id}`;
+        const reqUrl = `/api/starred?page=${page}&userId=${loggedUser.data.id}&isActive=1&type=${type}&projectId=${projectId}`;
 
         dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
-
         getData(reqUrl, {}, (c) => {
             if (c.status == 200) {
                 const { result, count } = c.data;
@@ -148,8 +155,8 @@ export default class Component extends React.Component {
         history.push(`/projects/${project_id}/messages?note-id=${obj.linkId}`)
     }
     getNextResult() {
-        const { starred, type = "" } = { ...this.props };
-        this.fetchData({ page: starred.Count[type].current_page + 1, type });
+        const { starred, type = "", project_id } = { ...this.props };
+        this.fetchData({ page: starred.Count[type].current_page + 1, type, project_id });
     }
     render() {
         const { starred, type = "", label = "" } = { ...this.props };
