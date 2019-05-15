@@ -40,7 +40,6 @@ class DocumentActionTab extends React.Component {
         const projectId = match.params.projectId;
 
         if (_.isEqual(prevProps.document.ActiveTab, document.ActiveTab) == false) {
-            console.log(`here`)
             clearTimeout(delayTimer);
 
             if (_.isEmpty(folder.Selected) === false) {

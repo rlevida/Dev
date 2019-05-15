@@ -394,6 +394,7 @@ class DocumentList extends React.Component {
                                                     <th scope="col">Uploaded By</th>
                                                     <th scope="col">Upload Date</th>
                                                     <th scope="col">Workstream</th>
+                                                    <th scope="col">Task</th>
                                                     <th scope="col">Read On</th>
                                                     {(match.path === "/projects/:projectId/files") && <th scope="col">Actions</th>}
                                                 </tr>
@@ -424,6 +425,16 @@ class DocumentList extends React.Component {
                                                                 <td>{
                                                                     data.tagWorkstream.length > 0 &&
                                                                     data.tagWorkstream.map((t, tIndex) => {
+                                                                        tagCount += t.label.length
+                                                                        let tempCount = tagCount;
+                                                                        if (tagCount > 16) { tagCount = 0 }
+                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                    })
+                                                                }
+                                                                </td>
+                                                                <td>{
+                                                                    data.tagTask.length > 0 &&
+                                                                    data.tagTask.map((t, tIndex) => {
                                                                         tagCount += t.label.length
                                                                         let tempCount = tagCount;
                                                                         if (tagCount > 16) { tagCount = 0 }
