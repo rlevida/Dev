@@ -46,7 +46,7 @@ export default function reducer(state = {
             return { ...state, Library: Library }
         }
         case "SET_DOCUMENT_LIST": {
-            return { ...state, List: action.list, Count: { ...(typeof  action.count !== "undefined") ? action.count : state.Count } }
+            return { ...state, List: action.list, Count: { ...(typeof action.count !== "undefined") ? action.count : state.Count } }
         }
         case "SET_DOCUMENT_NEW_LIST": {
             return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }

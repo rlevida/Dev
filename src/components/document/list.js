@@ -1,7 +1,7 @@
 import React from "react";
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-import DocumentFilter from "../document/documentFilter";
+import DocumentActionTab from "../document/documentActionTab";
 import ShareModal from "../document/modal/shareModal";
 import EditModal from "../document/modal/editModal";
 import FolderModal from "../document/modal/folderModal";
@@ -10,18 +10,8 @@ import ArchiveModal from "../document/modal/archiveModal";
 import DocumentList from "../document/documentList";
 import _ from "lodash";
 
-import { connect } from "react-redux";
-
-@connect((store) => {
-    return {
-        document: store.document,
-    }
-})
-
 class List extends React.Component {
     render() {
-        const { document } = { ...this.props };
-        const { Count } = { ...document }
         return (
 
             <div>
@@ -29,7 +19,7 @@ class List extends React.Component {
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="mb20 bb">
-                                <DocumentFilter />
+                                <DocumentActionTab />
                             </div>
                             <DocumentList />
                         </div>

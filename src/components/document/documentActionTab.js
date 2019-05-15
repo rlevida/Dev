@@ -19,7 +19,7 @@ let keyTimer = "";
     }
 })
 
-class DocumentFilter extends React.Component {
+class DocumentActionTab extends React.Component {
     constructor(props) {
         super(props);
         _.map([
@@ -36,18 +36,17 @@ class DocumentFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser, folder, document, match } = this.props;
+        const { dispatch, loggedUser, folder, match, document } = { ...this.props };
         const projectId = match.params.projectId;
 
-        if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
+        if (_.isEqual(prevProps.document.Filter, document.Filter) == false) {
             clearTimeout(delayTimer);
 
             if (_.isEmpty(folder.Selected) === false) {
                 dispatch({ type: "SET_SELECTED_FOLDER", Selected: {} })
                 dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
             }
-
-            const { status, tagWorkstream } = this.props.document.Filter;
+            const { status, tagWorkstream } = { ...document.Filter };
             let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
@@ -55,8 +54,10 @@ class DocumentFilter extends React.Component {
             delayTimer = setTimeout(() => {
 
                 if (status === "trash") {
-                    requestUrl += `&isDeleted=1`
+                    requestUrl += `&isActive=0&isDeleted=0`
                 } else {
+                    requestUrl += `&isActive=1`
+
                     if (status === 'active' || status === 'sort') {
                         requestUrl += `&folderId=null&type=document`;
                     }
@@ -71,8 +72,6 @@ class DocumentFilter extends React.Component {
                     } else {
                         requestUrl += `&isArchived=0`;
                     }
-
-                    requestUrl += `&isDeleted=0`
 
                     if (tagWorkstream) {
                         requestUrl += `&workstream=${tagWorkstream}`;
@@ -207,42 +206,54 @@ class DocumentFilter extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="button-action">
-                            {
-                                (document.Filter.status === 'active' && document.Loading === "") &&
-                                <DropDown
-                                    id="workstream-options"
-                                    options={workstream.SelectList}
-                                    onInputChange={this.getWorkstreamList}
-                                    selected={document.Filter.tagWorkstream}
-                                    loading={true}
-                                    isClearable={true}
-                                    onChange={(e) => {
-                                        this.setDropDown("tagWorkstream", (e == null) ? null : e.value);
-                                    }}
-                                    required={true}
-                                    disabled={Loading === "SUBMITTING" ? true : false}
-                                />
-                            }
-                            {
-                                (document.Loading === "") &&
-                                <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
+                        {(document.Filter.status !== "trash" && document.Filter.status !== "archived") &&
+                            <div class="button-action">
+                                {
+                                    (document.Filter.status === 'active' && document.Loading === "") &&
+                                    <DropDown
+                                        id="workstream-options"
+                                        options={workstream.SelectList}
+                                        onInputChange={this.getWorkstreamList}
+                                        selected={document.Filter.tagWorkstream}
+                                        loading={true}
+                                        isClearable={true}
+                                        onChange={(e) => {
+                                            this.setDropDown("tagWorkstream", (e == null) ? null : e.value);
+                                        }}
+                                        required={true}
+                                        disabled={Loading === "SUBMITTING" ? true : false}
+                                    />
+                                }
+                                {
+                                    (document.Loading === "") &&
+                                    <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
+                                        <span>
+                                            <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                            Add New File
+                                    </span>
+                                    </a>
+                                }
+                                {
+                                    (document.Filter.status !== 'active' && document.Loading === "") &&
+                                    <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
+                                        <span>
+                                            <i class="fa fa-folder fa-lg mr10"></i>
+                                            Add New Folder
+                                        </span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        {(document.Filter.status === "trash") &&
+                            <div class="button-action">
+                                <a class="btn btn-default" data-toggle="modal" data-target="#deleteModal">
                                     <span>
-                                        <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                        Add New File
+                                        <i class="fa fa-trash fa-lg mr10"></i>
+                                        Empty
                                     </span>
                                 </a>
-                            }
-                            {
-                                (document.Filter.status !== 'active' && document.Loading === "") &&
-                                <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
-                                    <span>
-                                        <i class="fa fa-folder fa-lg mr10"></i>
-                                        Add New Folder
-                                    </span>
-                                </a>
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -251,4 +262,4 @@ class DocumentFilter extends React.Component {
 }
 
 
-export default withRouter(DocumentFilter);
+export default withRouter(DocumentActionTab);

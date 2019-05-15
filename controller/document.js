@@ -115,7 +115,7 @@ exports.get = {
         const limit = 10;
         let associationStack = _.cloneDeep(associationFindAllStack)
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * parseInt(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
         const documentLinkWhereObj = {
@@ -127,6 +127,7 @@ exports.get = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
             ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
@@ -363,7 +364,8 @@ exports.get = {
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {},
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {}
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {}
         }
 
         const tagWhereObj = {
@@ -596,7 +598,7 @@ exports.post = {
                                 }
                             },
                             notification: (parallelCallback) => {
-                                if (res.dataValues.type !== "folder" && !isDuplicate) {
+                                if (res.dataValues.type !== "folder" && !isDuplicate && typeof data.tagWorkstream !== "undefined") {
                                     const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
                                     const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream', userTypeLinkId: { [Op.ne]: e.uploadedBy } };
                                     const taskWhereObj = { workstreamId: workstreamIds };
@@ -1328,6 +1330,20 @@ exports.put = {
                 })
         } catch (err) {
             cb({ status: false, error: err })
+        }
+    },
+    empty: (req, cb) => {
+        const id = req.body.documentIds
+        const body = req.body.data;
+
+        try {
+            Document
+                .update(body, { where: { id: id } })
+                .then(res => {
+                    cb({ status: true });
+                })
+        } catch (err) {
+            cb({ status: false, message: err })
         }
     }
 }

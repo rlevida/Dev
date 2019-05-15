@@ -192,7 +192,7 @@ class FolderModal extends React.Component {
         const { dispatch, loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
-        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
@@ -261,15 +261,15 @@ class FolderModal extends React.Component {
                                     <label for="project-options">Project <span class="text-red">*</span></label>
                                     <DropDown
                                         id="project-options"
-                                        multiple={false}
                                         options={project.SelectList}
                                         selected={projectId}
-                                        loading={true}
                                         onChange={(e) => {
                                             this.setDropDown("projectId", (e == null) ? "" : e.value);
                                         }}
                                         placeholder={'Search project'}
                                         disabled
+                                        multiple={false}
+                                        loading={true}
                                         required={true}
                                     />
                                     <div>
@@ -279,20 +279,19 @@ class FolderModal extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="workstream-options">Workstream  <span class="text-red">*</span></label>
+                                    <label for="workstream-options">Workstream</label>
                                     <div class="display-flex vh-center">
                                         <DropDown
                                             id="workstream-options"
-                                            multiple={true}
                                             options={workstream.SelectList}
                                             onInputChange={this.getWorkstreamList}
                                             selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
-                                            loading={true}
                                             onChange={(e) => {
                                                 this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                             }}
-                                            required={true}
                                             disabled={Loading === "SUBMITTING" ? true : false}
+                                            loading={true}
+                                            multiple={true}
                                         />
                                         <div>
                                             {
@@ -305,16 +304,16 @@ class FolderModal extends React.Component {
                                     <label for="folder-options">Folder</label>
                                     <DropDown
                                         id="folder-options"
-                                        multiple={false}
-                                        required={false}
                                         options={folder.SelectList}
                                         selected={(typeof document.Selected.folderId == "undefined") ? null : document.Selected.folderId}
                                         onInputChange={this.getFolderList}
                                         onChange={(e) => {
                                             this.setDropDown("folderId", (e == null) ? "" : e.value);
                                         }}
-                                        isClearable={true}
                                         disabled={Loading === "SUBMITTING" ? true : false}
+                                        multiple={false}
+                                        isClearable={true}
+                                        required={false}
                                     />
                                 </div>
                             </div>

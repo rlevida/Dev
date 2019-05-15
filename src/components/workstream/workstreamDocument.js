@@ -35,7 +35,7 @@ class WorkstreamDocument extends React.Component {
 
     fetchData(page) {
         const { dispatch, loggedUser, document, project, workstream_id } = this.props;
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project.Selected.id}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream_id}&tagType=document&starredUser=${loggedUser.data.id}&type=document`, {}, (c) => {
+        getData(`/api/document/getTaggedDocument?isActive=1&isDeleted=0&projectId=${project.Selected.id}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream_id}&tagType=document&starredUser=${loggedUser.data.id}&type=document&isArchived=0`, {}, (c) => {
             const { count, result } = { ...c.data };
             dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(result), count: count });
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
