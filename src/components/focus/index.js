@@ -85,7 +85,7 @@ export default class Component extends React.Component {
                     </a>
                     <div>
                         <a href="javascript:void(0)" class="mb0 title" onClick={() => this.renderStarred(obj)}>
-                            {title}
+                            {title.substring(0, 30)}{(title.length > 30) ? "..." : ""}
                         </a>
                         {
                             (workstream != "") && <p class="m0 note">{workstream}</p>

@@ -298,6 +298,30 @@ exports.get = {
                                 const { id } = mapObject.toJSON();
                                 return id;
                             });
+                        const myProjects = await Members
+                            .findAll({
+                                where: {
+                                    [Sequelize.Op.or]: [
+                                        {
+                                            linkType: "project",
+                                            isDeleted: 0,
+                                            usersType: "users",
+                                            userTypeLinkId: queryUserIds
+                                        },
+                                        {
+                                            linkType: "project",
+                                            isDeleted: 0,
+                                            usersType: "team",
+                                            userTypeLinkId: teams
+                                        }
+                                    ]
+                                }
+                            })
+                            .map((mapObject) => {
+                                const { linkId } = mapObject.toJSON();
+                                return linkId;
+                            });
+
                         if (teams.length > 0) {
                             const allTeams = await UsersTeam
                                 .findAll({
@@ -314,9 +338,9 @@ exports.get = {
                                 .filter((o) => { return o != queryString.userId });
 
                             let myTeamQuery = "(";
-                            myTeamQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo"`;
+                            myTeamQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.projectId IN (${(myProjects).join(",")}) AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo"`;
                             myTeamQuery += ")";
-
+                            
                             opOrArray.push(
                                 {
                                     id: {

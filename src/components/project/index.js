@@ -34,7 +34,6 @@ export default class Component extends React.Component {
             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
             const currentProjectPage = (this.props.history.location.pathname).split("/");
-            
             if(typeof currentProjectPage[3] == "undefined" || currentProjectPage[3] != "workstreams"){
                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
                dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} })   
@@ -53,11 +52,10 @@ export default class Component extends React.Component {
                         <Route exact={true} path="/projects" component={
                             (
                                 (loggedUser.data.userRole <= 4) ||
-                                (loggedUser.data.userRole < 4 && isProjectMember > 0) ||
                                 (loggedUser.data.userRole > 4 && loggedUser.data.projectId.length > 1)
                             ) ? ProjectList : NotAvailable
                         } />
-                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole < 3) ? ProjectDetails : NotAvailable} />
+                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole < 4) ? ProjectDetails : NotAvailable} />
                     </Switch>
                 }
                 {

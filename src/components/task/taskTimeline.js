@@ -21,7 +21,7 @@ export default class TaskTimeline extends React.Component {
 		this.state = {
 			count: {},
 			loading: "",
-			chart_height: 41
+			chart_height: 43
 		};
 
 		_.map([
@@ -48,12 +48,11 @@ export default class TaskTimeline extends React.Component {
 		let requestUrl = `/api/task?workstreamId=${workstream_id}&page=${page}&listType=timeline`;
 
 		getData(requestUrl, {}, (c) => {
-			const { chart_height } = { ...this.state };
 			const { task } = { ...this.props };
 			const { Timeline } = task;
 			const taskStack = [...Timeline, ...c.data.result];
 
-			this.setState({ loading: false, count: c.data.count, chart_height: chart_height * (taskStack).length }, () => {
+			this.setState({ loading: false, count: c.data.count, chart_height: 43 * (taskStack).length }, () => {
 				dispatch({
 					type: "SET_TASK_TIMELINE",
 					list: taskStack
@@ -130,7 +129,6 @@ export default class TaskTimeline extends React.Component {
 		const chartData = [...[chartLabel], ...taskData]
 		const currentPage = (typeof count.current_page != "undefined") ? count.current_page : 1;
 		const lastPage = (typeof count.last_page != "undefined") ? count.last_page : 1;
-
 		return (
 			<div class="card">
 				<div class="card-header">
@@ -148,13 +146,13 @@ export default class TaskTimeline extends React.Component {
 							{
 								((Timeline).length > 0) && <Chart
 									width={'100%'}
-									height={chart_height + 50}
+									height={chart_height}
 									chartType="Timeline"
 									loader={<Loading />}
 									data={chartData}
 									options={
 										{
-											forceIFrame: false
+											is3d: true
 										}
 									}
 								/>
