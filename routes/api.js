@@ -91,7 +91,7 @@ router.get('/downloadFolder', (req, res, next) => {
             let currentPath = []
             Document
                 .findAll({
-                    where: { folderId: folderId },
+                    where: { folderId: folderId, isDeleted: 0, isArchived: 0, isActive: 1 },
                     include: [{
                         model: Document,
                         as: 'document_folder',
