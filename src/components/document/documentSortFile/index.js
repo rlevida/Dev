@@ -40,28 +40,15 @@ class DocumentNew extends React.Component {
     }
 
     componentWillMount() {
-        this.state = { selectedFields: [], lastSelectedIndex: -1, selectedFieldsDragging: [] };
-        // this.handleItemSelection(-1, false, false);
+        this.state = { selectedFieldsDragging: [] };
     }
 
     moveTo(folderOj, documentArr) {
-        const { dispatch, loggedUser, match, document } = this.props;
-        const projectId = match.params.projectId;
-
-        const dataToSubmit = {
-            documentIds: documentArr.map((e) => { return e.id }),
-            data: {
-                folderId: folderOj.id,
-                projectId: projectId,
-                usersId: loggedUser.data.id,
-            }
-        };
-
-        putData(`/api/document/bulkUpdate/${folderOj.id}`, dataToSubmit, (c) => {
-            const { result } = { ...c.data }
-            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST_BULK", list: result })
-            showToast("success", "Successfully Updated.")
-        })
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_DOCUMENT_SELECTED_FIELDS", Selected: documentArr });
+        dispatch({ type: "SET_FOLDER_SELECTED", Selected: folderOj });
+        this.setState({ selectedFieldsDragging: [] });
+        $(`#confirmationModal`).modal("show");
     }
 
     fetchData(page) {
@@ -97,6 +84,7 @@ class DocumentNew extends React.Component {
     }
 
     handleItemSelection(index, cmdKey, shiftKey) {
+        const { dispatch, document } = { ...this.props }
         let selectedFields;
         const fields = this.props.document.List;
         const field = index < 0 ? '' : fields[index];
@@ -104,32 +92,33 @@ class DocumentNew extends React.Component {
         if (!cmdKey && !shiftKey) {
             selectedFields = [field];
         } else if (shiftKey) {
-            if (this.state.lastSelectedIndex >= index) {
-                selectedFields = [].concat.apply(this.state.selectedFields,
-                    fields.slice(index, this.state.lastSelectedIndex));
+            if (document.LastSelectedIndex >= index) {
+                selectedFields = [].concat.apply(document.SelectedFields,
+                    fields.slice(index, document.LastSelectedIndex));
             } else {
-                selectedFields = [].concat.apply(this.state.selectedFields,
-                    fields.slice(this.state.lastSelectedIndex + 1, index + 1));
+                selectedFields = [].concat.apply(document.SelectedFields,
+                    fields.slice(document.LastSelectedIndex + 1, index + 1));
             }
         } else if (cmdKey) {
-            const foundIndex = this.state.selectedFields.findIndex(f => f === field);
+            const foundIndex = document.SelectedFields.findIndex(f => f === field);
             // If found remove it to unselect it.
             if (foundIndex >= 0) {
                 selectedFields = [
-                    ...this.state.selectedFields.slice(0, foundIndex),
-                    ...this.state.selectedFields.slice(foundIndex + 1),
+                    ...document.SelectedFields.slice(0, foundIndex),
+                    ...document.SelectedFields.slice(foundIndex + 1),
                 ];
             } else {
-                selectedFields = [...this.state.selectedFields, field];
+                selectedFields = [...document.SelectedFields, field];
             }
         }
         const finalList = fields ? fields
             .filter(f => selectedFields.find(a => a === f)) : [];
-        this.setState({ selectedFields: finalList, lastSelectedIndex });
+        dispatch({ type: "SET_DOCUMENT_SELECTED_FIELDS", Selected: finalList, LastSelectedIndex: lastSelectedIndex });
     }
 
     handleSelectedFieldDragging(fields) {
-        this.setState({ selectedFieldsDragging: fields })
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_DOCUMENT_FIELDS_DRAGGING", Fields: fields })
     }
 
     render() {
@@ -168,10 +157,8 @@ class DocumentNew extends React.Component {
                                                             index={index}
                                                             key={index}
                                                             moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
-                                                            selectedFields={this.state.selectedFields}
                                                             handleSelection={this.handleItemSelection}
                                                             handleSelectedFieldDragging={this.handleSelectedFieldDragging}
-                                                            selectedFieldsDragging={this.state.selectedFieldsDragging}
                                                         />
                                                     )
                                                 })

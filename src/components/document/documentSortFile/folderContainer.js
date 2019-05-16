@@ -14,9 +14,10 @@ const itemSource = {
 }
 const itemTarget = {
     drop(props, monitor) {
+        const { document } = { ...props };
         const draggedItem = monitor.getItem()
         if (monitor.isOver({ shallow: true })) {
-            const item = props.selectedFields.length > 0 ? props.selectedFields : [draggedItem];
+            const item = document.SelectedFields.length > 0 ? document.SelectedFields : [draggedItem];
             props.moveTo(props.data, item);
         }
     }

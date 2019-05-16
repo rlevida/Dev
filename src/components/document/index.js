@@ -1,10 +1,8 @@
 import React from "react"
-import parallel from 'async/parallel';
 import { connect } from "react-redux"
-import { getData } from "../../globalFunction"
 import { Route, Switch } from 'react-router-dom';
-import DocumentViewer from "../document/documentViewer"
-import DocumentUpload from "../document/documentUpload"
+import DocumentViewer from "../document/modal/documentViewerModal";
+import DocumentUpload from "../document/documentUpload";
 import Form from "./form"
 import List from "./list"
 
