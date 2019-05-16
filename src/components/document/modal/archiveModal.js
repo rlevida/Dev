@@ -31,8 +31,8 @@ class ArchiveModal extends React.Component {
             actionType: "deleted", title: 'Document deleted'
         }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result })
-                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", Id: document.Selected.id });
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 showToast("success", "Successfully Archived.");
             } else {
                 showToast("error", "Delete failed. Please try again later.");
