@@ -41,17 +41,22 @@ class DocumentUpload extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, match, loggedUser } = this.props;
+        const { dispatch, document, match, loggedUser, project, workstream, folder } = this.props;
         const projectId = match.params.projectId;
         const selectedObj = { ...document.Selected, projectId: projectId, usersId: loggedUser.data.id };
 
         if (projectId) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
         }
-
-        this.fetchProjectList();
-        this.getWorkstreamList();
-        this.fetchFolderList();
+        if (_.isEmpty(project.Count)) {
+            this.fetchProjectList();
+        }
+        if (_.isEmpty(workstream.Count)) {
+            this.getWorkstreamList();
+        }
+        if (_.isEmpty(folder.Count)) {
+            this.fetchFolderList();
+        }
     }
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
@@ -170,7 +175,6 @@ class DocumentUpload extends React.Component {
                     }
                 }).filter((e) => { return e }).value();
                 // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
-                // dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 dispatch({ type: 'SET_DOCUMENT_FILES', Files: [] });
                 dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });

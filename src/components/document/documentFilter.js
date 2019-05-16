@@ -3,8 +3,8 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
 import { withRouter } from "react-router";
-import { getData, showToast, setDatePicker } from "../../globalFunction";
-import { Searchbar, DropDown, Loading } from "../../globalComponents";
+import { getData, } from "../../globalFunction";
+import { DropDown, Loading } from "../../globalComponents";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -26,21 +26,15 @@ let keyTimer = "";
 class DocumentFilter extends React.Component {
     constructor(props) {
         super(props);
-        _.map(["fetchWorkstreamList", "handleDropdown", "getWorkstreamList", "getTaskList"], (fn) => { this[fn] = this[fn].bind(this) });
-    }
-
-    componentDidMount() {
-        const { workstream, task } = { ...this.props };
-        if (_.isEmpty(workstream.Count)) {
-            this.getWorkstreamList()
-        }
-        if (_.isEmpty(task.Count)) {
-            this.getTaskList()
-        }
+        _.map(["fetchWorkstreamList", "handleDropdown", "getWorkstreamList", "getTaskList", "setTaskList"], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     handleDropdown(name, value) {
         const { dispatch } = { ...this.props };
+        if (name === "tagWorkstream") {
+            dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+            this.getTaskList(value, "");
+        }
         dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: value } });
     }
 
@@ -111,22 +105,25 @@ class DocumentFilter extends React.Component {
     setTaskList(options) {
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            this.getTaskList(options);
+            const { document } = { ...this.props };
+            this.getTaskList(document.Filter.tagWorkstream, options);
         }, 1500);
     }
 
-    getTaskList(options) {
-        const { dispatch, match } = this.props;
-        const projectId = match.params.projectId;
-        let fetchUrl = `/api/task?projectId=${projectId}&page=1`;
+    getTaskList(workstreamId, options) {
+        const { dispatch } = this.props;
+        let fetchUrl = `/api/task?workstreamId=${workstreamId}&page=1`;
+
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&task=${options}`;
         }
+
         getData(fetchUrl, {}, (c) => {
             const taskOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.task } })
                 .value();
             dispatch({ type: "SET_TASK_SELECT_LIST", List: taskOptions });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
         });
     }
 
@@ -227,7 +224,7 @@ class DocumentFilter extends React.Component {
                                     <DropDown
                                         id="workstream-options"
                                         options={task.SelectList}
-                                        onInputChange={this.getTaskList}
+                                        onInputChange={this.setTaskList}
                                         selected={tagTask}
                                         loading={true}
                                         isClearable={true}
@@ -235,7 +232,7 @@ class DocumentFilter extends React.Component {
                                             this.handleDropdown("tagTask", (e == null) ? null : e.value);
                                         }}
                                         required={true}
-                                        disabled={Loading === "SUBMITTING" ? true : false}
+                                        disabled={(tagWorkstream && task.Loading === "") ? false : true}
                                     />
                                 </div>
                             </div>
