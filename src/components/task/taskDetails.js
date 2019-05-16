@@ -47,7 +47,9 @@ export default class TaskDetails extends React.Component {
             "deleteDocument",
             "confirmDeleteDocument",
             "replyComment",
-            "getNextTimeLogs"
+            "getNextTimeLogs",
+            "renameDocument",
+            "editDocument"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -335,7 +337,7 @@ export default class TaskDetails extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser } = { ...this.props };
-        if (data.isRead) {
+        if ((data.isRead).length) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
             $(`#documentViewerModal`).modal('show')
         } else {
@@ -364,8 +366,9 @@ export default class TaskDetails extends React.Component {
     }
 
     confirmDeleteDocument() {
-        const { dispatch, document, task } = this.props;
-        deleteData(`/api/task/document/${document.Selected.id}?type=${document.Selected.type}`, {}, (c) => {
+        const { dispatch, document, task, loggedUser } = this.props;
+
+        deleteData(`/api/task/document/${document.Selected.id}?type=${document.Selected.type}&userId=${loggedUser.data.id}`, {}, (c) => {
             if (document.Selected.type == "Task Document") {
                 const taskDocument = _.filter(task.Selected.tag_task, (o) => {
                     return o.document.id != document.Selected.id;
@@ -374,13 +377,58 @@ export default class TaskDetails extends React.Component {
             } else {
                 const checklist = _.map(task.Selected.checklist, (o) => {
                     const checklistDocument = _.filter(o.tagDocuments, (o) => { return o.documentId != document.Selected.id });
+                    return {
+                        ...o,
+                        tagDocuments: checklistDocument,
+                        isCompleted: (checklistDocument.length > 0 && o.isDocument == 1) ? 1 : (checklistDocument.length == 0 && o.isDocument == 1) ? 0 : o.isCompleted
+                    }
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
+
+                if ((c.data.activity_logs).length > 0) {
+                    _.map(c.data.activity_logs, (o) => {
+                        dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
+                    });
+                }
+            }
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            showToast("success", "Task Document successfully deleted.");
+            $('#delete-document').modal("hide");
+        });
+    }
+
+    editDocument(value) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, file_name: (value.name).split('.').slice(0, -1).join('.') } });
+    }
+
+    renameDocument() {
+        const { document, loggedUser, task, dispatch } = this.props;
+        const renamedDocument = (document.Selected.file_name) + "." + (document.Selected.origin).split('.').pop();
+        const dataToBeSubmited = {
+            usersId: loggedUser.data.id,
+            origin: renamedDocument,
+            oldDocument: JSON.stringify(_.omit(document.Selected, ['file_name'])),
+            newDocument: JSON.stringify({ ...document.Selected, origin: renamedDocument }),
+            projectId: task.Selected.projectId
+        };
+        putData(`/api/document/rename/${document.Selected.id}`, dataToBeSubmited, (c) => {
+            if (document.Selected.type == "Task Document") {
+                const taskDocument = _.map(task.Selected.tag_task, (o) => {
+                    return o.document.id == document.Selected.id ? { ...o, document: JSON.parse(dataToBeSubmited.newDocument) } : o;
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
+            } else {
+                const checklist = _.map(task.Selected.checklist, (o) => {
+                    const checklistDocument = _.map(o.tagDocuments, (o) => {
+                        return o.documentId == document.Selected.id ? { ...o, document: JSON.parse(dataToBeSubmited.newDocument) } : o
+                    });
                     return { ...o, tagDocuments: checklistDocument, isCompleted: (checklistDocument.length > 0) ? 1 : 0 }
                 });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
             }
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
-            showToast("success", "Task Document successfully deleted.");
-            $('#delete-document').modal("hide");
+            showToast("success", "Document successfully updated.");
         });
     }
 
@@ -428,15 +476,18 @@ export default class TaskDetails extends React.Component {
                         name: o.document.origin,
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
-                        isRead: o.document.document_read.length,
+                        isRead: o.document.document_read,
                         user: o.document.user,
                         child: _(checklist)
-                            .filter((check) => { return check.id == o.checklistId })
+                            .filter((check) => {
+                                return _.filter(check.tagDocuments, (tagDoc) => { return tagDoc.document.id == o.document.id }).length > 0
+                            })
                             .map((o) => { return o.description })
                             .value()
                     };
                 })
             })
+            .uniqBy('id')
             .value();
         const taskDocuments = _(tag_task)
             .filter((o) => { return o.tagType == "document" })
@@ -447,7 +498,7 @@ export default class TaskDetails extends React.Component {
                     name: o.document.origin,
                     type: "Task Document",
                     dateAdded: o.document.dateAdded,
-                    isRead: o.document.document_read.length,
+                    isRead: o.document.document_read,
                     user: o.document.user
                 }
             })
@@ -777,26 +828,68 @@ export default class TaskDetails extends React.Component {
                                                                     const { id, origin, name, child = [], isRead, user, dateAdded } = params;
                                                                     const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                                    const editFilename = (typeof document.Selected.file_name != "undefined") ? document.Selected.file_name : "";
 
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb5 pd10 attachment">
-                                                                                <div>
+                                                                                {
+                                                                                    (typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) &&
+                                                                                    <div class="form-group mb5">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            required=""
+                                                                                            name="checklist"
+                                                                                            class="form-control"
+                                                                                            placeholder="Add Item"
+                                                                                            value={editFilename}
+                                                                                            onChange={(e) => {
+                                                                                                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ['file_name']: e.target.value } });
+                                                                                            }}
+                                                                                        />
+                                                                                    </div>
+                                                                                }
+                                                                                <div class={(typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) ? "hide" : ""}>
                                                                                     <p class="m0">
-                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead, user })}>
+                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead: isRead.length, user })}>
                                                                                             {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
                                                                                         </a>
                                                                                     </p>
                                                                                     <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
                                                                                 </div>
                                                                                 {
-                                                                                    (status != "Completed") &&
-                                                                                    <a
-                                                                                        href="javascript:void(0);"
-                                                                                        onClick={(e) => this.deleteDocument(params)}
-                                                                                        class="btn btn-action flex-right"
-                                                                                    >
-                                                                                        <span class="fa fa-trash"></span></a>
+                                                                                    (status != "Completed" && user.id == loggedUser.data.id) &&
+                                                                                    <div class="flex-right">
+                                                                                        {
+                                                                                            (
+                                                                                                typeof document.Selected.file_name == "undefined" || document.Selected.file_name == "" || document.Selected.id != params.id
+                                                                                            ) && <div>
+                                                                                                <a
+                                                                                                    href="javascript:void(0);"
+                                                                                                    onClick={(e) => this.deleteDocument(params)}
+                                                                                                    class="btn btn-action"
+                                                                                                >
+                                                                                                    <span class="fa fa-trash"></span></a>
+                                                                                                <a
+                                                                                                    href="javascript:void(0);"
+                                                                                                    onClick={(e) => this.editDocument(params)}
+                                                                                                    class="btn btn-action"
+                                                                                                >
+                                                                                                    <span class="fa fa-pencil"></span></a>
+                                                                                            </div>
+                                                                                        }
+                                                                                        {
+                                                                                            (typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) && <div>
+                                                                                                <a
+                                                                                                    href="javascript:void(0);"
+                                                                                                    onClick={(e) => this.renameDocument(params)}
+                                                                                                    class="btn btn-action"
+                                                                                                >
+                                                                                                    <span class="fa fa-check"></span></a>
+                                                                                            </div>
+                                                                                        }
+
+                                                                                    </div>
                                                                                 }
                                                                             </div>
                                                                             {
@@ -845,7 +938,7 @@ export default class TaskDetails extends React.Component {
                                                         </p>
                                                         <div id="checklist">
                                                             {
-                                                                _.map(checklist, (checklistObj, index) => {
+                                                                _.map(_.sortBy(checklist, function (o) { return new moment(o.dateAdded) }).reverse(), (checklistObj, index) => {
                                                                     const { id, isCompleted, isDocument, description, user, dateAdded } = { ...checklistObj };
                                                                     const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
@@ -885,9 +978,12 @@ export default class TaskDetails extends React.Component {
                                                             {
                                                                 (typeof checklist == "undefined" || (checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                             }
-                                                            <div class="mt20">
-                                                                <TaskChecklist />
-                                                            </div>
+                                                            {
+                                                                (status != "Completed") &&
+                                                                <div class="mt20">
+                                                                    <TaskChecklist />
+                                                                </div>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>

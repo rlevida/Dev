@@ -1271,10 +1271,49 @@ exports.post = {
                             .flatten()
                             .value();
                         const checklistPromise = _.map(checklistTag, ({ checklistId }) => {
-                            return new Promise(function (resolve, reject) {
-                                TaskChecklist.update({ isCompleted: 1 }, { where: { id: checklistId } }).then((o) => {
-                                    resolve(o);
-                                })
+                            return new Promise(async (resolve, reject) => {
+                                let oldChecklist = await TaskChecklist.findOne({ where: { id: checklistId } }).then((response) => { return response.toJSON() });
+                                let status = (oldChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+                                let oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
+
+                                if (status == "Not Complete") {
+                                    TaskChecklist.update({ isCompleted: 1 }, { where: { id: checklistId } }).then((o) => {
+                                        return TaskChecklist.findOne({ where: { id: checklistId } }).then((o) => { return o.toJSON() });
+                                    }).then((response) => {
+                                        const updateResponse = response;
+                                        status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
+
+                                        const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
+                                        const objectKeys = _.map(newObject, function (value, key) { return key; });
+
+                                        ActivityLogs.create({
+                                            usersId: userId,
+                                            linkType: "checklist",
+                                            linkId: updateResponse.id,
+                                            actionType: "completed",
+                                            old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                                            new: JSON.stringify({ checklist: newObject }),
+                                            title: oldTaskChecklist.description
+                                        }).then((resultArray) => {
+                                            const responseObj = resultArray.toJSON();
+                                            return ActivityLogs.findOne({
+                                                include: [
+                                                    {
+                                                        model: Users,
+                                                        as: 'user',
+                                                        attributes: ['firstName', 'lastName']
+                                                    }
+                                                ],
+                                                where: { id: responseObj.id }
+                                            })
+                                        }).then((response) => {
+                                            const responseObj = response.toJSON();
+                                            resolve({ checklist: updateResponse, activity_log: responseObj })
+                                        });
+                                    });
+                                } else {
+                                    resolve({ checklist: {}, activity_log: [] })
+                                }
                             })
                         });
 
@@ -1319,7 +1358,7 @@ exports.post = {
                                 ).map((mapObject) => {
                                     return mapObject.toJSON();
                                 }).then((o) => {
-                                    cb({ status: true, data: { result: o, type: "checklist" } });
+                                    cb({ status: true, data: { result: o, type: "checklist", activity_logs: _.flatten(_.map(values, ({ activity_log }) => { return activity_log })) } });
                                 })
                             });
                         });
@@ -2623,20 +2662,57 @@ exports.delete = {
                         documentId: params.id
                     }
                 }).then(() => {
-                    return ChecklistDocuments.findOne({ where: { documentId: params.id } })
-                }).then((response) => {
-                    const responseObj = response.toJSON();
-                    ChecklistDocuments.findAll({ where: { checklistId: responseObj.checklistId, isDeleted: 0 } })
-                        .map((o) => { return o.toJSON() })
-                        .then((response) => {
-                            if (response.length == 0) {
-                                TaskChecklist.update({ isCompleted: 0 }, { where: { id: responseObj.checklistId } }).then((o) => {
-                                    cb({ status: true, id: params.id });
-                                })
+                    return ChecklistDocuments.findAll({ where: { documentId: params.id } }).map((o) => { return o.toJSON() })
+                }).then(async (response) => {
+                    const checklistPromise = _.map(response, ({ checklistId }) => {
+                        return new Promise(async (resolve, reject) => {
+                            let oldChecklist = await TaskChecklist.findOne({ where: { id: checklistId } }).then((response) => { return response.toJSON() });
+                            let status = (oldChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+                            let oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
+
+                            if (status == "Complete") {
+                                TaskChecklist.update({ isCompleted: 0 }, { where: { id: checklistId } }).then((o) => {
+                                    return TaskChecklist.findOne({ where: { id: checklistId } }).then((o) => { return o.toJSON() });
+                                }).then((response) => {
+                                    const updateResponse = response;
+                                    status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
+
+                                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
+                                    const objectKeys = _.map(newObject, function (value, key) { return key; });
+
+                                    ActivityLogs.create({
+                                        usersId: queryString.userId,
+                                        linkType: "checklist",
+                                        linkId: updateResponse.id,
+                                        actionType: "modified",
+                                        old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                                        new: JSON.stringify({ checklist: newObject }),
+                                        title: oldTaskChecklist.description
+                                    }).then((resultArray) => {
+                                        const responseObj = resultArray.toJSON();
+                                        return ActivityLogs.findOne({
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: 'user',
+                                                    attributes: ['firstName', 'lastName']
+                                                }
+                                            ],
+                                            where: { id: responseObj.id }
+                                        })
+                                    }).then((response) => {
+                                        const responseObj = response.toJSON();
+                                        resolve({ checklist: updateResponse, activity_log: responseObj })
+                                    });
+                                });
                             } else {
-                                cb({ status: true, id: params.id });
+                                resolve({ checklist: {}, activity_log: [] })
                             }
                         })
+                    });
+                    Promise.all(checklistPromise).then(function (values) {
+                        cb({ status: true, data: { id: params.id, activity_logs: _.flatten(_.map(values, ({ activity_log }) => { return activity_log })) } });
+                    })
                 })
         } else {
             async.parallel({
