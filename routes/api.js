@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express();
 const models = require('../modelORM');
+var path = require('path')
 const {
     Document,
     Session
@@ -91,7 +92,7 @@ router.get('/downloadFolder', (req, res, next) => {
             let currentPath = []
             Document
                 .findAll({
-                    where: { folderId: folderId },
+                    where: { folderId: folderId, isDeleted: 0, isArchived: 0, isActive: 1 },
                     include: [{
                         model: Document,
                         as: 'document_folder',
@@ -111,7 +112,7 @@ router.get('/downloadFolder', (req, res, next) => {
                                 Key: global.environment + "/upload/" + e.name,
                             }, (err, data) => {
                                 if (err) {
-                                    console.log("Error in Uploading to AWS. [" + err + "]");
+                                    console.error("Error in Uploading to AWS. [" + err + "]");
                                 } else {
                                     fileStream.write(data.Body)
                                     fileStream.end()
@@ -134,39 +135,35 @@ router.get('/downloadFolder', (req, res, next) => {
                             allPath = currentPath
                             getFolderDocument(child)
                         } else {
-                            var tar = require("tar")
-                            var writeStream = tar.c(
-                                {
-                                    gzip: "gzip",
-                                },
-                                [`${parentDirectory}`]
-                            ).pipe(fs.createWriteStream(`${parentDirectory}.zip`))
-                            writeStream.on('finish', () => {
 
-                                var deleteFolderRecursive = function (path) { // remove temp files
-                                    if (fs.existsSync(path)) {
-                                        fs.readdirSync(path).forEach(function (file, index) {
-                                            var curPath = path + "/" + file;
-                                            if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                                                deleteFolderRecursive(curPath);
-                                            } else { // delete file
-                                                fs.unlinkSync(curPath);
+                            const folderPath = path.join(__dirname, '../');
+                            var zipFolder = require('zip-folder');
+
+                            zipFolder(`${folderPath}${parentDirectory}`, `${folderPath}${parentDirectory}.zip`, function (err) {
+                                if (err) {
+                                    console.error('oh no!', err);
+                                } else {
+                                    res.download(`${folderPath}${parentDirectory}.zip`, `${folderPath}${parentDirectory}.zip`, (c) => {
+                                        fs.unlink(`${folderPath}${parentDirectory}.zip`, (t) => { })
+                                        var deleteFolderRecursive = function (path) { // remove temp files
+                                            if (fs.existsSync(path)) {
+                                                fs.readdirSync(path).forEach(function (file, index) {
+                                                    var curPath = path + "/" + file;
+                                                    if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                                                        deleteFolderRecursive(curPath);
+                                                    } else { // delete file
+                                                        fs.unlinkSync(curPath);
+                                                    }
+                                                });
+                                                fs.rmdirSync(path);
                                             }
-                                        });
-                                        fs.rmdirSync(path);
-                                    }
-                                };
-                                deleteFolderRecursive(parentDirectory)
-
-
-                                res.download(`${parentDirectory}.zip`, `${parentDirectory}.zip`, (c) => {
-                                    fs.unlink(`${parentDirectory}.zip`, (t) => { })
-                                })
-                            })
+                                        };
+                                        deleteFolderRecursive(`${folderPath}${parentDirectory}`);
+                                    })
+                                }
+                            });
                         }
                     })
-
-
                 })
         }
         getFolderDocument(req.query.folder)

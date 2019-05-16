@@ -222,7 +222,7 @@ class DocumentList extends React.Component {
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
-            getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 const { result, count } = { ...c.data }
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
