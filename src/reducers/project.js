@@ -15,9 +15,21 @@ export default function reducer(state = {
     SelectedId: [],
     SelectList: [],
     Category: {
-        Client: [],
-        Internal: [],
-        Private: [],
+        Client: {
+            list: [],
+            count: {},
+            loading: "RETRIEVING"
+        },
+        Internal: {
+            list: [],
+            count: {},
+            loading: "RETRIEVING"
+        },
+        Private: {
+            list: [],
+            count: {},
+            loading: "RETRIEVING"
+        },
         Active: ""
     }
 }, action) {
@@ -84,7 +96,7 @@ export default function reducer(state = {
             return { ...state, SelectList: action.List }
         }
         case "SET_PROJECT_CATEGORY": {
-            return { ...state, Category: { ...state.Category, [action.category]: action.list } }
+            return { ...state, Category: { ...state.Category, [action.category]: action.data } }
         }
         case "SET_PROJECT_ACTIVE_CATEGORY": {
             return { ...state, Category: { ...state.Category, Active: action.ActiveCategory } }

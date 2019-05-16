@@ -799,7 +799,7 @@ exports.post = {
                         async.waterfall([
                             function (callback) {
                                 if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                                    const taskPromises = _.times(body.periodInstance - 1, (o) => {
+                                    const taskPromises = _.times(_.toNumber(body.periodInstance) - 1, (o) => {
                                         return new Promise((resolve) => {
                                             const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
                                             const newPeriodTask = {

@@ -111,7 +111,7 @@ exports.get = {
     index: async (req, cb) => {
         const associationArray = _.cloneDeep(associationFindAllStack);
         const queryString = req.query;
-        const limit = 10;
+        const limit = 5;
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -281,7 +281,10 @@ exports.get = {
                                 members: memberList
                             };
 
-                            if (typeof queryString.userId != "undefined" && queryString.userId != "") {
+                            if (
+                                (typeof queryString.userId != "undefined" && queryString.userId != "") &&
+                                (typeof queryString.updateCount == "undefined")
+                            ) {
                                 const conversationCount = new Promise((resolve) => {
                                     Conversation.findAndCountAll({
                                         where: {
@@ -399,7 +402,7 @@ exports.get = {
                 const projectResults = results.result;
                 const projectIds = _.map(projectResults, (projectResult) => { return projectResult.id });
                 const dueDate = queryString.dueDate || new Date();
-                const startMonth = moment(dueDate, 'YYYY-MM-DD').startOf('month').utc().format("YYYY-MM-DD HH:mm");
+                const startMonth = moment().startOf('year').utc().format("YYYY-MM-DD HH:mm");
                 const endMonth = moment(dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
 
                 try {

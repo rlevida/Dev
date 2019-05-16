@@ -1,9 +1,10 @@
 import React from "react";
 import _ from "lodash";
 import { Link } from 'react-router-dom';
-
 import { connect } from "react-redux";
+
 import { getData } from "../../globalFunction";
+import { Loading as LoadingComponent } from "../../globalComponents";
 
 @connect((store) => {
     return {
@@ -36,7 +37,7 @@ export default class ProfileProject extends React.Component {
         const { dispatch, loggedUser, project } = { ...this.props };
         const { List } = project;
 
-        let fetchUrl = `/api/project?page=${page}&userId=${loggedUser.data.id}`;
+        let fetchUrl = `/api/project?page=${page}&userId=${loggedUser.data.id}&updateCount=false`;
 
         if (loggedUser.data.userRole >= 3) {
             fetchUrl += `&userRole=${loggedUser.data.userRole}`
@@ -71,7 +72,6 @@ export default class ProfileProject extends React.Component {
                     projects: value
                 }))
             .value();
-
         return (
             <div>
                 <h4><strong>Project Involvement</strong></h4>
@@ -106,6 +106,9 @@ export default class ProfileProject extends React.Component {
                     }
                     {
                         ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0"><strong>No Records Found</strong></p>
+                    }
+                    {
+                        (project.Loading == "RETRIEVING" && (projectList).length > 0) && <LoadingComponent />
                     }
                 </div>
             </div>

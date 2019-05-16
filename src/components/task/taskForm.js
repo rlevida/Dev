@@ -125,7 +125,7 @@ export default class TaskForm extends React.Component {
 
     fetchProjectList(options) {
         const { dispatch, loggedUser } = { ...this.props };
-        let requestUrl = `/api/project?userId=${loggedUser.data.id}`;
+        let requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false`;
 
         if (loggedUser.data.userRole >= 3) {
             requestUrl += `&userRole=${loggedUser.data.userRole}`
@@ -203,7 +203,6 @@ export default class TaskForm extends React.Component {
     handleChange(e) {
         let { dispatch, task } = this.props
         let Selected = Object.assign({}, task.Selected)
-
         Selected[e.target.name] = e.target.value;
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
@@ -310,7 +309,7 @@ export default class TaskForm extends React.Component {
                 projectId: task.Selected.projectId || project.Selected.id,
                 workstreamId: task.Selected.workstreamId || workstream.Selected.id,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
-                periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
+                periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1 && typeof task.Selected.periodInstance != "undefined") ? task.Selected.periodInstance : (task.Selected.periodic == 1) ? 1 : 0,
                 status: (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null,
                 startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD HH:mm:ss') : null,
@@ -434,7 +433,7 @@ export default class TaskForm extends React.Component {
         let workstreamList = _.cloneDeep(workstream.SelectList);
         let assignedList = _.cloneDeep(users.SelectList);
         let approverList = _.cloneDeep(members.SelectList);
-        
+
         if (typeof task.Selected.id != "undefined") {
             const { project } = task.Selected.workstream;
             const userAssigned = _.find(task.Selected.task_members, ({ memberType }) => { return memberType == "assignedTo" });
@@ -459,7 +458,7 @@ export default class TaskForm extends React.Component {
         if (typeof workstream.Selected.id != "undefined") {
             workstreamList.push({ id: workstream.Selected.id, name: workstream.Selected.workstream });
         }
-        
+
         return (
             <div class="row" >
                 <div class="col-lg-12">
@@ -801,8 +800,20 @@ export default class TaskForm extends React.Component {
                                                 <div class="row">
                                                     <div class="col-lg-8 md-8 col-sm-8">
                                                         <div class="form-group">
+                                                            <label>Instance:<span class="text-red">*</span></label>
+                                                            <input min="1" max="10" type="number" name="periodInstance" required value={(typeof task.Selected.periodInstance == "undefined") ? "" : task.Selected.periodInstance} class="form-control" placeholder="Enter number instance" onChange={this.handleChange} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        {
+                                            (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
+                                                <div class="row">
+                                                    <div class="col-lg-8 md-8 col-sm-8">
+                                                        <div class="form-group">
                                                             <label>
-                                                                Recurring Every:<span class="text-red">*</span>
+                                                                Period:<span class="text-red">*</span>
                                                             </label>
                                                             <DropDown multiple={false}
                                                                 required={true}

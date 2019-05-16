@@ -107,7 +107,7 @@ export default class List extends React.Component {
         const { dispatch } = { ...this.props };
         const fromDate = moment().startOf('month').format("YYYY-MM-DD");
         const today = moment().subtract(1, "days").format("YYYY-MM-DD");
-        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, today] })}&page=1&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "lt", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}&page=1`;
 
         if (type == "project") {
             fetchUrl += `&projectId=${id}`

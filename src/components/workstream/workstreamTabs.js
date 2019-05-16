@@ -129,16 +129,16 @@ export default class WorkstreamTabs extends React.Component {
                                     />
                                 </div>
                                 <div class="bt">
-                                    <div class="mt20 mb40">
+                                    <div class="mt20 mb20">
                                         <TaskListCategory date="Today" workstream_id={workstream_id} />
                                     </div>
-                                    <div class="mb40">
+                                    <div class="mb20">
                                         <TaskListCategory date="This week" workstream_id={workstream_id} />
                                     </div>
-                                    <div class="mb40">
+                                    <div class="mb20">
                                         <TaskListCategory date="This month" workstream_id={workstream_id} />
                                     </div>
-                                    <div class="mb40">
+                                    <div>
                                         <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
                                     </div>
                                 </div>

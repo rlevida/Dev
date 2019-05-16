@@ -63,7 +63,6 @@ export default class TaskDocument extends React.Component {
                     }
                 });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
-                console.log(c.data.activity_logs)
                 if ((c.data.activity_logs).length > 0) {
                     _.map(c.data.activity_logs, (o) => {
                         dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
