@@ -122,21 +122,23 @@ export default function reducer(state = {
             return { ...state, Files: action.Files }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
-            const tempList = state.List.map((e, i) => {
+            const list = state.List.map((e, i) => {
                 if (e.id == action.UpdatedData.id) {
                     return action.UpdatedData
                 }
                 return e
             })
-            return { ...state, List: tempList }
+            return { ...state, List: list }
         }
         case "REMOVE_DOCUMENT_FROM_LIST": {
-            let tempList = state.List.filter((e) => { return e.id !== action.UpdatedData.id })
-            return { ...state, List: tempList }
-
+            let list = state.List.filter((e) => { return e.id !== action.UpdatedData.id })
+            return { ...state, List: list }
         }
-        case "REMOVE_DELETED_DOCUMENT_LIST": {
-            return { ...state, List: _.filter(state.List, (e) => { return e.id !== action.Id }) }
+        case "REMOVE_DOCUMENT_FROM_LIST_BULK": {
+            var list = _.filter(state.List, (p) => {
+                return !_.includes(action.list.map((e) => { return e.id }), p.id);
+            });
+            return { ...state, List: list }
         }
         case "CLEAR_DOCUMENT": {
             return { ...state, List: [], Selected: {} }

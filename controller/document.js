@@ -977,7 +977,7 @@ exports.put = {
         }
 
         sequence.create().then((nextThen) => {
-           nextThen()
+            nextThen()
             // if (typeof body.isDeleted !== 'undefined' && typeof body.isArchived !== 'undefined') {
             //     nextThen()
             // } else {
@@ -1346,6 +1346,92 @@ exports.put = {
         } catch (err) {
             cb({ status: false, message: err })
         }
+    },
+    bulkUpdate: (req, cb) => {
+        const body = req.body.data;
+        const ids = req.body.documentIds;
+
+        sequence.create().then(() => {
+            try {
+                Document
+                    .update(body, { where: { id: ids } })
+                    .then((res) => {
+                        async.parallel({
+                            result: (parallelCallback) => {
+                                try {
+                                    DocumentLink
+                                        .findAll({
+                                            where: { documentId: ids },
+                                            include: [{
+                                                model: Document,
+                                                as: 'document',
+                                                include: associationFindAllStack
+                                            }]
+                                        })
+                                        .then((findRes) => {
+                                            async.map(findRes, (f, mapCallback) => {
+                                                const documentObj = f.document.toJSON();
+                                                let returnDocumentObj = {
+                                                    ...documentObj,
+                                                    tagWorkstream: documentObj.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                                    tagTask: documentObj.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                                    tagNote: documentObj.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
+                                                    members: documentObj.share.map((e) => { return e.user }),
+                                                    share: JSON.stringify(documentObj.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                                    isRead: documentObj.document_read.length > 0 ? 1 : 0
+                                                }
+                                                mapCallback(null, _.omit(returnDocumentObj, "tagDocumentWorkstream", "tagDocumentTask"))
+                                            }, (err, mapCallbackResult) => {
+                                                parallelCallback(null, { data: mapCallbackResult })
+                                            })
+                                        })
+                                } catch (err) {
+                                    parallelCallback(err)
+                                }
+                            },
+                            // activityLogsDocument: (parallelCallback) => {
+                            //     try {
+                            //         const logData = {
+                            //             projectId: projectId,
+                            //             linkType: 'document',
+                            //             linkId: id,
+                            //             actionType: actionType,
+                            //             usersId: usersId,
+                            //             title: title,
+                            //             old: oldDocument,
+                            //             new: newDocument
+                            //         }
+                            //         ActivityLogsDocument
+                            //             .create(logData)
+                            //             .then((c) => {
+                            //                 ActivityLogsDocument
+                            //                     .findOne({
+                            //                         where: { id: c.id },
+                            //                         include: [{
+                            //                             model: Users,
+                            //                             as: 'user'
+                            //                         }]
+                            //                     })
+                            //                     .then((findRes) => {
+                            //                         parallelCallback(null, [findRes])
+                            //                     })
+                            //             })
+                            //     } catch (err) {
+                            //         parallelCallback(err)
+                            //     }
+                            // }
+                        }, (err, { result, activityLogsDocument }) => {
+                            if (err) {
+                                cb({ status: false, error: err })
+                            } else {
+                                cb({ status: true, data: { result: result.data, activityLogs: activityLogsDocument } })
+                            }
+                        })
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
+        })
     }
 }
 

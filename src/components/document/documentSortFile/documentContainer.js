@@ -7,9 +7,16 @@ import moment from "moment";
 
 const itemSource = {
     beginDrag(props) {
+        props.handleSelectedFieldDragging(props.selectedFields)
         return props.data
     },
+    endDrag(props, monitor) {
+        if (!monitor.didDrop()) {
+            props.handleSelectedFieldDragging([])
+        }
+    }
 }
+
 const itemTarget = {
     hover(props, monitor) {
         const draggedId = monitor.getItem().id
@@ -17,7 +24,7 @@ const itemTarget = {
         }
     },
     drop(props, monitor) {
-        const draggedItem = monitor.getItem()
+        props.handleSelectedFieldDragging([])
     }
 }
 
@@ -74,17 +81,25 @@ class FieldContainer extends React.Component {
         }
     }
 
+    handleRowSelection(cmdKey, shiftKey, index) {
+        this.props.handleSelection(index, cmdKey, shiftKey);
+    }
+
     render() {
         const { data, index } = this.props
         let tagCount = 0;
+        const selected = this.props.selectedFields.find(field => field.id === data.id);
+        const isDraggingField = this.props.selectedFieldsDragging.find(field => field.id === data.id);
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
-        const opacity = isDragging ? 0 : 1;
-        const backgroundColor = hovered ? 'lightblue' : '';
+        const opacity = isDraggingField || isDragging ? 0 : 1;
+        const backgroundColor = isDragging || selected ? 'lightblue' : '';
 
         return connectDragSource(
             connectDropTarget(
-                <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
+                <tr class="item" key={index} style={{ opacity, background: backgroundColor }}
+                    onClick={(e) => this.handleRowSelection(e.metaKey, e.shiftKey, this.props.index)}
+                >
                     <td class="document-name">
                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
                             < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>

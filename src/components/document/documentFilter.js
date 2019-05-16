@@ -147,7 +147,7 @@ class DocumentFilter extends React.Component {
                             </div>
                             <div class="col-md-6 col-sm-6 col-xs-12 pd0 ">
                                 <div class="button-action">
-                                    <input class="form-control mr10" type="text" value={fileName} onChange={(e) => this.handleDropdown('fileName', e.target.value)} placeholder="Enter File Name"></input>
+                                    <input class="form-control mr10" type="text" value={fileName} onChange={(e) => this.handleDropdown('fileName', e.target.value)} placeholder="Search File Name"></input>
                                     <a class="btn btn-default" onClick={() => this.handleFilter()}><i className="fa fa-search"></i></a>
                                 </div>
                             </div>
