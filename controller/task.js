@@ -1259,18 +1259,19 @@ exports.post = {
                 }, () => {
                     if (checklistStack.length > 0) {
                         const checklistTag = _(documentUpload)
-                            .map(({ id }) => {
+                            .map((responseObj) => {
                                 return _.map(checklistStack, ({ value }) => {
                                     return {
                                         taskId,
                                         checklistId: value,
-                                        documentId: id
+                                        document: responseObj
                                     }
                                 })
                             })
                             .flatten()
                             .value();
-                        const checklistPromise = _.map(checklistTag, ({ checklistId }) => {
+
+                        const checklistPromise = _.map(checklistTag, ({ checklistId, document }) => {
                             return new Promise(async (resolve, reject) => {
                                 let oldChecklist = await TaskChecklist.findOne({ where: { id: checklistId } }).then((response) => { return response.toJSON() });
                                 let status = (oldChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
@@ -1285,31 +1286,47 @@ exports.post = {
 
                                         const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
                                         const objectKeys = _.map(newObject, function (value, key) { return key; });
+                                        const bulkActivities = [
+                                            {
+                                                usersId: userId,
+                                                linkType: "checklist",
+                                                linkId: updateResponse.id,
+                                                actionType: "completed",
+                                                old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                                                new: JSON.stringify({ checklist: newObject }),
+                                                title: oldTaskChecklist.description
+                                            },
+                                            {
+                                                usersId: userId,
+                                                linkType: "document",
+                                                linkId: document.id,
+                                                actionType: "created",
+                                                new: JSON.stringify({ document: _.omit(document, ["dateAdded", "dateUpdated"]) }),
+                                                title: document.origin
+                                            },
+                                        ];
 
-                                        ActivityLogs.create({
-                                            usersId: userId,
-                                            linkType: "checklist",
-                                            linkId: updateResponse.id,
-                                            actionType: "completed",
-                                            old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                                            new: JSON.stringify({ checklist: newObject }),
-                                            title: oldTaskChecklist.description
-                                        }).then((resultArray) => {
-                                            const responseObj = resultArray.toJSON();
-                                            return ActivityLogs.findOne({
-                                                include: [
-                                                    {
-                                                        model: Users,
-                                                        as: 'user',
-                                                        attributes: ['firstName', 'lastName']
-                                                    }
-                                                ],
-                                                where: { id: responseObj.id }
+                                        ActivityLogs
+                                            .bulkCreate(bulkActivities)
+                                            .map(({ id }) => {
+                                                return id;
                                             })
-                                        }).then((response) => {
-                                            const responseObj = response.toJSON();
-                                            resolve({ checklist: updateResponse, activity_log: responseObj })
-                                        });
+                                            .then((activityResponse) => {
+                                                return ActivityLogs.findAll({
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: 'user',
+                                                            attributes: ['firstName', 'lastName']
+                                                        }
+                                                    ],
+                                                    where: { id: activityResponse }
+                                                })
+                                            }).map((response) => {
+                                                return response.toJSON();
+                                            }).then((response) => {
+                                                resolve({ checklist: updateResponse, activity_log: response })
+                                            });
                                     });
                                 } else {
                                     resolve({ checklist: {}, activity_log: [] })
@@ -1318,7 +1335,9 @@ exports.post = {
                         });
 
                         Promise.all(checklistPromise).then(function (values) {
-                            ChecklistDocuments.bulkCreate(checklistTag).then((o) => {
+                            ChecklistDocuments.bulkCreate(_.map(checklistTag, (o) => {
+                                return { ..._.omit(o, ['document']), documentId: o.document.id }
+                            })).then((o) => {
                                 TaskChecklist.findAll(
                                     {
                                         where: {
@@ -1400,9 +1419,42 @@ exports.post = {
                                             }
                                         ]
                                     }
-                                ).then((o) => {
-                                    cb({ status: true, data: { result: o, type: "document" } });
-                                })
+                                )
+                                    .map((o) => { return o.toJSON() })
+                                    .then((o) => {
+                                        const documentResponse = o;
+                                        const documentActivity = _.map(documentResponse, (o) => {
+                                            return new Promise((resolve) => {
+                                                ActivityLogs.create({
+                                                    usersId: userId,
+                                                    linkType: "document",
+                                                    linkId: o.document.id,
+                                                    actionType: "created",
+                                                    new: JSON.stringify({ document: _.omit(o.document, ["dateAdded", "dateUpdated"]) }),
+                                                    title: o.document.origin
+                                                }).then((response) => {
+                                                    const responseObj = response.toJSON();
+                                                    return ActivityLogs.findOne({
+                                                        include: [
+                                                            {
+                                                                model: Users,
+                                                                as: 'user',
+                                                                attributes: ['firstName', 'lastName']
+                                                            }
+                                                        ],
+                                                        where: { id: responseObj.id }
+                                                    })
+                                                }).then((response) => {
+                                                    const responseObj = response.toJSON();
+                                                    resolve(responseObj)
+                                                });
+                                            });
+                                        });
+
+                                        Promise.all(documentActivity).then((promiseResponse) => {
+                                            cb({ status: true, data: { result: documentResponse, type: "document", activity_logs: promiseResponse } });
+                                        });
+                                    })
                             });
                     }
                 })
@@ -2679,31 +2731,43 @@ exports.delete = {
 
                                     const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
                                     const objectKeys = _.map(newObject, function (value, key) { return key; });
+                                    const bulkActivities = [
+                                        {
+                                            usersId: queryString.userId,
+                                            linkType: "document",
+                                            linkId: params.id,
+                                            actionType: "deleted"
+                                        },
+                                        {
+                                            usersId: queryString.userId,
+                                            linkType: "checklist",
+                                            linkId: updateResponse.id,
+                                            actionType: "modified",
+                                            old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                                            new: JSON.stringify({ checklist: newObject }),
+                                            title: oldTaskChecklist.description
+                                        }
+                                    ];
 
-                                    ActivityLogs.create({
-                                        usersId: queryString.userId,
-                                        linkType: "checklist",
-                                        linkId: updateResponse.id,
-                                        actionType: "modified",
-                                        old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                                        new: JSON.stringify({ checklist: newObject }),
-                                        title: oldTaskChecklist.description
-                                    }).then((resultArray) => {
-                                        const responseObj = resultArray.toJSON();
-                                        return ActivityLogs.findOne({
-                                            include: [
-                                                {
-                                                    model: Users,
-                                                    as: 'user',
-                                                    attributes: ['firstName', 'lastName']
-                                                }
-                                            ],
-                                            where: { id: responseObj.id }
+                                    ActivityLogs
+                                        .bulkCreate(bulkActivities)
+                                        .map(({ id }) => {
+                                            return id
                                         })
-                                    }).then((response) => {
-                                        const responseObj = response.toJSON();
-                                        resolve({ checklist: updateResponse, activity_log: responseObj })
-                                    });
+                                        .then((activityResponse) => {
+                                            return ActivityLogs.findAll({
+                                                include: [
+                                                    {
+                                                        model: Users,
+                                                        as: 'user',
+                                                        attributes: ['firstName', 'lastName']
+                                                    }
+                                                ],
+                                                where: { id: activityResponse }
+                                            }).map((o) => { return o.toJSON() })
+                                        }).then((responseObj) => {
+                                            resolve({ checklist: updateResponse, activity_log: responseObj })
+                                        });
                                 });
                             } else {
                                 resolve({ checklist: {}, activity_log: [] })
@@ -2728,17 +2792,36 @@ exports.delete = {
                         });
                 },
                 document: (parallelCallback) => {
-                    Document.update({ isDeleted: 1 },
+                    Document.update({ isActive: 0 },
                         {
                             where: {
                                 id: params.id
                             }
                         }).then(() => {
-                            parallelCallback(null);
+                            ActivityLogs.create({
+                                usersId: queryString.userId,
+                                linkType: "document",
+                                linkId: params.id,
+                                actionType: "deleted"
+                            }).then((resultArray) => {
+                                const responseObj = resultArray.toJSON();
+                                return ActivityLogs.findOne({
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: 'user',
+                                            attributes: ['firstName', 'lastName']
+                                        }
+                                    ],
+                                    where: { id: responseObj.id }
+                                })
+                            }).then((o) => {
+                                parallelCallback(null, o.toJSON());
+                            });
                         });
                 }
-            }, () => {
-                cb({ status: true, id: params.id });
+            }, (err, result) => {
+                cb({ status: true, data: { id: params.id, activity_logs: [result.document] } });
             })
         }
     }

@@ -34,6 +34,12 @@ exports.get = {
                         linkType: "checklist"
                     },
                     {
+                        linkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT tag.tagTypeId FROM tag WHERE linkId = ${queryString.taskId} AND linkType="task" AND tagType="document")`)
+                        },
+                        linkType: "document"
+                    },
+                    {
                         [Sequelize.Op.and]: [
                             {
                                 linkId: queryString.taskId
@@ -72,10 +78,10 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    ActivityLogs.findAll({ 
-                        ...options, 
-                        where: whereObj, 
-                        order: [['dateAdded', 'DESC']] 
+                    ActivityLogs.findAll({
+                        ...options,
+                        where: whereObj,
+                        order: [['dateAdded', 'DESC']]
                     }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {

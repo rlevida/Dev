@@ -241,7 +241,12 @@ export default class TaskDetails extends React.Component {
         } else {
             const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
             return (
-                <p class="ml10 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + ` ${(linkTypeName == "task") ? "the" : "a"} ` + linkTypeName}. {date}</p>
+                <div>
+                    <p class="ml10 mt10">
+                        <strong>{user.firstName + " " + user.lastName + " "}</strong>
+                        {actionType + ` ${(linkTypeName == "task") ? "the" : "a"} ` + linkTypeName}. {date}
+                    </p>
+                </div>
             )
         }
     }
@@ -337,16 +342,22 @@ export default class TaskDetails extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser } = { ...this.props };
-        if ((data.isRead).length) {
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-            $(`#documentViewerModal`).modal('show')
-        } else {
-            const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
-            postData(`/api/document/read`, dataToSubmit, (ret) => {
-                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
+
+            if ((data.isRead).length) {
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                 $(`#documentViewerModal`).modal('show')
-            });
-        }
+            } else {
+                const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
+                postData(`/api/document/read`, dataToSubmit, (ret) => {
+                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                    $(`#documentViewerModal`).modal('show')
+                });
+            }
+
+        });
     }
 
     deleteSubtask(id) {
@@ -384,12 +395,12 @@ export default class TaskDetails extends React.Component {
                     }
                 });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
-
-                if ((c.data.activity_logs).length > 0) {
-                    _.map(c.data.activity_logs, (o) => {
-                        dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
-                    });
-                }
+            }
+            
+            if ((c.data.activity_logs).length > 0) {
+                _.map(c.data.activity_logs, (o) => {
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
+                });
             }
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
             showToast("success", "Task Document successfully deleted.");
@@ -834,7 +845,7 @@ export default class TaskDetails extends React.Component {
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb5 pd10 attachment">
                                                                                 {
-                                                                                    (typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) &&
+                                                                                    (typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) &&
                                                                                     <div class="form-group mb5">
                                                                                         <input
                                                                                             type="text"
@@ -849,7 +860,7 @@ export default class TaskDetails extends React.Component {
                                                                                         />
                                                                                     </div>
                                                                                 }
-                                                                                <div class={(typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) ? "hide" : ""}>
+                                                                                <div class={(typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) ? "hide" : ""}>
                                                                                     <p class="m0">
                                                                                         <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead: isRead.length, user })}>
                                                                                             {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
@@ -862,7 +873,7 @@ export default class TaskDetails extends React.Component {
                                                                                     <div class="flex-right">
                                                                                         {
                                                                                             (
-                                                                                                typeof document.Selected.file_name == "undefined" || document.Selected.file_name == "" || document.Selected.id != params.id
+                                                                                                typeof document.Selected.file_name == "undefined" || document.Selected.id != params.id
                                                                                             ) && <div>
                                                                                                 <a
                                                                                                     href="javascript:void(0);"
@@ -879,7 +890,7 @@ export default class TaskDetails extends React.Component {
                                                                                             </div>
                                                                                         }
                                                                                         {
-                                                                                            (typeof document.Selected.file_name != "undefined" && document.Selected.file_name != "" && document.Selected.id == params.id) && <div>
+                                                                                            (typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) && <div>
                                                                                                 <a
                                                                                                     href="javascript:void(0);"
                                                                                                     onClick={(e) => this.renameDocument(params)}

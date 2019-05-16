@@ -63,7 +63,7 @@ export default class TaskDocument extends React.Component {
                     }
                 });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
-
+                console.log(c.data.activity_logs)
                 if ((c.data.activity_logs).length > 0) {
                     _.map(c.data.activity_logs, (o) => {
                         dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
@@ -71,10 +71,17 @@ export default class TaskDocument extends React.Component {
                 }
             } else {
                 const currentDocumentlist = task.Selected.tag_task;
+
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: { ...task.Selected, tag_task: [...currentDocumentlist, ...c.data.result] }
                 });
+
+                if ((c.data.activity_logs).length > 0) {
+                    _.map(c.data.activity_logs, (o) => {
+                        dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
+                    });
+                }
             }
 
             $(`#task-documents`).modal('hide');
@@ -114,7 +121,7 @@ export default class TaskDocument extends React.Component {
                     <div class="form-group">
                         <label for="email">Document:<span class="text-red">*</span></label>
                         <Dropzone
-                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
+                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt"
                             onDrop={this.onDrop}
                             class="document-file-upload mb10"
                             id="task-document"
