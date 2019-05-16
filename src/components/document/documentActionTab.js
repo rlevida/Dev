@@ -30,10 +30,6 @@ class DocumentActionTab extends React.Component {
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
-    componentDidMount() {
-        this.getWorkstreamList();
-    }
-
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser, folder, match, document } = { ...this.props };
         const projectId = match.params.projectId;
