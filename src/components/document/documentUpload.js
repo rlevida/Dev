@@ -170,7 +170,6 @@ class DocumentUpload extends React.Component {
                     }
                 }).filter((e) => { return e }).value();
                 // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
-                // dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 dispatch({ type: 'SET_DOCUMENT_FILES', Files: [] });
                 dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });

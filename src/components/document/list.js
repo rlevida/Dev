@@ -9,6 +9,7 @@ import DeleteModal from "../document/modal/deleteModal";
 import ArchiveModal from "../document/modal/archiveModal";
 import DocumentList from "../document/documentList";
 import DocumentFilter from "../document/documentFilter";
+import ConfirmationModal from "../document/modal/confirmationModal";
 import _ from "lodash";
 import { connect } from "react-redux";
 
@@ -43,6 +44,7 @@ class List extends React.Component {
                 <FolderModal />
                 <DeleteModal />
                 <ArchiveModal />
+                <ConfirmationModal />
             </div >
         )
     }

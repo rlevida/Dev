@@ -7,7 +7,8 @@ import moment from "moment";
 
 const itemSource = {
     beginDrag(props) {
-        props.handleSelectedFieldDragging(props.selectedFields)
+        const { document } = { ...props }
+        props.handleSelectedFieldDragging(document.SelectedFields)
         return props.data
     },
     endDrag(props, monitor) {
@@ -86,10 +87,11 @@ class FieldContainer extends React.Component {
     }
 
     render() {
-        const { data, index } = this.props
+        const { data, index, document } = { ...this.props }
+        const { SelectedFields, SelectedFieldsDragging } = { ...document };
         let tagCount = 0;
-        const selected = this.props.selectedFields.find(field => field.id === data.id);
-        const isDraggingField = this.props.selectedFieldsDragging.find(field => field.id === data.id);
+        const selected = SelectedFields.find(field => field.id === data.id);
+        const isDraggingField = SelectedFieldsDragging.find(field => field.id === data.id);
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDraggingField || isDragging ? 0 : 1;
