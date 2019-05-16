@@ -1,5 +1,5 @@
 import React from "react";
-import { postData, putData, showToast, deleteData } from '../../../globalFunction'
+import { postData } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
@@ -7,8 +7,14 @@ import moment from "moment";
 
 const itemSource = {
     beginDrag(props) {
+        props.handleSelectedFieldDragging(props.selectedFields)
         return props.data
     },
+    endDrag(props, monitor) {
+        if (!monitor.didDrop()) {
+            props.handleSelectedFieldDragging([])
+        }
+    }
 }
 
 const itemTarget = {
@@ -18,7 +24,7 @@ const itemTarget = {
         }
     },
     drop(props, monitor) {
-        const draggedItem = monitor.getItem()
+        props.handleSelectedFieldDragging([])
     }
 }
 
@@ -83,10 +89,11 @@ class FieldContainer extends React.Component {
         const { data, index } = this.props
         let tagCount = 0;
         const selected = this.props.selectedFields.find(field => field.id === data.id);
+        const isDraggingField = this.props.selectedFieldsDragging.find(field => field.id === data.id);
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
-        const opacity = isDragging  && selected ? 0 : 1;
-        const backgroundColor = selected ? 'lightblue' : '';
+        const opacity = isDraggingField || isDragging ? 0 : 1;
+        const backgroundColor = isDragging || selected ? 'lightblue' : '';
 
         return connectDragSource(
             connectDropTarget(

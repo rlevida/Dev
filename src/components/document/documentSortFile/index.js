@@ -35,28 +35,31 @@ class DocumentNew extends React.Component {
         this.state = {
             order: 'asc',
         }
-        this.handleItemSelection = this.handleItemSelection.bind(this)
+        this.handleItemSelection = this.handleItemSelection.bind(this);
+        this.handleSelectedFieldDragging = this.handleSelectedFieldDragging.bind(this);
     }
 
     componentWillMount() {
-        this.state = { selectedFields: [], lastSelectedIndex: -1 };
+        this.state = { selectedFields: [], lastSelectedIndex: -1, selectedFieldsDragging: [] };
         // this.handleItemSelection(-1, false, false);
     }
 
-    moveTo(folderOj, documentObj) {
+    moveTo(folderOj, documentArr) {
         const { dispatch, loggedUser, match, document } = this.props;
         const projectId = match.params.projectId;
+
         const dataToSubmit = {
-            origin: documentObj.origin,
-            status: folderOj.status,
-            folderId: folderOj.id,
-            projectId: projectId,
-            usersId: loggedUser.data.id,
+            documentIds: documentArr.map((e) => { return e.id }),
+            data: {
+                folderId: folderOj.id,
+                projectId: projectId,
+                usersId: loggedUser.data.id,
+            }
         };
 
-        putData(`/api/document/${documentObj.id}`, dataToSubmit, (c) => {
+        putData(`/api/document/bulkUpdate/${folderOj.id}`, dataToSubmit, (c) => {
             const { result } = { ...c.data }
-            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result })
+            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST_BULK", list: result })
             showToast("success", "Successfully Updated.")
         })
     }
@@ -125,6 +128,10 @@ class DocumentNew extends React.Component {
         this.setState({ selectedFields: finalList, lastSelectedIndex });
     }
 
+    handleSelectedFieldDragging(fields) {
+        this.setState({ selectedFieldsDragging: fields })
+    }
+
     render() {
         const { document, folder } = { ...this.props };
         const { Count } = { ...document };
@@ -163,6 +170,8 @@ class DocumentNew extends React.Component {
                                                             moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
                                                             selectedFields={this.state.selectedFields}
                                                             handleSelection={this.handleItemSelection}
+                                                            handleSelectedFieldDragging={this.handleSelectedFieldDragging}
+                                                            selectedFieldsDragging={this.state.selectedFieldsDragging}
                                                         />
                                                     )
                                                 })
@@ -194,7 +203,12 @@ class DocumentNew extends React.Component {
                                         ((folder.List).length > 0) && <div>
                                             {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
                                                 return (
-                                                    <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                                                    <FolderContainer
+                                                        data={data}
+                                                        moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)}
+                                                        key={index}
+                                                        selectedFields={this.state.selectedFields}
+                                                    />
                                                 )
                                             })}
                                         </div>

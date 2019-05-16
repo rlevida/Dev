@@ -1,13 +1,9 @@
 import React from "react";
-import { Link } from 'react-router-dom';
-import { displayDateMD, getData, postData, putData, showToast, deleteData } from '../../../globalFunction'
+import { getData } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
 
-var Collapse = require('rc-collapse');
-var Panel = Collapse.Panel;
-var hoveredId = ''
 import Container from "./folderContainer"
 // require('rc-collapse/assets/index.css');
 
@@ -20,7 +16,8 @@ const itemTarget = {
     drop(props, monitor) {
         const draggedItem = monitor.getItem()
         if (monitor.isOver({ shallow: true })) {
-            props.moveTo(props.data, draggedItem)
+            const item = props.selectedFields.length > 0 ? props.selectedFields : [draggedItem];
+            props.moveTo(props.data, item);
         }
     }
 }
@@ -56,7 +53,7 @@ class FieldContainer extends React.Component {
             hoveredItem: ""
         }
     }
-  
+
     getNestedChildren(arr, parent, dataObj) {
         var out = []
         for (var i in arr) {

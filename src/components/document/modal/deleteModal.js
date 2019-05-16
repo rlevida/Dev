@@ -58,7 +58,7 @@ class DeleteModal extends React.Component {
                     if (last_page > current_page && document.List.length < 10) {
                         this.fetchData();
                     } else {
-                        dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", Id: document.Selected.id });
+                        dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: document.Selected.id });
                         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                     }
                     showToast("success", "Successfully Deleted.");

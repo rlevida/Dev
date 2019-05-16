@@ -88,7 +88,7 @@ class DocumentViewerComponent extends React.Component {
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${id}`, { status: 'archived' }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id: id })
+                    dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: id })
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: 'List' })
                     dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
                     showToast("success", "Successfully Deleted.");
