@@ -88,7 +88,8 @@
     "socket.io-cookie-parser": "^1.0.0",
     "tar": "^4.4.4",
     "toastr": "^2.1.2",
-    "uuid-token-generator": "^1.0.0"
+    "uuid-token-generator": "^1.0.0",
+    "zip-folder": "^1.0.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-regenerator": "^7.3.4",
