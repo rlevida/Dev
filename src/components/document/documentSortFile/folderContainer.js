@@ -52,15 +52,11 @@ const itemTarget = {
 class FieldContainer extends React.Component {
     constructor(props) {
         super(props)
-
         this.state = {
             hoveredItem: ""
         }
     }
-    componentDidMount() {
-
-    }
-
+  
     getNestedChildren(arr, parent, dataObj) {
         var out = []
         for (var i in arr) {

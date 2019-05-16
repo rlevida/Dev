@@ -98,74 +98,75 @@ router.get('/downloadFolder', (req, res, next) => {
                         where: { type: 'folder' },
                         required: false
                     }]
-                })
-                .map((ret) => {
-
-                    if (ret.type == 'document') {
-                        let fileStream = fs.createWriteStream(
-                            `${allPath.filter((d) => {
-                                return d.slice(d.lastIndexOf('/') + 1) === `${ret.document_folder.origin}${ret.document_folder.documentNameCount > 0 ? `(${ret.document_folder.documentNameCount})` : ''}`
-                            })[0]}/${ret.origin}${ret.documentNameCount > 0 ? `(${ret.documentNameCount})` : ''}`
-                        );
-                        s3.getObject({
-                            Bucket: global.AWSBucket,
-                            Key: global.environment + "/upload/" + ret.name,
-                        }, (err, data) => {
-                            if (err) {
-                                console.log("Error in Uploading to AWS. [" + err + "]");
-                            } else {
-                                fileStream.write(data.Body)
-                                fileStream.end()
-                            }
-                        });
-                    }
-                    if (ret.type == 'folder') {
-                        let directory = `${allPath.filter((d) => {
-                            return d.slice(d.lastIndexOf('/') + 1) === `${ret.document_folder.origin}${ret.document_folder.documentNameCount > 0 ? `(${ret.document_folder.documentNameCount})` : ''}`
-                        })[0]}/${ret.origin}${ret.documentNameCount > 0 ? `(${ret.documentNameCount})` : ''}`
-                        currentPath.push(directory)
-                        fs.mkdir(directory, function (e) {
-                        })
-                    }
-
-                    return ret.toJSON()
-                })
-                .then((ret) => {
-                    let child = ret.filter((e) => { return e.type == 'folder' }).map((e) => { return e.id })
-                    if (child.length > 0) {
-                        allPath = currentPath
-                        getFolderDocument(child)
-                    } else {
-                        var tar = require("tar")
-                        var writeStream = tar.c(
-                            {
-                                gzip: "gzip",
-                            },
-                            [`${parentDirectory}`]
-                        ).pipe(fs.createWriteStream(`${parentDirectory}.tgz`))
-                        writeStream.on('finish', () => {
-
-                            var deleteFolderRecursive = function (path) { // remove temp files
-                                if (fs.existsSync(path)) {
-                                    fs.readdirSync(path).forEach(function (file, index) {
-                                        var curPath = path + "/" + file;
-                                        if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                                            deleteFolderRecursive(curPath);
-                                        } else { // delete file
-                                            fs.unlinkSync(curPath);
-                                        }
-                                    });
-                                    fs.rmdirSync(path);
+                }).then((ret) => {
+                    async.map(ret, (e, mapCallback) => {
+                        if (e.type == 'document') {
+                            let fileStream = fs.createWriteStream(
+                                `${allPath.filter((d) => {
+                                    return d.slice(d.lastIndexOf('/') + 1) === `${e.document_folder.origin}${e.document_folder.documentNameCount > 0 ? `(${e.document_folder.documentNameCount})` : ''}`
+                                })[0]}/${e.origin}${e.documentNameCount > 0 ? `(${e.documentNameCount})` : ''}`
+                            );
+                            s3.getObject({
+                                Bucket: global.AWSBucket,
+                                Key: global.environment + "/upload/" + e.name,
+                            }, (err, data) => {
+                                if (err) {
+                                    console.log("Error in Uploading to AWS. [" + err + "]");
+                                } else {
+                                    fileStream.write(data.Body)
+                                    fileStream.end()
+                                    mapCallback(null)
                                 }
-                            };
-                            deleteFolderRecursive(parentDirectory)
-
-
-                            res.download(`${parentDirectory}.tgz`, `${parentDirectory}.tgz`, (c) => {
-                                fs.unlink(`${parentDirectory}.tgz`, (t) => { })
+                            });
+                        }
+                        if (e.type == 'folder') {
+                            let directory = `${allPath.filter((d) => {
+                                return d.slice(d.lastIndexOf('/') + 1) === `${e.document_folder.origin}${e.document_folder.documentNameCount > 0 ? `(${e.document_folder.documentNameCount})` : ''}`
+                            })[0]}/${e.origin}${e.documentNameCount > 0 ? `(${e.documentNameCount})` : ''}`
+                            currentPath.push(directory)
+                            fs.mkdir(directory, function (e) {
+                                mapCallback(null)
                             })
-                        })
-                    }
+                        }
+                    }, () => {
+                        let child = ret.filter((e) => { return e.type == 'folder' }).map((e) => { return e.id })
+                        if (child.length > 0) {
+                            allPath = currentPath
+                            getFolderDocument(child)
+                        } else {
+                            var tar = require("tar")
+                            var writeStream = tar.c(
+                                {
+                                    gzip: "gzip",
+                                },
+                                [`${parentDirectory}`]
+                            ).pipe(fs.createWriteStream(`${parentDirectory}.zip`))
+                            writeStream.on('finish', () => {
+
+                                var deleteFolderRecursive = function (path) { // remove temp files
+                                    if (fs.existsSync(path)) {
+                                        fs.readdirSync(path).forEach(function (file, index) {
+                                            var curPath = path + "/" + file;
+                                            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                                                deleteFolderRecursive(curPath);
+                                            } else { // delete file
+                                                fs.unlinkSync(curPath);
+                                            }
+                                        });
+                                        fs.rmdirSync(path);
+                                    }
+                                };
+                                deleteFolderRecursive(parentDirectory)
+
+
+                                res.download(`${parentDirectory}.zip`, `${parentDirectory}.zip`, (c) => {
+                                    fs.unlink(`${parentDirectory}.zip`, (t) => { })
+                                })
+                            })
+                        }
+                    })
+
+
                 })
         }
         getFolderDocument(req.query.folder)

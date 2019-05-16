@@ -49,10 +49,9 @@ class DocumentList extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
-        const { status, tagWorkstream } = document.Filter;
+        const { ActiveTab } = { ...document };
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-
-        if (document.Filter.status === "trash") {
+        if (ActiveTab === "trash") {
             requestUrl += `&isActive=0`
         } else {
             requestUrl += `&isActive=1`;
@@ -60,19 +59,19 @@ class DocumentList extends React.Component {
                 requestUrl += `&folderId=${folder.Selected.id}`;
             }
 
-            if (status === 'active' || status === 'sort') {
+            if (ActiveTab === 'active' || status === 'sort') {
                 requestUrl += `&type=document&folderId=null`;
             }
 
-            if (status === 'library') {
+            if (ActiveTab === 'library') {
                 requestUrl += `&folderId=null&type=folder`;
             }
 
-            if (tagWorkstream) {
-                requestUrl += `&workstream=${tagWorkstream}`;
-            }
+            // if (tagWorkstream) {
+            //     requestUrl += `&workstream=${tagWorkstream}`;
+            // }
 
-            if (status === "archived") {
+            if (ActiveTab === "archived") {
                 requestUrl += `&isArchived=1`;
             } else {
                 requestUrl += `&isArchived=0`;
@@ -81,7 +80,7 @@ class DocumentList extends React.Component {
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data };
             let list = [];
-            if (document.Filter.status !== "trash" && document.Filter.status !== "archived") {
+            if (document.ActiveTab !== "trash" && document.ActiveTab !== "archived") {
                 list = document.List.concat(result);
             } else {
                 list = result;
@@ -175,8 +174,12 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match, pageModal } = this.props;
+        const { dispatch, loggedUser, folder, match, pageModal, document } = this.props;
         const projectId = match.params.projectId;
+
+        if (document.ActiveTab === "trash" || document.ActiveTab === 'archived') {
+            return;
+        }
 
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
@@ -334,14 +337,14 @@ class DocumentList extends React.Component {
 
     restore(data) {
         const { dispatch, document, match } = { ...this.props };
-        const { Filter } = { ...document };
+        const { ActiveTab } = { ...document };
         const { last_page, current_page } = { ...document.Count };
         const projectId = match.params.projectId;
         let dataToSubmit = {};
 
-        if (Filter.status === "trash") {
+        if (ActiveTab === "trash") {
             dataToSubmit = { isActive: 1, projectId: projectId }
-        } else if (Filter.status === "archived") {
+        } else if (ActiveTab === "archived") {
             dataToSubmit = { isArchived: 0, projectId: projectId }
         }
 
@@ -364,10 +367,10 @@ class DocumentList extends React.Component {
         let tagCount = 0;
         return (
             <div>
-                {(document.Filter.status) !== 'sort' &&
+                {(document.ActiveTab) !== 'sort' &&
                     <div>
                         <div class="card-header">
-                            {(document.Filter.status === 'library' && document.Loading === "") &&
+                            {(document.ActiveTab === 'library' && document.Loading === "") &&
                                 <div class='mt20'>
                                     <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
                                     {(folder.SelectedFolderName.length > 0) &&
@@ -390,6 +393,7 @@ class DocumentList extends React.Component {
                                                     <th scope="col">Uploaded By</th>
                                                     <th scope="col">Upload Date</th>
                                                     <th scope="col">Workstream</th>
+                                                    <th scope="col">Task</th>
                                                     <th scope="col">Read On</th>
                                                     {(match.path === "/projects/:projectId/files") && <th scope="col">Actions</th>}
                                                 </tr>
@@ -427,9 +431,19 @@ class DocumentList extends React.Component {
                                                                     })
                                                                 }
                                                                 </td>
+                                                                <td>{
+                                                                    data.tagTask.length > 0 &&
+                                                                    data.tagTask.map((t, tIndex) => {
+                                                                        tagCount += t.label.length
+                                                                        let tempCount = tagCount;
+                                                                        if (tagCount > 16) { tagCount = 0 }
+                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                    })
+                                                                }
+                                                                </td>
                                                                 <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ''}</td>
                                                                 {
-                                                                    (match.path === "/projects/:projectId/files") &&
+                                                                    (match.path === "/projects/:projectId/files" && document.ActiveTab !== "trash" && document.ActiveTab !== "archived") &&
                                                                     <td>
                                                                         <a href="javascript:void(0)"
                                                                             onClick={() => this.downloadDocument(data)}
@@ -477,7 +491,7 @@ class DocumentList extends React.Component {
                                                                                     }
                                                                                 </li>
                                                                             }
-                                                                            {document.Filter.status === "library" &&
+                                                                            {document.ActiveTab === "library" &&
                                                                                 <li>
                                                                                     <a class=" dropdown dropdown-library">
                                                                                         Move to
@@ -505,6 +519,16 @@ class DocumentList extends React.Component {
                                                                         </ul>
                                                                     </td>
                                                                 }
+                                                                {
+                                                                    (document.ActiveTab === "trash" || document.ActiveTab === "archived") &&
+                                                                    <td>
+                                                                        <a href="javascript:void(0)"
+                                                                            onClick={() => this.restore(data)}
+                                                                            class="btn btn-action">
+                                                                            <span class="fa fa-undo" title="RESTORE"></span>
+                                                                        </a>
+                                                                    </td>
+                                                                }
                                                             </tr>
                                                         )
 
@@ -528,7 +552,7 @@ class DocumentList extends React.Component {
                     </div>
                 }
                 {
-                    (document.Filter.status) === 'sort' && <div><DocumentSortFile /></div>
+                    (document.ActiveTab) === 'sort' && <div><DocumentSortFile /></div>
                 }
             </div>
         )
