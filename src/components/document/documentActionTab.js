@@ -4,7 +4,6 @@ import _ from "lodash";
 import moment from "moment";
 import { withRouter } from "react-router";
 import { getData, showToast, setDatePicker } from "../../globalFunction";
-import { Searchbar, DropDown, Loading } from "../../globalComponents";
 
 let delayTimer = "";
 let keyTimer = "";
@@ -73,9 +72,6 @@ class DocumentActionTab extends React.Component {
                         requestUrl += `&isArchived=0`;
                     }
 
-                    // if (tagWorkstream) {
-                    //     requestUrl += `&workstream=${tagWorkstream}`;
-                    // }
                 }
 
                 getData(`${requestUrl}`, {}, (c) => {
@@ -176,7 +172,7 @@ class DocumentActionTab extends React.Component {
     }
 
     render() {
-        const { dispatch, document, workstream } = this.props;
+        const { dispatch, document } = this.props;
         return (
             <div class="container-fluid filter mb20">
                 <div class="row content-row">
@@ -202,22 +198,6 @@ class DocumentActionTab extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         {(document.ActiveTab !== "trash" && document.ActiveTab !== "archived") &&
                             <div class="button-action">
-                                {
-                                    (document.ActiveTab === 'active' && document.Loading === "") &&
-                                    <DropDown
-                                        id="workstream-options"
-                                        options={workstream.SelectList}
-                                        onInputChange={this.getWorkstreamList}
-                                        selected={document.Filter.tagWorkstream}
-                                        loading={true}
-                                        isClearable={true}
-                                        onChange={(e) => {
-                                            this.setDropDown("tagWorkstream", (e == null) ? null : e.value);
-                                        }}
-                                        required={true}
-                                        disabled={Loading === "SUBMITTING" ? true : false}
-                                    />
-                                }
                                 {
                                     (document.Loading === "") &&
                                     <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>

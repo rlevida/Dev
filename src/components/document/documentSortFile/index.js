@@ -7,6 +7,18 @@ import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import DocumentViewerModal from "../modal/documentViewerModal"
 
+const getFieldStyle = (isDragging, selected) => {
+    const style = {
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        height: 30,
+        margin: 5,
+    };
+    style.backgroundColor = selected ? 'pink' : '#87cefa';
+    style.opacity = isDragging ? 0.5 : 1;
+    return style;
+};
+
 @connect((store) => {
     return {
         document: store.document,
@@ -15,28 +27,39 @@ import DocumentViewerModal from "../modal/documentViewerModal"
     }
 })
 
+
+
 class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
             order: 'asc',
         }
+        this.handleItemSelection = this.handleItemSelection.bind(this);
+        this.handleSelectedFieldDragging = this.handleSelectedFieldDragging.bind(this);
     }
 
-    moveTo(folderOj, documentObj) {
+    componentWillMount() {
+        this.state = { selectedFields: [], lastSelectedIndex: -1, selectedFieldsDragging: [] };
+        // this.handleItemSelection(-1, false, false);
+    }
+
+    moveTo(folderOj, documentArr) {
         const { dispatch, loggedUser, match, document } = this.props;
         const projectId = match.params.projectId;
+
         const dataToSubmit = {
-            origin: documentObj.origin,
-            status: folderOj.status,
-            folderId: folderOj.id,
-            projectId: projectId,
-            usersId: loggedUser.data.id,
+            documentIds: documentArr.map((e) => { return e.id }),
+            data: {
+                folderId: folderOj.id,
+                projectId: projectId,
+                usersId: loggedUser.data.id,
+            }
         };
 
-        putData(`/api/document/${documentObj.id}`, dataToSubmit, (c) => {
+        putData(`/api/document/bulkUpdate/${folderOj.id}`, dataToSubmit, (c) => {
             const { result } = { ...c.data }
-            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result })
+            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST_BULK", list: result })
             showToast("success", "Successfully Updated.")
         })
     }
@@ -71,6 +94,42 @@ class DocumentNew extends React.Component {
     getNextResult() {
         const { document } = this.props;
         this.fetchData(document.Count.current_page + 1)
+    }
+
+    handleItemSelection(index, cmdKey, shiftKey) {
+        let selectedFields;
+        const fields = this.props.document.List;
+        const field = index < 0 ? '' : fields[index];
+        const lastSelectedIndex = index;
+        if (!cmdKey && !shiftKey) {
+            selectedFields = [field];
+        } else if (shiftKey) {
+            if (this.state.lastSelectedIndex >= index) {
+                selectedFields = [].concat.apply(this.state.selectedFields,
+                    fields.slice(index, this.state.lastSelectedIndex));
+            } else {
+                selectedFields = [].concat.apply(this.state.selectedFields,
+                    fields.slice(this.state.lastSelectedIndex + 1, index + 1));
+            }
+        } else if (cmdKey) {
+            const foundIndex = this.state.selectedFields.findIndex(f => f === field);
+            // If found remove it to unselect it.
+            if (foundIndex >= 0) {
+                selectedFields = [
+                    ...this.state.selectedFields.slice(0, foundIndex),
+                    ...this.state.selectedFields.slice(foundIndex + 1),
+                ];
+            } else {
+                selectedFields = [...this.state.selectedFields, field];
+            }
+        }
+        const finalList = fields ? fields
+            .filter(f => selectedFields.find(a => a === f)) : [];
+        this.setState({ selectedFields: finalList, lastSelectedIndex });
+    }
+
+    handleSelectedFieldDragging(fields) {
+        this.setState({ selectedFieldsDragging: fields })
     }
 
     render() {
@@ -109,6 +168,10 @@ class DocumentNew extends React.Component {
                                                             index={index}
                                                             key={index}
                                                             moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                                            selectedFields={this.state.selectedFields}
+                                                            handleSelection={this.handleItemSelection}
+                                                            handleSelectedFieldDragging={this.handleSelectedFieldDragging}
+                                                            selectedFieldsDragging={this.state.selectedFieldsDragging}
                                                         />
                                                     )
                                                 })
@@ -140,7 +203,12 @@ class DocumentNew extends React.Component {
                                         ((folder.List).length > 0) && <div>
                                             {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
                                                 return (
-                                                    <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                                                    <FolderContainer
+                                                        data={data}
+                                                        moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)}
+                                                        key={index}
+                                                        selectedFields={this.state.selectedFields}
+                                                    />
                                                 )
                                             })}
                                         </div>
