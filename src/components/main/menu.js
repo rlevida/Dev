@@ -98,7 +98,7 @@ class Component extends React.Component {
 
     handleProjectCategory({ category, page, typeId }) {
         const { loggedUser, dispatch, project } = { ...this.props };
-        const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false`;
+        const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false&userRole=${loggedUser.data.userRole}`;
 
         dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
 
