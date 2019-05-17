@@ -21,7 +21,8 @@ const {
     Sequelize,
     UsersNotificationSetting,
     Notification,
-    Type
+    Type,
+    ActivityLogsDocument
 } = models;
 const Op = Sequelize.Op;
 
@@ -1198,6 +1199,21 @@ exports.post = {
                 } catch (err) {
                     console.error(err)
                 }
+            },
+            documentActivityLog: (parallelCallback) => {
+                const logData = {
+                    linkType: bodyData.linkType,
+                    linkId: bodyData.linkId,
+                    usersId: bodyData.usersId,
+                    actionType: "commented",
+                    title: "commented on document",
+                    projectId: body.projectId
+                }
+                ActivityLogsDocument
+                    .create(logData)
+                    .then((res) => {
+                        parallelCallback(null, res)
+                    })
             }
 
         }, (err, result) => {

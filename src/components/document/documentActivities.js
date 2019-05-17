@@ -39,7 +39,6 @@ class DocumentActivities extends React.Component {
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
         if (type === "document") {
-
             switch (actionType) {
                 case "created":
                 case "deleted":
@@ -50,7 +49,20 @@ class DocumentActivities extends React.Component {
                             <p class="ml10 mt10">
                                 <strong>{user.firstName + " " + user.lastName + " "}</strong>
                                 {`${title} `}
-                                <strong>{log.new ? log.new : log.old}</strong>
+                                <strong>{log.document.origin}</strong>
+                                {` ${date}`}
+                            </p>
+                        </div>
+                    )
+                case "commented":
+                case "moved":
+                    return (
+                        <div>
+                            <p class="ml10 mt10">
+                                <strong>{user.firstName + " " + user.lastName + " "}</strong>
+                                {`${title} `}
+                                <strong>{log.document.origin}</strong>
+                                {actionType === "moved" ? " to folder" : ""}
                                 {` ${date}`}
                             </p>
                         </div>
@@ -69,12 +81,11 @@ class DocumentActivities extends React.Component {
                         </div>
                     )
                 case "restored":
-                case "moved":
                     return (
                         <div>
                             <p class="ml10 mt10">
                                 <strong>{user.firstName + " " + user.lastName + " "}</strong>
-                                {`${title} ${date}` }
+                                {`${title} ${date}`}
                             </p>
                         </div>
                     )

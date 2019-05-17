@@ -192,7 +192,7 @@ class DocumentActionTab extends React.Component {
                                 <a class={document.ActiveTab === 'archived' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('archived')}>Archived</a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === 'activityLogs' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('activities')}>Activity Logs</a>
+                                <a class={document.ActiveTab === 'activityLogs' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('activities')}>Activities</a>
                             </div>
                         </div>
                     </div>

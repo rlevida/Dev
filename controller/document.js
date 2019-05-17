@@ -1376,7 +1376,7 @@ exports.put = {
                                                     linkId: documentObj.id,
                                                     projectId: projectId,
                                                     actionType: actionType,
-                                                    title: actionType === "moved" ? `moved a document ${documentObj.origin} to ${folder}` : "",
+                                                    title: actionType === "moved" ? `moved a document` : "",
                                                     new: documentObj.origin,
                                                     usersId: usersId,
                                                     old: "",

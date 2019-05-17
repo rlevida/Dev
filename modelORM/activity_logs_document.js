@@ -62,6 +62,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'user',
       foreignKey: 'usersId',
     });
+    ActivityLogsDocument.belongsTo(models.Document, {
+      as: 'document',
+      foreignKey: 'linkId',
+    });
   };
 
   return ActivityLogsDocument;
