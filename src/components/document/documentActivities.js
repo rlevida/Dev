@@ -128,13 +128,13 @@ class DocumentActivities extends React.Component {
                                 </div>
                             }
                             {
-                                ((activities.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                (activities.Loading === "" && (activities.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                             }
                             {
                                 ((currentPage != lastPage) && activities.List.length > 0 && activities.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Activities</a></p>
                             }
                             {
-                                (activities.Loading == "RETRIEVING" && (activities.List).length > 0) && <Loading />
+                                (activities.Loading === "RETRIEVING" && (activities.List).length > 0) && <Loading />
                             }
                         </div>
                     </div>

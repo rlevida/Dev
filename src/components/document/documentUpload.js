@@ -213,32 +213,6 @@ class DocumentUpload extends React.Component {
         })
     }
 
-    // async uploadFile() {
-    //     const { loggedUser, folder, dispatch, document, match } = { ...this.props };
-    //     const projectId = match.params.projectId;
-    //     const selectedObj = { ...document.Selected };
-    //     let data = new FormData();
-
-    //     await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
-
-    //     await document.Files.map(e => {
-    //         data.append("file", e)
-    //     })
-
-    //     await postData(`/api/document/upload`, data, async (c) => {
-    //         const documentToSave = c.data.map(e => {
-    //             e = {
-    //                 name: e.filename, origin: e.origin, project: projectId, uploadedBy: loggedUser.data.id,
-    //                 status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
-    //             }
-    //             return e
-    //         })
-    //         selectedObj.DocumentToSave = documentToSave
-    //         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
-    //         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
-    //     })
-    // }
-
     removefile(selecindextedId) {
         const { dispatch, document } = { ...this.props };
         const { Files } = document;
@@ -252,6 +226,11 @@ class DocumentUpload extends React.Component {
         const { Files = [], Selected, Loading } = { ...document };
         const { DocumentToSave = [] } = { ...Selected }
         const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
+        const projectObj = _.find(project.SelectList, { id: project.Selected.id });
+        if (!projectObj) {
+            project.SelectList.push({ id: project.Selected.id, name: project.Selected.project });
+        }
+
         return (
             <div class="row">
                 <div class="col-lg-12">
