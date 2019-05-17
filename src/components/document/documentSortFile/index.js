@@ -83,13 +83,13 @@ class DocumentNew extends React.Component {
         this.fetchData(document.Count.current_page + 1)
     }
 
-    handleItemSelection(index, cmdKey, shiftKey) {
+    handleItemSelection(index, cmdKey, shiftKey, ctrlKey) {
         const { dispatch, document } = { ...this.props }
         let selectedFields;
-        const fields = this.props.document.List;
+        const fields = document.List;
         const field = index < 0 ? '' : fields[index];
         const lastSelectedIndex = index;
-        if (!cmdKey && !shiftKey) {
+        if (!cmdKey && !shiftKey && !ctrlKey) {
             selectedFields = [field];
         } else if (shiftKey) {
             if (document.LastSelectedIndex >= index) {
@@ -99,7 +99,7 @@ class DocumentNew extends React.Component {
                 selectedFields = [].concat.apply(document.SelectedFields,
                     fields.slice(document.LastSelectedIndex + 1, index + 1));
             }
-        } else if (cmdKey) {
+        } else if (cmdKey || ctrlKey) {
             const foundIndex = document.SelectedFields.findIndex(f => f === field);
             // If found remove it to unselect it.
             if (foundIndex >= 0) {
