@@ -179,6 +179,8 @@ class DocumentList extends React.Component {
             return;
         }
 
+        $(`#documentViewerModal`).modal('show');
+
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
@@ -195,8 +197,7 @@ class DocumentList extends React.Component {
                             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
                             dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
                             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                            $(`#documentViewerModal`).modal('show');
+                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
                         })
                     }
                 });
@@ -214,7 +215,6 @@ class DocumentList extends React.Component {
                         dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
                         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                         dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                        $(`#documentViewerModal`).modal('show');
                     })
                 }
             }
