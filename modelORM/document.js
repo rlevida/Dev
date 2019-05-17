@@ -121,6 +121,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'document_notification',
       foreignKey: 'documentId'
     })
+    Document.hasOne(models.ActivityLogsDocument, {
+      as: 'document_log',
+      foreignKey: 'linkId'
+    })
   };
 
   return Document;
