@@ -65,24 +65,6 @@ export default class ProjectList extends React.Component {
                 dispatch({ type: "SET_TYPE_LIST", list: c.data })
             }
         });
-
-        getData(`/api/user`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_USER_LIST", list: c.data.result })
-            }
-        });
-
-        getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' });
-        });
-
-        getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' });
-        });
-
-        getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' });
-        });
     }
 
     getNextResult() {

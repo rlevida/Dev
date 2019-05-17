@@ -55,9 +55,6 @@ export default class ProjectInfo extends React.Component {
         getData(`/api/type`, {}, (c) => {
             dispatch({ type: "SET_TYPE_LIST", list: c.data });
         });
-        getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' })
-        });
     }
 
     fetchProjectDetails() {
