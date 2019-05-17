@@ -85,8 +85,6 @@ class DocumentActionTab extends React.Component {
                             dispatch({ type: "SET_FOLDER_LIST", list: result, count: count })
                         });
                     }
-                } else {
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
                 }
             }, 1000);
         }
@@ -197,7 +195,7 @@ class DocumentActionTab extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        {(document.ActiveTab !== "trash" && document.ActiveTab !== "archived") &&
+                        {(document.ActiveTab !== "trash" && document.ActiveTab !== "archived" && document.ActiveTab !== "activities") &&
                             <div class="button-action">
                                 {
                                     (document.Loading === "") &&
