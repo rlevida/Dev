@@ -52,7 +52,7 @@ export default class TaskTimeline extends React.Component {
 			const { Timeline } = task;
 			const taskStack = [...Timeline, ...c.data.result];
 
-			this.setState({ loading: false, count: c.data.count, chart_height: 43 * (taskStack).length }, () => {
+			this.setState({ loading: false, count: c.data.count, chart_height: 43 * (taskStack).length + 50 }, () => {
 				dispatch({
 					type: "SET_TASK_TIMELINE",
 					list: taskStack

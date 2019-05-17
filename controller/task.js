@@ -799,13 +799,13 @@ exports.post = {
                         async.waterfall([
                             function (callback) {
                                 if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                                    const taskPromises = _.times(_.toNumber(body.periodInstance) - 1, (o) => {
+                                    const taskPromises = _.times(1, (o) => {
                                         return new Promise((resolve) => {
-                                            const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                            const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance).format('YYYY-MM-DD HH:mm:ss');
                                             const newPeriodTask = {
                                                 ...body,
                                                 dueDate: nextDueDate,
-                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {},
+                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, body.periodInstance).format('YYYY-MM-DD HH:mm:ss') } : {},
                                                 periodTask: newTaskResponse.id
                                             };
 
@@ -1996,8 +1996,8 @@ exports.put = {
                         }).then((resultArray) => {
                             const latestPeriodicTask = resultArray;
                             const latestTaskDate = _.omit(latestPeriodicTask[0], ["status", "dateAdded", "dateUpdated"]);
-                            const nextDueDate = moment(latestTaskDate.dueDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss');
-                            const newPeriodTask = { ...latestTaskDate, id: "", dueDate: nextDueDate, periodTask: periodTaskId, ...(latestTaskDate.startDate != null && latestTaskDate.startDate != "") ? { startDate: moment(latestTaskDate.startDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss') } : {} }
+                            const nextDueDate = moment(latestTaskDate.dueDate).add(latestTaskDate.periodType, latestTaskDate.periodInstance).format('YYYY-MM-DD HH:mm:ss');
+                            const newPeriodTask = { ...latestTaskDate, id: "", dueDate: nextDueDate, periodTask: periodTaskId, ...(latestTaskDate.startDate != null && latestTaskDate.startDate != "") ? { startDate: moment(latestTaskDate.startDate).add(latestTaskDate.periodType, latestTaskDate.periodInstance).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
                             Tasks.create(newPeriodTask).then((response) => {
                                 const createTaskObj = response.toJSON();
