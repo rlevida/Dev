@@ -5,7 +5,7 @@ CREATE TABLE `activity_logs_document` (
     `linkType` ENUM("project","workstream","task", "checklist", "document", "member"),
     `linkId` BIGINT,
     `projectId` BIGINT,
-    `actionType` ENUM("created","modified","deleted", "added","moved","shared",'starred','duplicated'),
+    `actionType` ENUM("created","modified","deleted", "added","moved","shared",'starred','duplicated','archived','uploaded','tagged','restored'),
     `old` TEXT,
     `new` TEXT,
     `title` TEXT,

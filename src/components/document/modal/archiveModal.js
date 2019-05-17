@@ -28,10 +28,10 @@ class ArchiveModal extends React.Component {
             isArchived: 1, usersId: loggedUser.data.id,
             oldDocument: document.Selected.origin,
             projectId: projectId, type: document.Selected.type,
-            actionType: "deleted", title: 'Document deleted'
+            actionType: "archived", title: `archived a ${document.Selected.type}`
         }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: document.Selected.id });
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: document.Selected });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 showToast("success", "Successfully Archived.");
             } else {

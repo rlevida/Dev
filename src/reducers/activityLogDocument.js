@@ -13,6 +13,9 @@ export default function reducer(state = {
             const { List } = { ...state };
             return { ...state, List: _.orderBy(List.concat(action.activity_log_document), ['dateAdded'], ['desc']) }
         }
+        case "SET_ACTIVITYLOG_LOADING": {
+            return { ...state, Loading: action.loading };
+        }
         case "SET_ACTIVITYLOG_DOCUMENT_LIST": {
             return { ...state, List: _.uniqBy(action.list, 'id'), ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Loading: '' }
         }

@@ -42,52 +42,54 @@ class DocumentActionTab extends React.Component {
                 dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
             }
             const { ActiveTab } = { ...document };
-            let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
 
             delayTimer = setTimeout(() => {
 
-                if (ActiveTab === "trash") {
-                    requestUrl += `&isActive=0&isDeleted=0`
-                } else {
-                    requestUrl += `&isActive=1&isDeleted=0`
+                if (ActiveTab !== "activities") {
+                    let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
-                    if (ActiveTab === 'active' || ActiveTab === 'sort') {
-                        requestUrl += `&folderId=null&type=document`;
-                    }
-
-                    if (ActiveTab === 'library') {
-                        requestUrl += `&folderId=null&type=folder`;
-                        this.fetchFolderList();
-                    }
-
-                    if (ActiveTab === "archived") {
-                        requestUrl += `&isArchived=1`;
+                    if (ActiveTab === "trash") {
+                        requestUrl += `&isActive=0&isDeleted=0`
                     } else {
-                        requestUrl += `&isArchived=0`;
+                        requestUrl += `&isActive=1&isDeleted=0`
+
+                        if (ActiveTab === 'active' || ActiveTab === 'sort') {
+                            requestUrl += `&folderId=null&type=document`;
+                        }
+
+                        if (ActiveTab === 'library') {
+                            requestUrl += `&folderId=null&type=folder`;
+                            this.fetchFolderList();
+                        }
+
+                        if (ActiveTab === "archived") {
+                            requestUrl += `&isArchived=1`;
+                        } else {
+                            requestUrl += `&isArchived=0`;
+                        }
+
                     }
 
-                }
-
-                getData(`${requestUrl}`, {}, (c) => {
-                    const { result, count } = { ...c.data }
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' })
-
-                });
-
-                if (ActiveTab === 'sort') {
-                    getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder&folderId=null`, {}, (c) => {
+                    getData(`${requestUrl}`, {}, (c) => {
                         const { result, count } = { ...c.data }
-                        dispatch({ type: "SET_FOLDER_LIST", list: result, count: count })
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
+                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' })
+
                     });
+
+                    if (ActiveTab === 'sort') {
+                        getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder&folderId=null`, {}, (c) => {
+                            const { result, count } = { ...c.data }
+                            dispatch({ type: "SET_FOLDER_LIST", list: result, count: count })
+                        });
+                    }
+                } else {
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
                 }
             }, 1000);
         }
-
-        setDatePicker(this.handleDate, "uploadFrom", new Date(2019, 3, 20));
-        setDatePicker(this.handleDate, "uploadTo", new Date(2019, 3, 20));
     }
 
     fetchFolderList() {
@@ -188,6 +190,9 @@ class DocumentActionTab extends React.Component {
                             </div>
                             <div class="flex-col">
                                 <a class={document.ActiveTab === 'archived' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('archived')}>Archived</a>
+                            </div>
+                            <div class="flex-col">
+                                <a class={document.ActiveTab === 'activityLogs' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('activities')}>Activity Logs</a>
                             </div>
                         </div>
                     </div>

@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     actionType: {
-      type: DataTypes.ENUM('created', 'modified', 'deleted', 'moved','shared','duplicated'),
+      type: DataTypes.ENUM('created', 'modified', 'deleted', 'moved', 'shared', 'duplicated', 'archived', 'uploaded', 'tagged', 'restored'),
       allowNull: true
     },
     old: {
