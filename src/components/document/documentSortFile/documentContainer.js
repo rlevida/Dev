@@ -82,8 +82,8 @@ class FieldContainer extends React.Component {
         }
     }
 
-    handleRowSelection(cmdKey, shiftKey, index) {
-        this.props.handleSelection(index, cmdKey, shiftKey);
+    handleRowSelection(cmdKey, shiftKey, index, ctrlKey) {
+        this.props.handleSelection(index, cmdKey, shiftKey, ctrlKey);
     }
 
     render() {
@@ -93,14 +93,16 @@ class FieldContainer extends React.Component {
         const selected = SelectedFields.find(field => field.id === data.id);
         const isDraggingField = SelectedFieldsDragging.find(field => field.id === data.id);
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-        const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
+        const { isDragging, connectDragSource, connectDropTarget } = this.props
         const opacity = isDraggingField || isDragging ? 0 : 1;
         const backgroundColor = isDragging || selected ? 'lightblue' : '';
 
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}
-                    onClick={(e) => this.handleRowSelection(e.metaKey, e.shiftKey, this.props.index)}
+                    onClick={(e) =>
+                        this.handleRowSelection(e.metaKey, e.shiftKey, this.props.index, e.ctrlKey)
+                    }
                 >
                     <td class="document-name">
                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
