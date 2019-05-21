@@ -3,12 +3,17 @@ const _ = require("lodash");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
-const { ActivityLogsDocument, Users } = models;
+const { ActivityLogsDocument, Users, Document } = models;
 
 const associationStack = [
     {
         model: Users,
         as: 'user'
+    },
+    {
+        model: Document,
+        as: 'document',
+        attributes: ['id', 'origin']
     }
 ]
 

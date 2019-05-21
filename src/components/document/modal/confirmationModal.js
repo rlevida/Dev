@@ -31,8 +31,10 @@ class ConfirmationModal extends React.Component {
             documentIds: document.SelectedFields.map((e) => { return e.id }),
             data: {
                 folderId: folder.Selected.id,
+                folder: folder.Selected.origin,
                 projectId: projectId,
                 usersId: loggedUser.data.id,
+                actionType: "moved"
             }
         };
         putData(`/api/document/bulkUpdate/${folder.Selected.id}`, dataToSubmit, (c) => {

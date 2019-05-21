@@ -95,7 +95,8 @@ class EditModal extends React.Component {
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.origin,
                 usersId: loggedUser.data.id,
-                projectId: projectId
+                projectId: projectId,
+                type: document.Selected.type
             }
             putData(`/api/document/rename/${document.Selected.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
@@ -115,8 +116,10 @@ class EditModal extends React.Component {
                 newDocument: document.Selected.tagWorkstream.map((e) => { return e.label }).join(','),
                 usersId: loggedUser.data.id,
                 projectId: projectId,
-                origin: document.Selected.origin
+                origin: document.Selected.origin,
+                type: document.Selected.type
             }
+
             putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}&starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
@@ -150,21 +153,18 @@ class EditModal extends React.Component {
         const { document, workstream } = this.props;
 
         return (
-            <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="panel-title">DOCUMENT {(document.Selected.id) ? " > Edit > ID: " + document.Selected.id : " > Add"}</h3>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <h3 class="panel-title">DOCUMENT {(document.Selected.id) ? " > Edit > " + document.Selected.origin : " > Add"}</h3>
                         </div>
                         <div class="modal-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 {(document.EditType == "rename") &&
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
-                                        <div class="col-md-7 col-xs-12">
+                                        <label class="col-md-4 col-xs-12 control-label">Document Name *</label>
+                                        <div class="col-md-8 col-xs-12">
                                             <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined") ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
 
                                         </div>
@@ -172,8 +172,8 @@ class EditModal extends React.Component {
                                 }
                                 {(document.EditType == "tags") &&
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
-                                        <div class="col-md-7 col-xs-12">
+                                        <label class="col-md-4 col-xs-12 control-label">Document Tags *</label>
+                                        <div class="col-md-8 col-xs-12">
                                             <DropDown
                                                 name="tags"
                                                 multiple={true}
@@ -187,20 +187,22 @@ class EditModal extends React.Component {
                                 }
                                 {(document.EditType == "folder") &&
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Folder Name *</label>
-                                        <div class="col-md-7 col-xs-12">
+                                        <label class="col-md-4 col-xs-12 control-label">Folder Name *</label>
+                                        <div class="col-md-8 col-xs-12">
                                             <input type="text" name="name" required value={(typeof document.Selected.name == "undefined") ? "" : document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
 
                                         </div>
                                     </div>
                                 }
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            {(document.Selected.tags != null != null) &&
-                                <button type="button" class="btn btn-primary" onClick={this.handleSubmit}>Submit</button>
-                            }
+                            <div class="mt20">
+                                <a class="btn btn-violet mr5" onClick={() => this.handleSubmit()}>
+                                    <span>
+                                        Submit
+                                </span>
+                                </a>
+                                <a class="btn btn-default" data-dismiss="modal"><span>Cancel</span></a>
+                            </div>
                         </div>
                     </div>
                 </div>

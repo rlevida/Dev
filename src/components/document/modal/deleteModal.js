@@ -52,13 +52,13 @@ class DeleteModal extends React.Component {
                 isActive: 0, usersId: loggedUser.data.id,
                 oldDocument: document.Selected.origin,
                 projectId: projectId, type: document.Selected.type,
-                actionType: "deleted", title: 'Document deleted'
+                actionType: "deleted", title: `deleted a ${document.Selected.type}`
             }, (c) => {
                 if (c.status == 200) {
                     if (last_page > current_page && document.List.length < 10) {
                         this.fetchData();
                     } else {
-                        dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: document.Selected.id });
+                        dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: document.Selected });
                         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                     }
                     showToast("success", "Successfully Deleted.");

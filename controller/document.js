@@ -574,7 +574,7 @@ exports.post = {
                                         old: '',
                                         new: res.origin,
                                         title: (typeof isDuplicate !== 'undefined' && isDuplicate) ? (e.type === 'document') ? "Document duplicated" : "Folder duplicated"
-                                            : (e.type === 'document') ? 'Document uploaded' : "Folder created",
+                                            : (e.type === 'document') ? 'uploaded a document' : "created a folder",
                                         usersId: e.uploadedBy
                                     }
 
@@ -976,102 +976,80 @@ exports.put = {
             ...(typeof body.status !== 'undefined' && body.status !== '') ? { status: body.status } : {},
         }
 
-        sequence.create().then((nextThen) => {
-            nextThen()
-            // if (typeof body.isDeleted !== 'undefined' && typeof body.isArchived !== 'undefined') {
-            //     nextThen()
-            // } else {
-            //     Document
-            //         .findAll({
-            //             where: whereObj,
-            //             order: Sequelize.literal('documentNameCount DESC'),
-            //             raw: true
-            //         })
-            //         .then((res) => {
-            //             if (res.length > 0) {
-            //                 body.documentNameCount = res[0].documentNameCount + 1
-            //             } else {
-            //                 body.documentNameCount = 0;
-            //             }
-            //             nextThen()
-            //         })
-            // }
-        }).then((nextThen) => {
-            try {
-                Document
-                    .update(body, { where: { id: id } })
-                    .then((res) => {
-                        async.parallel({
-                            result: (parallelCallback) => {
-                                try {
-                                    DocumentLink
-                                        .findOne({
-                                            where: { documentId: id },
-                                            include: [{
-                                                model: Document,
-                                                as: 'document',
-                                                include: associationFindAllStack
-                                            }]
-                                        })
-                                        .then((findRes) => {
-                                            let resToReturn = {
-                                                ...findRes.document.toJSON(),
-                                                tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
-                                                tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
-                                                tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
-                                                members: findRes.document.share.map((e) => { return e.user }),
-                                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
-                                                isRead: findRes.document.document_read.length > 0 ? 1 : 0
-                                            }
-                                            parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                                        })
-                                } catch (err) {
-                                    parallelCallback(err)
-                                }
-                            },
-                            activityLogsDocument: (parallelCallback) => {
-                                try {
-                                    const logData = {
-                                        projectId: projectId,
-                                        linkType: 'document',
-                                        linkId: id,
-                                        actionType: actionType,
-                                        usersId: usersId,
-                                        title: title,
-                                        old: oldDocument,
-                                        new: newDocument
-                                    }
-                                    ActivityLogsDocument
-                                        .create(logData)
-                                        .then((c) => {
-                                            ActivityLogsDocument
-                                                .findOne({
-                                                    where: { id: c.id },
-                                                    include: [{
-                                                        model: Users,
-                                                        as: 'user'
-                                                    }]
-                                                })
-                                                .then((findRes) => {
-                                                    parallelCallback(null, [findRes])
-                                                })
-                                        })
-                                } catch (err) {
-                                    parallelCallback(err)
-                                }
+        try {
+            Document
+                .update(body, { where: { id: id } })
+                .then((res) => {
+                    async.parallel({
+                        result: (parallelCallback) => {
+                            try {
+                                DocumentLink
+                                    .findOne({
+                                        where: { documentId: id },
+                                        include: [{
+                                            model: Document,
+                                            as: 'document',
+                                            include: associationFindAllStack
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        let resToReturn = {
+                                            ...findRes.document.toJSON(),
+                                            tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                            tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                            tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
+                                            members: findRes.document.share.map((e) => { return e.user }),
+                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                            isRead: findRes.document.document_read.length > 0 ? 1 : 0
+                                        }
+                                        parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
                             }
-                        }, (err, results) => {
-                            if (err) {
-                                cb({ status: false, error: err })
-                            } else {
-                                cb({ status: true, data: { result: results.result.data, activityLogs: results.activityLogsDocument } })
+                        },
+                        activityLogsDocument: (parallelCallback) => {
+                            try {
+                                const logData = {
+                                    projectId: projectId,
+                                    linkType: 'document',
+                                    linkId: id,
+                                    actionType: actionType,
+                                    usersId: usersId,
+                                    title: title,
+                                    old: oldDocument,
+                                    new: newDocument
+                                }
+                                ActivityLogsDocument
+                                    .create(logData)
+                                    .then((c) => {
+                                        ActivityLogsDocument
+                                            .findOne({
+                                                where: { id: c.id },
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user'
+                                                }]
+                                            })
+                                            .then((findRes) => {
+                                                parallelCallback(null, [findRes])
+                                            })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
                             }
-                        })
+                        }
+                    }, (err, results) => {
+                        if (err) {
+                            cb({ status: false, error: err })
+                        } else {
+                            cb({ status: true, data: { result: results.result.data, activityLogs: results.activityLogsDocument } })
+                        }
                     })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     },
     tag: (req, cb) => {
         let body = req.body;
@@ -1162,7 +1140,7 @@ exports.put = {
                             linkId: id,
                             actionType: 'modified',
                             usersId: usersId,
-                            title: `Document ${origin} tags updated`,
+                            title: `${origin} updated tag's`,
                             old: oldDocument,
                             new: newDocument,
                         }
@@ -1197,7 +1175,7 @@ exports.put = {
     rename: (req, cb) => {
         let body = req.body;
         let queryString = req.query;
-        const { usersId, oldDocument, newDocument, projectId } = body;
+        const { usersId, oldDocument, newDocument, projectId, type } = { ...body };
         let id = req.params.id;
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId');
 
@@ -1266,7 +1244,7 @@ exports.put = {
                                     linkId: id,
                                     actionType: 'modified',
                                     usersId: usersId,
-                                    title: 'Document renamed',
+                                    title: `renamed a ${type}`,
                                     old: oldDocument,
                                     new: newDocument,
                                 }
@@ -1349,6 +1327,10 @@ exports.put = {
     },
     bulkUpdate: (req, cb) => {
         const body = req.body.data;
+        const actionType = body.actionType;
+        const usersId = body.usersId;
+        const folder = body.folder;
+        const projectId = body.projectId;
         const ids = req.body.documentIds;
 
         sequence.create().then(() => {
@@ -1356,19 +1338,20 @@ exports.put = {
                 Document
                     .update(body, { where: { id: ids } })
                     .then((res) => {
-                        async.parallel({
-                            result: (parallelCallback) => {
-                                try {
-                                    DocumentLink
-                                        .findAll({
-                                            where: { documentId: ids },
-                                            include: [{
-                                                model: Document,
-                                                as: 'document',
-                                                include: associationFindAllStack
-                                            }]
-                                        })
-                                        .then((findRes) => {
+
+                        try {
+                            DocumentLink
+                                .findAll({
+                                    where: { documentId: ids },
+                                    include: [{
+                                        model: Document,
+                                        as: 'document',
+                                        include: associationFindAllStack
+                                    }]
+                                })
+                                .then((findRes) => {
+                                    async.parallel({
+                                        result: (parallelCallback) => {
                                             async.map(findRes, (f, mapCallback) => {
                                                 const documentObj = f.document.toJSON();
                                                 let returnDocumentObj = {
@@ -1384,49 +1367,51 @@ exports.put = {
                                             }, (err, mapCallbackResult) => {
                                                 parallelCallback(null, { data: mapCallbackResult })
                                             })
-                                        })
-                                } catch (err) {
-                                    parallelCallback(err)
-                                }
-                            },
-                            // activityLogsDocument: (parallelCallback) => {
-                            //     try {
-                            //         const logData = {
-                            //             projectId: projectId,
-                            //             linkType: 'document',
-                            //             linkId: id,
-                            //             actionType: actionType,
-                            //             usersId: usersId,
-                            //             title: title,
-                            //             old: oldDocument,
-                            //             new: newDocument
-                            //         }
-                            //         ActivityLogsDocument
-                            //             .create(logData)
-                            //             .then((c) => {
-                            //                 ActivityLogsDocument
-                            //                     .findOne({
-                            //                         where: { id: c.id },
-                            //                         include: [{
-                            //                             model: Users,
-                            //                             as: 'user'
-                            //                         }]
-                            //                     })
-                            //                     .then((findRes) => {
-                            //                         parallelCallback(null, [findRes])
-                            //                     })
-                            //             })
-                            //     } catch (err) {
-                            //         parallelCallback(err)
-                            //     }
-                            // }
-                        }, (err, { result, activityLogsDocument }) => {
-                            if (err) {
-                                cb({ status: false, error: err })
-                            } else {
-                                cb({ status: true, data: { result: result.data, activityLogs: activityLogsDocument } })
-                            }
-                        })
+                                        },
+                                        activityLogsDocument: (parallelCallback) => {
+                                            async.map(findRes, (f, mapCallback) => {
+                                                const documentObj = f.document.toJSON();
+                                                const logData = {
+                                                    linkType: 'document',
+                                                    linkId: documentObj.id,
+                                                    projectId: projectId,
+                                                    actionType: actionType,
+                                                    title: actionType === "moved" ? `moved a document` : "",
+                                                    new: documentObj.origin,
+                                                    usersId: usersId,
+                                                    old: "",
+                                                }
+                                                mapCallback(null, logData)
+                                            }, (err, mapCallbackResult) => {
+                                                ActivityLogsDocument
+                                                    .bulkCreate(mapCallbackResult)
+                                                    .then((c) => {
+                                                        ActivityLogsDocument
+                                                            .findAll({
+                                                                where: { id: ids },
+                                                                include: [{
+                                                                    model: Users,
+                                                                    as: 'user'
+                                                                }]
+                                                            })
+                                                            .then((findRes) => {
+                                                                parallelCallback(null, findRes)
+                                                            })
+                                                    })
+                                            })
+                                        }
+                                    }, (err, { result, activityLogsDocument }) => {
+                                        if (err) {
+                                            cb({ status: false, error: err })
+                                        } else {
+                                            cb({ status: true, data: { result: result.data, activityLogs: activityLogsDocument } })
+                                        }
+                                    })
+                                })
+                        } catch (err) {
+                            parallelCallback(err)
+                        }
+
                     })
             } catch (err) {
                 cb({ status: false, error: err })

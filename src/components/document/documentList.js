@@ -4,7 +4,7 @@ import { getData, postData, putData, showToast, deleteData, getParameterByName }
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import DocumentSortFile from "./documentSortFile"
-import DocumentViewerModal from "./modal/documentViewerModal"
+import DocumentActivities from "./documentActivities";
 import moment from "moment";
 
 @connect((store) => {
@@ -43,8 +43,6 @@ class DocumentList extends React.Component {
         dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
         dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
     }
-
-
 
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
@@ -181,6 +179,8 @@ class DocumentList extends React.Component {
             return;
         }
 
+        $(`#documentViewerModal`).modal('show');
+
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
@@ -197,8 +197,7 @@ class DocumentList extends React.Component {
                             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
                             dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
                             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                            $(`#documentViewerModal`).modal('show');
+                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
                         })
                     }
                 });
@@ -216,7 +215,6 @@ class DocumentList extends React.Component {
                         dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
                         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                         dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                        $(`#documentViewerModal`).modal('show');
                     })
                 }
             }
@@ -336,16 +334,28 @@ class DocumentList extends React.Component {
     }
 
     restore(data) {
-        const { dispatch, document, match } = { ...this.props };
+        const { dispatch, document, match, loggedUser } = { ...this.props };
         const { ActiveTab } = { ...document };
         const { last_page, current_page } = { ...document.Count };
         const projectId = match.params.projectId;
+        const title = `restored a ${data.type}`;
         let dataToSubmit = {};
 
         if (ActiveTab === "trash") {
-            dataToSubmit = { isActive: 1, projectId: projectId }
+            dataToSubmit = {
+                isActive: 1, projectId: projectId,
+                actionType: "restored", title: title,
+                usersId: loggedUser.data.id,
+                newDocument: data.origin
+
+            }
         } else if (ActiveTab === "archived") {
-            dataToSubmit = { isArchived: 0, projectId: projectId }
+            dataToSubmit = {
+                isArchived: 0, projectId: projectId,
+                actionType: "restored", title: title,
+                usersId: loggedUser.data.id,
+                newDocument: data.origin
+            }
         }
 
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
@@ -367,7 +377,7 @@ class DocumentList extends React.Component {
         let tagCount = 0;
         return (
             <div>
-                {(document.ActiveTab) !== 'sort' &&
+                {(document.ActiveTab !== 'sort' && document.ActiveTab !== "activities") &&
                     <div>
                         <div class="card-header">
                             {(document.ActiveTab === 'library' && document.Loading === "") &&
@@ -552,7 +562,10 @@ class DocumentList extends React.Component {
                     </div>
                 }
                 {
-                    (document.ActiveTab) === 'sort' && <div><DocumentSortFile /></div>
+                    (document.ActiveTab) === 'sort' && <DocumentSortFile />
+                }
+                {
+                    (document.ActiveTab) === "activities" && <DocumentActivities />
                 }
             </div>
         )
