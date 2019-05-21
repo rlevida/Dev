@@ -46,7 +46,6 @@ export default class TaskForm extends React.Component {
             "getTaskDetails",
             "fetchApproverMembers",
             "confirmDeleteTaskDependency",
-            "generateDueDate",
             "renderArrayTd",
             "onChangeRaw"
         ], (fn) => { this[fn] = this[fn].bind(this) });
@@ -230,9 +229,6 @@ export default class TaskForm extends React.Component {
         } else {
             selectedObj[name] = selectedDate;
         }
-        if (name == "startDate" && task.Selected.periodic == 1) {
-            setTimeout(() => { this.generateDueDate() }, 500);
-        }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
     }
@@ -263,10 +259,6 @@ export default class TaskForm extends React.Component {
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
-
-        if (name == "periodType" && (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "")) {
-            setTimeout(() => { this.generateDueDate() }, 500);
-        }
 
     }
 
@@ -394,14 +386,6 @@ export default class TaskForm extends React.Component {
             showToast("success", "Task Dependency successfully deleted.");
             $('#delete-taskDependency').modal("hide");
         });
-    }
-
-    generateDueDate() {
-        const { dispatch, task } = this.props;
-        const { Selected } = task;
-        const { startDate, periodType } = Selected;
-        const computedDueDate = (moment(startDate, "YYYY MMM DD").add(1, periodType)).format("YYYY MMM DD");
-        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, dueDate: computedDueDate } });
     }
 
     renderArrayTd(arr) {
@@ -653,7 +637,7 @@ export default class TaskForm extends React.Component {
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class={`form-group input-inline ${(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) ? "pointer-none" : ""}`}>
+                                                    <div class={`form-group input-inline`}>
                                                         <div>
                                                             <label>
                                                                 Due Date: <span class="text-red">*</span>

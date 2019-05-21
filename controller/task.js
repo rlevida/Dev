@@ -799,13 +799,13 @@ exports.post = {
                         async.waterfall([
                             function (callback) {
                                 if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                                    const taskPromises = _.times(1, (o) => {
+                                    const taskPromises = _.times(2, (o) => {
                                         return new Promise((resolve) => {
-                                            const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance).format('YYYY-MM-DD HH:mm:ss');
+                                            const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance*(o+1)).format('YYYY-MM-DD HH:mm:ss');
                                             const newPeriodTask = {
                                                 ...body,
                                                 dueDate: nextDueDate,
-                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, body.periodInstance).format('YYYY-MM-DD HH:mm:ss') } : {},
+                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.periodInstance*(o+1))).format('YYYY-MM-DD HH:mm:ss') } : {},
                                                 periodTask: newTaskResponse.id
                                             };
 
@@ -1614,9 +1614,8 @@ exports.put = {
                                                 return objVal;
                                             }
                                         }).value();
-
-                                    const nextDueDate = moment(body.dueDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss');
-                                    const newPeriodTask = { ...updateBody, dueDate: nextDueDate, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss') } : {} }
+                                    const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance * (index + 1)).format('YYYY-MM-DD HH:mm:ss');
+                                    const newPeriodTask = { ...updateBody, dueDate: nextDueDate, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.periodInstance * (index + 1))).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
                                     return new Promise((resolve) => {
                                         Tasks.update(_.omit(newPeriodTask, ["periodTask", "status"]), { where: { id: periodTaskObj.id } }).then((response) => {
