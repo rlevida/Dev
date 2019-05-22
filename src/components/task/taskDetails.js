@@ -346,7 +346,7 @@ export default class TaskDetails extends React.Component {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
             dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
 
-            if ((data.isRead).length) {
+            if ((data.document_read).length) {
                 dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                 $(`#documentViewerModal`).modal('show')
             } else {
@@ -410,7 +410,7 @@ export default class TaskDetails extends React.Component {
 
     editDocument(value) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, file_name: (value.name).split('.').slice(0, -1).join('.') } });
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, file_name: (value.origin).split('.').slice(0, -1).join('.') } });
     }
 
     renameDocument() {
@@ -467,7 +467,6 @@ export default class TaskDetails extends React.Component {
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
-
         const currentActivityLogPage = (typeof activityLog.Count.current_page != "undefined") ? activityLog.Count.current_page : 1;
         const lastActivityLogPage = (typeof activityLog.Count.last_page != "undefined") ? activityLog.Count.last_page : 1;
 
@@ -483,11 +482,11 @@ export default class TaskDetails extends React.Component {
                 return _.map(o.tagDocuments, function (o) {
                     return {
                         id: o.document.id,
-                        origin: o.document.name,
-                        name: o.document.origin,
+                        origin: o.document.origin,
+                        name: o.document.name,
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
-                        isRead: o.document.document_read,
+                        document_read: o.document.document_read,
                         user: o.document.user,
                         child: _(checklist)
                             .filter((check) => {
@@ -505,11 +504,11 @@ export default class TaskDetails extends React.Component {
             .map((o) => {
                 return {
                     id: o.document.id,
-                    origin: o.document.name,
-                    name: o.document.origin,
+                    origin: o.document.origin,
+                    name: o.document.name,
                     type: "Task Document",
                     dateAdded: o.document.dateAdded,
-                    isRead: o.document.document_read,
+                    document_read: o.document.document_read,
                     user: o.document.user
                 }
             })
@@ -836,7 +835,7 @@ export default class TaskDetails extends React.Component {
                                                         <div>
                                                             {
                                                                 _.map(documentList, (params, index) => {
-                                                                    const { id, origin, name, child = [], isRead, user, dateAdded } = params;
+                                                                    const { id, origin, name, child = [], document_read, user, dateAdded } = params;
                                                                     const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                                     const editFilename = (typeof document.Selected.file_name != "undefined") ? document.Selected.file_name : "";
@@ -850,7 +849,7 @@ export default class TaskDetails extends React.Component {
                                                                                         <input
                                                                                             type="text"
                                                                                             required=""
-                                                                                            name="checklist"
+                                                                                            name="fileName"
                                                                                             class="form-control"
                                                                                             placeholder="Add Item"
                                                                                             value={editFilename}
@@ -862,8 +861,8 @@ export default class TaskDetails extends React.Component {
                                                                                 }
                                                                                 <div class={(typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) ? "hide" : ""}>
                                                                                     <p class="m0">
-                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead: isRead.length, user })}>
-                                                                                            {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
+                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name, origin, document_read, user })}>
+                                                                                            {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
                                                                                         </a>
                                                                                     </p>
                                                                                     <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
