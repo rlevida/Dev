@@ -288,16 +288,29 @@ exports.get = {
     },
     getById: (req, cb) => {
         const id = req.params.id
+        const queryString = req.query;
         const whereObj = {
             ...(typeof id !== "undefined" && id !== "") ? { id: id } : {}
         }
+
         Document
             .findOne({
                 where: whereObj,
                 include: associationFindAllStack,
             })
             .then((res) => {
-                cb({ status: true, data: res.toJSON() })
+                const documentObj = res.toJSON();
+                let resToReturn = {
+                    ...documentObj,
+                    tagWorkstream: documentObj.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                    tagTask: documentObj.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                    tagNote: documentObj.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
+                    members: documentObj.share.map((e) => { return e.user }),
+                    share: JSON.stringify(documentObj.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                    isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (documentObj.document_starred).length > 0) ? documentObj.document_starred[0].isActive : 0,
+                    isRead: documentObj.document_read.length > 0 ? 1 : 0
+                }
+                cb({ status: true, data: resToReturn })
             })
     },
     getDocumentCount: (req, cb) => {

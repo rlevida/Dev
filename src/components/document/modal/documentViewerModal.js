@@ -111,11 +111,10 @@ class DocumentViewerComponent extends React.Component {
             usersId: loggedUser.data.id
         }, (c) => {
             if (c.status == 200) {
-                let selectedObj = {};
+                let selectedObj = { ...document.Selected, isStarred: isStarredValue };
                 const updatedDocumentList = _.map(document.List, (documentObj, index) => {
                     if (id == documentObj.id) {
                         documentObj["isStarred"] = isStarredValue;
-                        selectedObj = documentObj
                     }
                     return documentObj;
                 });
