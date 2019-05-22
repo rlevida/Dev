@@ -172,16 +172,15 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match, pageModal, document } = this.props;
+        const { dispatch, loggedUser, folder, match, pageModal, document } = { ...this.props };
         const projectId = match.params.projectId;
 
         if (document.ActiveTab === "trash" || document.ActiveTab === 'archived') {
             return;
         }
 
-        $(`#documentViewerModal`).modal('show');
-
         if (data.type !== 'folder') {
+            $(`#documentViewerModal`).modal('show');
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
                 postData(`/api/document/read`, dataToSubmit, (ret) => {
