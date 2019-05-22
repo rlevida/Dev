@@ -16,7 +16,8 @@ var delayTimer = ''
         conversation: store.conversation,
         global: store.global,
         starred: store.starred,
-        project: store.project
+        project: store.project,
+        starred: store.starred
     }
 })
 
@@ -39,7 +40,7 @@ class DocumentViewerComponent extends React.Component {
             "starredDocument",
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
-    
+
     componentDidMount() {
         const { dispatch } = { ...this.props };
         $('#documentViewerModal').on('hidden.bs.modal', () => {
@@ -100,7 +101,7 @@ class DocumentViewerComponent extends React.Component {
     }
 
     starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch, match } = this.props;
+        const { document, loggedUser, dispatch, match, starred } = this.props;
         const projectId = match.params.projectId;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
 
@@ -121,6 +122,12 @@ class DocumentViewerComponent extends React.Component {
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj })
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, count: document.Count });
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+
+                if (isStarredValue === 0) {
+                    const starredDocument = _.find(starred.List, { linkId: document.Selected.id, linkType: 'document' });
+                    const starredList = starred.List.filter((e) => { return (starredDocument.id !== e.id) });
+                    dispatch({ type: "SET_STARRED_LIST", list: starredList });
+                }
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
