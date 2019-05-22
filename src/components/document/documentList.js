@@ -433,20 +433,14 @@ class DocumentList extends React.Component {
                                                                 <td>{
                                                                     data.tagWorkstream.length > 0 &&
                                                                     data.tagWorkstream.map((t, tIndex) => {
-                                                                        tagCount += t.label.length
-                                                                        let tempCount = tagCount;
-                                                                        if (tagCount > 16) { tagCount = 0 }
-                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                        return <p class="m0" key={tIndex}>{t.label}</p>
                                                                     })
                                                                 }
                                                                 </td>
                                                                 <td>{
                                                                     data.tagTask.length > 0 &&
                                                                     data.tagTask.map((t, tIndex) => {
-                                                                        tagCount += t.label.length
-                                                                        let tempCount = tagCount;
-                                                                        if (tagCount > 16) { tagCount = 0 }
-                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                        return <p class="m0" key={tIndex}>{t.label}</p>
                                                                     })
                                                                 }
                                                                 </td>
