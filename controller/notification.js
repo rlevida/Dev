@@ -172,7 +172,6 @@ exports.get = {
                             include: notificationStack
                         })
                         .then((res) => {
-                            console.log(res)
                             parallelCallback(null, res)
                         })
                 }
