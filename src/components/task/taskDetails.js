@@ -584,7 +584,6 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const totalHoursValue = (_.sum(totalHours) / 60).toFixed(2);
-        console.log(document.Selected.action)
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">

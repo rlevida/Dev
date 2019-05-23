@@ -436,57 +436,57 @@ exports.post = {
                                     }
                                 ]
                             }).then((workstreamResult) => {
-                                const responseObj = workstreamResult.toJSON();
-                                const workstreamTasks = _(responseObj.task)
-                                    .filter((workstreamTasksObj) => {
-                                        return workstreamTasksObj.periodTask == null
-                                    })
-                                    .map((workstreamTasksObj) => {
-                                        return {
-                                            ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
-                                            projectId: body.projectId,
-                                            workstreamId: resultObj.id,
-                                            ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
-                                        }
-                                    })
-                                    .value();
+                                callback(null, "");
+                                // const workstreamTasks = _(responseObj.task)
+                                //     .filter((workstreamTasksObj) => {
+                                //         return workstreamTasksObj.periodTask == null
+                                //     })
+                                //     .map((workstreamTasksObj) => {
+                                //         return {
+                                //             ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
+                                //             projectId: body.projectId,
+                                //             workstreamId: resultObj.id,
+                                //             ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
+                                //         }
+                                //     })
+                                //     .value();
 
-                                Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
-                                    return taskResponse.toJSON();
-                                }).then((taskArray) => {
-                                    const periodicTask = _(taskArray)
-                                        .filter((taskObj) => {
-                                            return taskObj.periodic == 1;
-                                        })
-                                        .map((taskObj) => {
-                                            return _.times(taskObj.periodInstance - 1, (o) => {
-                                                const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                                return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
-                                            })
-                                        })
-                                        .flatten()
-                                        .value();
+                                // Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
+                                //     return taskResponse.toJSON();
+                                // }).then((taskArray) => {
+                                //     const periodicTask = _(taskArray)
+                                //         .filter((taskObj) => {
+                                //             return taskObj.periodic == 1;
+                                //         })
+                                //         .map((taskObj) => {
+                                //             return _.times(taskObj.periodInstance - 1, (o) => {
+                                //                 const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                //                 return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
+                                //             })
+                                //         })
+                                //         .flatten()
+                                //         .value();
 
-                                    Tasks.bulkCreate(periodicTask).map((taskResponse) => {
-                                        return taskResponse.toJSON();
-                                    }).then((periodicTaskArray) => {
-                                        const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
-                                            const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
-                                            return {
-                                                usersId: body.userId,
-                                                linkType: "task",
-                                                linkId: activityObj.id,
-                                                actionType: "created",
-                                                new: JSON.stringify({ task: activityObj }),
-                                                title: activityObj.task
-                                            }
-                                        });
+                                //     Tasks.bulkCreate(periodicTask).map((taskResponse) => {
+                                //         return taskResponse.toJSON();
+                                //     }).then((periodicTaskArray) => {
+                                //         const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
+                                //             const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
+                                //             return {
+                                //                 usersId: body.userId,
+                                //                 linkType: "task",
+                                //                 linkId: activityObj.id,
+                                //                 actionType: "created",
+                                //                 new: JSON.stringify({ task: activityObj }),
+                                //                 title: activityObj.task
+                                //             }
+                                //         });
 
-                                        ActivityLogs.bulkCreate(activityLogs).then((response) => {
-                                            callback(null, "");
-                                        });
-                                    });
-                                });
+                                //         ActivityLogs.bulkCreate(activityLogs).then((response) => {
+                                //             callback(null, "");
+                                //         });
+                                //     });
+                                // });
                             });
                         } else {
                             callback(null, "");
