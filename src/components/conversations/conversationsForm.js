@@ -142,8 +142,8 @@ export default class ConversationForm extends React.Component {
                     {
                         title: note,
                         id,
-                        workstream: noteWorkstream,
-                        workstreamId: noteWorkstream.id,
+                        workstream: noteWorkstream ? noteWorkstream : "",
+                        workstreamId: noteWorkstream ? noteWorkstream.id : "",
                         users: _.map(notesTagTask, ({ user }) => {
                             return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
                         }),
@@ -170,6 +170,7 @@ export default class ConversationForm extends React.Component {
             );
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
             postData(`/api/conversation/message`, data, (c) => {
+                console.log(c.data)
                 const selectedNote = c.data[0];
                 const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
 
@@ -179,8 +180,8 @@ export default class ConversationForm extends React.Component {
                     {
                         title: note,
                         id,
-                        workstream: noteWorkstream,
-                        workstreamId: noteWorkstream.id,
+                        workstream: noteWorkstream ? noteWorkstream : "",
+                        workstreamId: noteWorkstream ? noteWorkstream.id : "",
                         users: _.map(notesTagTask, ({ user }) => {
                             return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
                         }),
@@ -541,10 +542,6 @@ export default class ConversationForm extends React.Component {
                         {
                             (
                                 (typeof notes.Selected.title != "undefined" && notes.Selected.title != "") &&
-                                (
-                                    (typeof notes.Selected.workstreamId != "undefined" && notes.Selected.workstreamId != "") ||
-                                    workstreamId != ""
-                                ) &&
                                 (typeof notes.Selected.message != "undefined" && notes.Selected.message != null && notes.Selected.message != "") &&
                                 (typeof notes.Selected.users != "undefined" && (notes.Selected.users).length > 0) && <a disabled={(conversation.Loading == "SUBMITTING")} class="btn btn-violet mt10" onClick={this.handleSubmit}>
 
