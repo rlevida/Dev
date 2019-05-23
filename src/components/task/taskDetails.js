@@ -346,22 +346,26 @@ export default class TaskDetails extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser } = { ...this.props };
-        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
-            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
+        getData(`/api/document/detail/${data.id}?starredUser=${loggedUser.data.id}`, {}, (ret) => {
+            const documentObj = { ...ret.data };
+            $(`#documentViewerModal`).modal('show')
 
-            if ((data.document_read).length) {
-                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-                $(`#documentViewerModal`).modal('show')
-            } else {
-                const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
-                postData(`/api/document/read`, dataToSubmit, (ret) => {
-                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+            getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${documentObj.id}`, {}, (c) => {
+                dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
+
+                if ((documentObj.isRead).length) {
+                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
                     $(`#documentViewerModal`).modal('show')
-                });
-            }
+                } else {
+                    const dataToSubmit = { usersId: loggedUser.data.id, documentId: documentObj.id, isDeleted: 0 };
+                    postData(`/api/document/read`, dataToSubmit, (ret) => {
+                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...documentObj, document_read: [ret.data], isRead: 1 } });
+                    });
+                }
+            });
+        })
 
-        });
     }
 
     deleteSubtask(id) {
@@ -427,20 +431,22 @@ export default class TaskDetails extends React.Component {
         const dataToBeSubmited = {
             usersId: loggedUser.data.id,
             origin: renamedDocument,
-            oldDocument: JSON.stringify(_.omit(document.Selected, ['file_name'])),
-            newDocument: JSON.stringify({ ...document.Selected, origin: renamedDocument }),
-            projectId: task.Selected.projectId
+            oldDocument: document.Selected.origin,
+            newDocument: renamedDocument,
+            projectId: task.Selected.projectId,
+            type: 'document'
         };
+
         putData(`/api/document/rename/${document.Selected.id}`, dataToBeSubmited, (c) => {
             if (document.Selected.type == "Task Document") {
                 const taskDocument = _.map(task.Selected.tag_task, (o) => {
-                    return o.document.id == document.Selected.id ? { ...o, document: JSON.parse(dataToBeSubmited.newDocument) } : o;
+                    return o.document.id == document.Selected.id ? { ...o, document: { ...o.document, origin: renamedDocument } } : o;
                 });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
             } else {
                 const checklist = _.map(task.Selected.checklist, (o) => {
                     const checklistDocument = _.map(o.tagDocuments, (o) => {
-                        return o.documentId == document.Selected.id ? { ...o, document: JSON.parse(dataToBeSubmited.newDocument) } : o
+                        return o.documentId == document.Selected.id ? { ...o, document: { ...o.document, origin: renamedDocument } } : o
                     });
                     return { ...o, tagDocuments: checklistDocument, isCompleted: (checklistDocument.length > 0) ? 1 : 0 }
                 });
@@ -930,7 +936,7 @@ export default class TaskDetails extends React.Component {
                                                                                         ) ? "hide" : ""
                                                                                     }>
                                                                                         <p class="m0">
-                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name, origin, document_read, user })}>
+                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: isRead.length, user })}>
                                                                                                 {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
                                                                                             </a>
                                                                                         </p>

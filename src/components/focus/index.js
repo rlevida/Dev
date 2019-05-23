@@ -146,7 +146,7 @@ export default class Component extends React.Component {
         const { dispatch } = { ...this.props };
         $(`#documentViewerModal`).modal('show');
         getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, (c) => {
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: document });
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...document, isStarred: 1 } });
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
             dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
         })

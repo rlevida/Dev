@@ -128,9 +128,13 @@ export default class ProjectForm extends React.Component {
             if (!project.Selected.id) {
                 project.Selected.createdBy = loggedUser.data.id;
                 postData(`/api/project`, { ...project.Selected }, (c) => {
-                    showToast("success", "Project successfully added.");
-                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
-                    dispatch({ type: "SET_MEMBERS_LIST", list: _.map(c.data.members, ({ user }) => { return user }) });
+                    if (c.data.error) {
+                        showToast("error", c.data.message)
+                    } else {
+                        showToast("success", "Project successfully added.");
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
+                        dispatch({ type: "SET_MEMBERS_LIST", list: _.map(c.data.members, ({ user }) => { return user }) });
+                    }
                 });
             } else {
                 const dataToSubmit = {

@@ -842,10 +842,11 @@ exports.post = {
                 })
                 .then((res) => {
                     if (res.length) {
-                        d.projectNameCount = res[0].projectNameCount + 1
-                        nextThen()
+                        cb({ status: true, data: { error: true, message: 'Project name aleady exists.' } });
+                        // d.projectNameCount = res[0].projectNameCount + 1
+                        // nextThen()
                     } else {
-                        d.projectNameCount = 0
+                        // d.projectNameCount = 0
                         nextThen()
                     }
                 })

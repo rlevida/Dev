@@ -172,16 +172,15 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match, pageModal, document } = this.props;
+        const { dispatch, loggedUser, folder, match, pageModal, document } = { ...this.props };
         const projectId = match.params.projectId;
 
         if (document.ActiveTab === "trash" || document.ActiveTab === 'archived') {
             return;
         }
 
-        $(`#documentViewerModal`).modal('show');
-
         if (data.type !== 'folder') {
+            $(`#documentViewerModal`).modal('show');
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
                 postData(`/api/document/read`, dataToSubmit, (ret) => {
@@ -434,20 +433,14 @@ class DocumentList extends React.Component {
                                                                 <td>{
                                                                     data.tagWorkstream.length > 0 &&
                                                                     data.tagWorkstream.map((t, tIndex) => {
-                                                                        tagCount += t.label.length
-                                                                        let tempCount = tagCount;
-                                                                        if (tagCount > 16) { tagCount = 0 }
-                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                        return <p class="m0" key={tIndex}>{t.label}</p>
                                                                     })
                                                                 }
                                                                 </td>
                                                                 <td>{
                                                                     data.tagTask.length > 0 &&
                                                                     data.tagTask.map((t, tIndex) => {
-                                                                        tagCount += t.label.length
-                                                                        let tempCount = tagCount;
-                                                                        if (tagCount > 16) { tagCount = 0 }
-                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
+                                                                        return <p class="m0" key={tIndex}>{t.label}</p>
                                                                     })
                                                                 }
                                                                 </td>

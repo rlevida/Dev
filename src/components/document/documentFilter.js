@@ -39,7 +39,7 @@ class DocumentFilter extends React.Component {
     }
 
     handleFilter() {
-        const { dispatch, loggedUser, match, document } = { ...this.props };
+        const { dispatch, loggedUser, match, document, folder } = { ...this.props };
         const projectId = match.params.projectId;
         const { uploadFrom, uploadTo, uploadedBy, tagWorkstream, tagTask, fileName } = { ...document.Filter };
         const { ActiveTab } = { ...document };
@@ -50,7 +50,11 @@ class DocumentFilter extends React.Component {
         }
 
         if (ActiveTab === 'library') {
-            requestUrl += `&folderId=null&type=folder`;
+            if (folder.Selected.id) {
+                requestUrl += `&folderId=${folder.Selected.id}`
+            } else {
+                requestUrl += `&folderId=null&type=folder`;
+            }
         }
 
         if (uploadFrom && uploadTo) {
