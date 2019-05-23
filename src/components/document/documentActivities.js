@@ -25,8 +25,9 @@ class DocumentActivities extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_ACTIVITYLOG_DOCUMENT_LIST", list: {}, count: {} });
-        dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", ActiveTab: "active" });
+        dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", active: "active" });
     }
+    
     fetchData(page) {
         const { dispatch, loggedUser, match, activities } = { ...this.props };
         const { projectId } = { ...match.params }
