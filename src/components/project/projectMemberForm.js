@@ -43,7 +43,7 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     handleSubmit(e) {
-        const { members, dispatch, project, loggedUser } = { ...this.props };
+        const { members, dispatch, project, loggedUser, teams } = { ...this.props };
         let result = true;
 
         $('#project-member-form  *').validator('validate');
@@ -55,30 +55,40 @@ export default class ProjectMemberForm extends React.Component {
 
         if (!result) {
             showToast("error", "Please fill up the required fields.");
-        } else if (_.filter(members.List, (o) => { return o.id == members.Selected.userTypeLinkId }).length > 0) {
+            return
+        } else if (members.Selected.type === "users" && _.find(project.Selected.members, { id: members.Selected.userTypeLinkId })) {
+            //CHECK IF THE USER SELECTED IS ALREADY IN PROJECT
             showToast("error", "The member selected is already assigned.");
             return;
-        } else {
-            members.Selected.memberType = 1;
-
-            const dataToSubmit = {
-                usersType: members.Selected.type,
-                userTypeLinkId: (loggedUser.data.userRole < 4) ? members.Selected.userTypeLinkId : "users",
-                linkType: "project",
-                linkId: project.Selected.id,
-                memberType: 'assignedTo'
-            };
-
-            postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
-                getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
-                });
-                $('#project-member-form *').validator('destroy');
-                showToast("success", "Successfully Added.");
-                dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
-                this.setState({ showAllUsers: false });
-            });
+        } else if (members.Selected.type === "team") {
+            //CHECK IF TEAM MEMBERS ARE ALREADY IN PROJECT
+            const selectedTeam = _.find(teams.SelectList, { id: members.Selected.userTypeLinkId }).teamUsers.map((e) => { return e.user });
+            const usersArr = _.filter(project.Selected.members, (e) => {
+                return _.findIndex(selectedTeam, (f) => { return (e.id == f.id) }) >= 0;
+            })
+            if (usersArr.length > 0) {
+                showToast("error", "One of the team member is already assigned.");
+                return
+            }
         }
+
+        const dataToSubmit = {
+            usersType: members.Selected.type,
+            userTypeLinkId: (loggedUser.data.userRole < 4) ? members.Selected.userTypeLinkId : "users",
+            linkType: "project",
+            linkId: project.Selected.id,
+            memberType: 'assignedTo'
+        };
+
+        postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
+            getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
+                dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
+            });
+            $('#project-member-form *').validator('destroy');
+            showToast("success", "Successfully Added.");
+            dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
+            this.setState({ showAllUsers: false });
+        });
     }
 
     setDropDown(name, value) {
@@ -138,7 +148,7 @@ export default class ProjectMemberForm extends React.Component {
         }
         getData(fetchUrl, {}, (c) => {
             const teamOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.team } })
+                .map((e) => { return { id: e.id, name: e.team, teamUsers: e.users_team } })
                 .value();
 
             dispatch({ type: "SET_TEAM_SELECT_LIST", List: _.uniqBy([...teams.SelectList, ...teamOptions], "id") });
