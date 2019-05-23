@@ -54,12 +54,14 @@ export default class TaskDocument extends React.Component {
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: {
-                        ...task.Selected, checklist: _(task.Selected.checklist)
+                        ...task.Selected,
+                        checklist: _(task.Selected.checklist)
                             .differenceBy(updatedChecklist, 'id')
                             .concat(updatedChecklist)
                             .sortBy('dateAdded')
                             .reverse()
-                            .value()
+                            .value(),
+                        tag_task: c.data.result.tags
                     }
                 });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });

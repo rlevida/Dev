@@ -340,7 +340,7 @@ exports.get = {
                             let myTeamQuery = "(";
                             myTeamQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.projectId IN (${(myProjects).join(",")}) AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo"`;
                             myTeamQuery += ")";
-                            
+
                             opOrArray.push(
                                 {
                                     id: {
@@ -801,11 +801,11 @@ exports.post = {
                                 if (typeof body.periodic != "undefined" && body.periodic == 1) {
                                     const taskPromises = _.times(2, (o) => {
                                         return new Promise((resolve) => {
-                                            const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance*(o+1)).format('YYYY-MM-DD HH:mm:ss');
+                                            const nextDueDate = moment(body.dueDate).add(body.periodType, body.periodInstance * (o + 1)).format('YYYY-MM-DD HH:mm:ss');
                                             const newPeriodTask = {
                                                 ...body,
                                                 dueDate: nextDueDate,
-                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.periodInstance*(o+1))).format('YYYY-MM-DD HH:mm:ss') } : {},
+                                                ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.periodInstance * (o + 1))).format('YYYY-MM-DD HH:mm:ss') } : {},
                                                 periodTask: newTaskResponse.id
                                             };
 
@@ -1113,9 +1113,9 @@ exports.post = {
 
                 const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
                 const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: projectId } });
-                DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() })
+                await DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() })
 
-                const workstreamTag = _.map(documentUpload, ({ id }) => {
+                let workstreamTag = _.map(documentUpload, ({ id }) => {
                     return {
                         linkType: "workstream",
                         linkId: workstreamId,
@@ -1123,6 +1123,18 @@ exports.post = {
                         tagTypeId: id
                     }
                 });
+
+                if (checklistStack.length > 0) {
+                    workstreamTag = [...workstreamTag, ..._.map(documentUpload, ({ id }) => {
+                        return {
+                            linkType: "task",
+                            linkId: taskId,
+                            tagType: "document",
+                            tagTypeId: id
+                        }
+                    })
+                    ];
+                }
 
                 async.parallel({
                     tag: (parallelCallback) => {
@@ -1400,8 +1412,33 @@ exports.post = {
                                     }
                                 ).map((mapObject) => {
                                     return mapObject.toJSON();
-                                }).then((o) => {
-                                    cb({ status: true, data: { result: o, type: "checklist", activity_logs: _.flatten(_.map(values, ({ activity_log }) => { return activity_log })) } });
+                                }).then(async (o) => {
+                                    const tags = await Tag.findAll(
+                                        {
+                                            where: {
+                                                linkType: "task",
+                                                linkId: taskId,
+                                                tagType: "document"
+                                            },
+                                            include: [
+                                                {
+                                                    model: Document,
+                                                    as: 'document',
+                                                    include: [{
+                                                        model: DocumentRead,
+                                                        as: 'document_read',
+                                                        attributes: ['id'],
+                                                        required: false
+                                                    },
+                                                    {
+                                                        model: Users,
+                                                        as: 'user',
+                                                    }]
+                                                }
+                                            ]
+                                        }
+                                    ).map((o) => { return o.toJSON() });
+                                    cb({ status: true, data: { result: o, type: "checklist", tags, activity_logs: _.flatten(_.map(values, ({ activity_log }) => { return activity_log })) } });
                                 })
                             });
                         });

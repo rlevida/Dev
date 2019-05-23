@@ -767,7 +767,7 @@ export default class TaskForm extends React.Component {
                                                 </div>
                                             </div>
                                         }
-                                        <div>
+                                        <div class={(typeof task.Selected.id != "undefined" && task.Selected.id != "") ? "pointer-none" : ""}>
                                             <label class="custom-checkbox">
                                                 Recurring Task
                                                 <input
@@ -779,37 +779,39 @@ export default class TaskForm extends React.Component {
                                                 <span class="checkmark"></span>
                                             </label>
                                         </div>
-                                        {
-                                            (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
-                                                <div class="row">
-                                                    <div class="col-lg-8 md-8 col-sm-8">
-                                                        <div class="form-group">
-                                                            <label>Instance:<span class="text-red">*</span></label>
-                                                            <input min="1" max="10" type="number" name="periodInstance" required value={(typeof task.Selected.periodInstance == "undefined") ? "" : task.Selected.periodInstance} class="form-control" placeholder="Enter number instance" onChange={this.handleChange} />
+                                        <div class={(typeof task.Selected.id != "undefined" && task.Selected.id != "") ? "pointer-none" : ""}>
+                                            {
+                                                (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
+                                                    <div class="row">
+                                                        <div class="col-lg-8 md-8 col-sm-8">
+                                                            <div class="form-group">
+                                                                <label>Instance:<span class="text-red">*</span></label>
+                                                                <input min="1" max="10" type="number" name="periodInstance" required value={(typeof task.Selected.periodInstance == "undefined") ? "" : task.Selected.periodInstance} class="form-control" placeholder="Enter number instance" onChange={this.handleChange} />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        }
-                                        {
-                                            (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
-                                                <div class="row">
-                                                    <div class="col-lg-8 md-8 col-sm-8">
-                                                        <div class="form-group">
-                                                            <label>
-                                                                Period:<span class="text-red">*</span>
-                                                            </label>
-                                                            <DropDown multiple={false}
-                                                                required={true}
-                                                                options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
-                                                                selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
-                                                                onChange={(e) => this.setDropDown("periodType", e.value)}
-                                                            />
+                                            }
+                                            {
+                                                (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
+                                                    <div class="row">
+                                                        <div class="col-lg-8 md-8 col-sm-8">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    Period:<span class="text-red">*</span>
+                                                                </label>
+                                                                <DropDown multiple={false}
+                                                                    required={true}
+                                                                    options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
+                                                                    selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
+                                                                    onChange={(e) => this.setDropDown("periodType", e.value)}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        }
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                                 <a class="btn btn-violet mr5" onClick={this.handleSubmit} disabled={(task.Loading == "SUBMITTING")}>

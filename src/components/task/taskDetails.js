@@ -9,6 +9,7 @@ import ReactTooltip from 'react-tooltip';
 import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
 import { DeleteModal, MentionConvert } from "../../globalComponents";
 import defaultStyle from "../global/react-mention-style";
+import { DropDown } from "../../globalComponents";
 
 import DocumentViewerModal from "../document/modal/documentViewerModal";
 import TaskChecklist from "./taskChecklist";
@@ -49,7 +50,9 @@ export default class TaskDetails extends React.Component {
             "replyComment",
             "getNextTimeLogs",
             "renameDocument",
-            "editDocument"
+            "editDocument",
+            "tagChecklist",
+            "updateDocumentChecklist"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -74,7 +77,7 @@ export default class TaskDetails extends React.Component {
     }
 
     completeChecklist(id) {
-        const { task, dispatch } = { ...this.props };
+        const { task, dispatch, loggedUser } = { ...this.props };
         const { checklist = [], periodic, dueDate, id: taskId, periodTask } = task.Selected;
         const updateIndex = _.findIndex(checklist, { id });
         const getSelectedChecklist = _.find(checklist, (o) => o.id == id);
@@ -85,7 +88,8 @@ export default class TaskDetails extends React.Component {
                 isPeriodicTask: periodic,
                 dueDate,
                 periodTask,
-                periodTask: (task.Selected.periodTask == null) ? taskId : periodTask
+                periodTask: (task.Selected.periodTask == null) ? taskId : periodTask,
+                userId: loggedUser.data.id
             }
         };
 
@@ -372,8 +376,12 @@ export default class TaskDetails extends React.Component {
 
     deleteDocument(value) {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'delete' } });
-        $('#delete-document').modal("show");
+        if ((value.child).length > 0) {
+            showToast("error", "Document has checklist.");
+        } else {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'DELETE' } });
+            $('#delete-document').modal("show");
+        }
     }
 
     confirmDeleteDocument() {
@@ -396,7 +404,7 @@ export default class TaskDetails extends React.Component {
                 });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
             }
-            
+
             if ((c.data.activity_logs).length > 0) {
                 _.map(c.data.activity_logs, (o) => {
                     dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
@@ -410,7 +418,7 @@ export default class TaskDetails extends React.Component {
 
     editDocument(value) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, file_name: (value.origin).split('.').slice(0, -1).join('.') } });
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, file_name: (value.origin).split('.').slice(0, -1).join('.'), action: 'RENAME' } });
     }
 
     renameDocument() {
@@ -454,6 +462,46 @@ export default class TaskDetails extends React.Component {
         });
     }
 
+    tagChecklist(value) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'TAG' } });
+    }
+
+    updateDocumentChecklist() {
+        const { document, loggedUser, task, dispatch } = this.props;
+        const dataToBeSubmited = {
+            usersId: loggedUser.data.id,
+            documentId: document.Selected.id,
+            checklistIds: document.Selected.child,
+            taskId: task.Selected.id
+        };
+        putData(`/api/checklist/tagDocument/${document.Selected.id}`, dataToBeSubmited, (c) => {
+            const checklist = _.map(task.Selected.checklist, (o) => {
+                const updatedComplete = _.find(c.data.checklist, ({ id }) => { return id == o.id });
+                return {
+                    ...o,
+                    isCompleted: (typeof updatedComplete != "undefined") ? updatedComplete.isCompleted : o.isCompleted,
+                    tagDocuments: (typeof updatedComplete != "undefined") ? updatedComplete.tagDocuments : o.tagDocuments
+                }
+            });
+            const toBeUpdatedObject = {
+                ...task.Selected,
+                checklist
+            };
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [toBeUpdatedObject] });
+            dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+
+            if ((c.data.activity_logs).length > 0) {
+                _.map(c.data.activity_logs, (o) => {
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
+                });
+            }
+
+            showToast("success", "Document successfully updated.");
+        });
+    }
+
     render() {
         const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch, tasktimeLog } = { ...this.props };
         const commentType = conversation.Selected.type || "";
@@ -486,21 +534,14 @@ export default class TaskDetails extends React.Component {
                         name: o.document.name,
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
-                        document_read: o.document.document_read,
+                        isRead: o.document.document_read,
                         user: o.document.user,
-                        child: _(checklist)
-                            .filter((check) => {
-                                return _.filter(check.tagDocuments, (tagDoc) => { return tagDoc.document.id == o.document.id }).length > 0
-                            })
-                            .map((o) => { return o.description })
-                            .value()
                     };
                 })
             })
-            .uniqBy('id')
             .value();
+
         const taskDocuments = _(tag_task)
-            .filter((o) => { return o.tagType == "document" })
             .map((o) => {
                 return {
                     id: o.document.id,
@@ -513,8 +554,23 @@ export default class TaskDetails extends React.Component {
                 }
             })
             .value();
-        const documentList = [...checklistDocuments, ...taskDocuments];
-        const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
+        const documentList = _([...taskDocuments, ...checklistDocuments])
+            .map((o) => {
+                return {
+                    ...o,
+                    child: _(checklist)
+                        .filter((check) => {
+                            return _.filter(check.tagDocuments, (tagDoc) => { return tagDoc.document.id == o.id }).length > 0
+                        })
+                        .map((o) => { return o })
+                        .value()
+                }
+            })
+            .uniqBy('id')
+            .sortBy('dateAdded')
+            .reverse()
+            .value();
+        const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.origin : "";
         const totalHours = _(tasktimeLog.TotalHours)
             .map(({ period, value }) => {
                 const toBeAdded = (period == "hours") ? value * 60 : value;
@@ -522,6 +578,7 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const totalHoursValue = (_.sum(totalHours) / 60).toFixed(2);
+        console.log(document.Selected.action)
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -839,13 +896,18 @@ export default class TaskDetails extends React.Component {
                                                                     const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                                     const editFilename = (typeof document.Selected.file_name != "undefined") ? document.Selected.file_name : "";
+                                                                    let checklistTagged = [];
+                                                                    if (document.Selected.id == id) {
+                                                                        checklistTagged = _.map(document.Selected.child, ({ id, description }) => { return { value: id, label: description } })
+                                                                    }
+
 
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb5 pd10 attachment">
                                                                                 {
-                                                                                    (typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) &&
-                                                                                    <div class="form-group mb5">
+                                                                                    (document.Selected.action == "RENAME" && document.Selected.id == params.id) && <div class="form-group mb5">
+                                                                                        <label for="email">Document Name:</label>
                                                                                         <input
                                                                                             type="text"
                                                                                             required=""
@@ -859,20 +921,53 @@ export default class TaskDetails extends React.Component {
                                                                                         />
                                                                                     </div>
                                                                                 }
-                                                                                <div class={(typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) ? "hide" : ""}>
-                                                                                    <p class="m0">
-                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name, origin, document_read, user })}>
-                                                                                            {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
-                                                                                        </a>
-                                                                                    </p>
-                                                                                    <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
+                                                                                <div>
+                                                                                    <div class={
+                                                                                        (
+                                                                                            typeof document.Selected.action != "undefined" &&
+                                                                                            (document.Selected.action == "RENAME") &&
+                                                                                            document.Selected.id == params.id
+                                                                                        ) ? "hide" : ""
+                                                                                    }>
+                                                                                        <p class="m0">
+                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name, origin, document_read, user })}>
+                                                                                                {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
+                                                                                            </a>
+                                                                                        </p>
+                                                                                        <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
+                                                                                    </div>
+                                                                                    {
+                                                                                        (document.Selected.action == "TAG" && document.Selected.id == params.id) && <div class="form-group mb5">
+                                                                                            <p class="m0 note">All checklist added or removed will change status.</p>
+                                                                                            <DropDown
+                                                                                                multiple={true}
+                                                                                                required={false}
+                                                                                                options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
+                                                                                                selected={checklistTagged}
+                                                                                                onChange={(e) => {
+                                                                                                    dispatch({
+                                                                                                        type: "SET_DOCUMENT_SELECTED", Selected: {
+                                                                                                            ...document.Selected,
+                                                                                                            child: _.filter(checklist, (checklistObj) => {
+                                                                                                                return _.findIndex(e, ({ value }) => { return value == checklistObj.id }) >= 0;
+                                                                                                            })
+                                                                                                        }
+                                                                                                    });
+                                                                                                }}
+                                                                                                placeholder={"Search or select document checklist"}
+                                                                                                isClearable={(checklist.length > 0)}
+                                                                                            />
+                                                                                        </div>
+                                                                                    }
                                                                                 </div>
                                                                                 {
                                                                                     (status != "Completed" && user.id == loggedUser.data.id) &&
                                                                                     <div class="flex-right">
                                                                                         {
                                                                                             (
-                                                                                                typeof document.Selected.file_name == "undefined" || document.Selected.id != params.id
+                                                                                                ((typeof document.Selected.action == "undefined" || document.Selected.action != "RENAME") &&
+                                                                                                    document.Selected.id != params.id) ||
+                                                                                                document.Selected.action == "DELETE"
                                                                                             ) && <div>
                                                                                                 <a
                                                                                                     href="javascript:void(0);"
@@ -886,19 +981,38 @@ export default class TaskDetails extends React.Component {
                                                                                                     class="btn btn-action"
                                                                                                 >
                                                                                                     <span class="fa fa-pencil"></span></a>
+                                                                                                <a
+                                                                                                    href="javascript:void(0);"
+                                                                                                    onClick={(e) => this.tagChecklist(params)}
+                                                                                                    class="btn btn-action"
+                                                                                                >
+                                                                                                    <span class="fa fa-tags"></span></a>
                                                                                             </div>
                                                                                         }
                                                                                         {
-                                                                                            (typeof document.Selected.file_name != "undefined" && document.Selected.id == params.id) && <div>
+                                                                                            (typeof document.Selected.action != "undefined" && document.Selected.id == params.id && document.Selected.action != "DELETE") && <div>
                                                                                                 <a
                                                                                                     href="javascript:void(0);"
-                                                                                                    onClick={(e) => this.renameDocument(params)}
+                                                                                                    onClick={() => {
+                                                                                                        if (document.Selected.action != "RENAME") {
+                                                                                                            this.updateDocumentChecklist()
+                                                                                                        } else {
+                                                                                                            this.renameDocument(params)
+                                                                                                        }
+                                                                                                    }}
                                                                                                     class="btn btn-action"
                                                                                                 >
                                                                                                     <span class="fa fa-check"></span></a>
+                                                                                                <a
+                                                                                                    href="javascript:void(0);"
+                                                                                                    onClick={() => {
+                                                                                                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+                                                                                                    }}
+                                                                                                    class="btn btn-action"
+                                                                                                >
+                                                                                                    <span class="fa fa-close"></span></a>
                                                                                             </div>
                                                                                         }
-
                                                                                     </div>
                                                                                 }
                                                                             </div>
@@ -909,11 +1023,11 @@ export default class TaskDetails extends React.Component {
                                                                                             <p class="text-left m0"><strong>Checklist</strong></p>
                                                                                         </div>
                                                                                         {
-                                                                                            _.map(child, (o, key) => {
+                                                                                            _.map(child, ({ description }, key) => {
                                                                                                 return (
                                                                                                     <div key={key}>
                                                                                                         <div class="list">
-                                                                                                            <p class="m0 text-left title">{o.substring(0, 30)}{(o.length > 30) ? "..." : ""}</p>
+                                                                                                            <p class="m0 text-left title">{description.substring(0, 30)}{(description.length > 30) ? "..." : ""}</p>
                                                                                                         </div>
                                                                                                     </div>
                                                                                                 )
