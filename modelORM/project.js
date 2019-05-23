@@ -154,12 +154,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'tasks',
       foreignKey: 'projectId'
     })
-
-    Projects.hasOne(models.Notification, {
-      as: 'project_notification',
-      foreignKey: 'id'
-    })
-
   };
 
   return Projects

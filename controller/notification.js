@@ -91,7 +91,7 @@ const NotificationInclude = [
     {
         model: Projects,
         as: 'project_notification',
-        required: false,
+        required: true,
         include: [{
             model: Type,
             as: 'type',
@@ -102,32 +102,32 @@ const NotificationInclude = [
     {
         model: Document,
         as: 'document_notification',
-        required: false,
+        required: true,
         attributes: ["origin"]
     },
     {
         model: Workstream,
         as: 'workstream_notification',
-        required: false,
+        required: true,
         attributes: ["workstream"]
     },
     {
         model: Tasks,
         as: 'task_notification',
-        required: false,
+        required: true,
         attributes: ["task"]
 
     },
     {
         model: Notes,
         as: 'note_notification',
-        required: false,
+        required: true,
         include: NotesInclude
     },
     {
         model: Conversation,
         as: 'conversation_notification',
-        required: false
+        required: true
     }
 ]
 
@@ -145,39 +145,8 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['isRead', 'ASC'],['dateAdded','ASC']]
         };
-        const notesAssociation = [
-            {
-                model: Conversation,
-                as: 'comments',
-                required: false
-            },
-            {
-                model: Workstream,
-                as: 'noteWorkstream',
-                include: [
-                    {
-                        model: Projects,
-                        as: 'project'
-                    }
-                ]
-            },
-            {
-                model: Tag,
-                as: 'notesTagTask',
-                required: false,
-                where: {
-                    linkType: 'user',
-                    tagType: 'notes',
-                    isDeleted: 0
-                },
-                include: [
-                    {
-                        model: Users,
-                        as: 'user'
-                    }
-                ]
-            }
-        ]
+
+        const notificationStack = _.cloneDeep(NotificationInclude)
 
         try {
             async.parallel({
@@ -200,64 +169,10 @@ exports.get = {
                         .findAll({
                             ...options,
                             where: whereObj,
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'to',
-                                    required: false,
-                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                },
-                                {
-                                    model: Users,
-                                    as: 'from',
-                                    required: false,
-                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                },
-                                {
-                                    model: Projects,
-                                    as: 'project_notification',
-                                    required: false,
-                                    include: [{
-                                        model: Type,
-                                        as: 'type',
-                                        required: false,
-                                        attributes: ["type"]
-                                    }]
-                                },
-                                {
-                                    model: Document,
-                                    as: 'document_notification',
-                                    required: false,
-                                    attributes: ["origin"]
-                                },
-                                {
-                                    model: Workstream,
-                                    as: 'workstream_notification',
-                                    required: false,
-                                    attributes: ["workstream"]
-                                },
-                                {
-                                    model: Tasks,
-                                    as: 'task_notification',
-                                    required: false,
-                                    attributes: ["task"]
-
-                                },
-                                {
-                                    model: Notes,
-                                    as: 'note_notification',
-                                    required: false,
-                                    include: notesAssociation
-                                },
-                                {
-                                    model: Conversation,
-                                    as: 'conversation_notification',
-                                    required: false,
-                                }
-
-                            ]
+                            include: notificationStack
                         })
                         .then((res) => {
+                            console.log(res)
                             parallelCallback(null, res)
                         })
                 }
