@@ -44,6 +44,7 @@ class DocumentActionTab extends React.Component {
             const { ActiveTab } = { ...document };
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
+            dispatch({ type: 'RESET_DOCUMENT_FILTER', filter: {} });
 
             delayTimer = setTimeout(() => {
 

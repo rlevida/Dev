@@ -43,7 +43,7 @@ class DocumentFilter extends React.Component {
         const projectId = match.params.projectId;
         const { uploadFrom, uploadTo, uploadedBy, tagWorkstream, tagTask, fileName } = { ...document.Filter };
         const { ActiveTab } = { ...document };
-        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+        let requestUrl = `/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
         if (ActiveTab === "active") {
             requestUrl += `&folderId=null&type=document`;
@@ -52,9 +52,10 @@ class DocumentFilter extends React.Component {
         if (ActiveTab === 'library') {
             if (folder.Selected.id) {
                 requestUrl += `&folderId=${folder.Selected.id}`
-            } else {
-                requestUrl += `&folderId=null&type=folder`;
-            }
+            } 
+            // else {
+            //     requestUrl += `&folderId=null&type=folder`;
+            // }
         }
 
         if (uploadFrom && uploadTo) {
