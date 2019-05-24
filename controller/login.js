@@ -54,6 +54,7 @@ exports.get = {
                     }
                 })
         }).then((nextThen, ipBlockData) => {
+            console.log(`here`)
             try {
                 Users
                     .findOne({
@@ -251,64 +252,69 @@ exports.post = {
                         ]
                     })
                     .then(async (res) => {
+
                         if (res == null) {
-                            updateIpBlock(ipBlockData, body.ipAddress)
-                            cb({ status: false, message: "Incorrect username/password." })
-                            return;
+                            updateIpBlock(ipBlockData, body.ipAddress);
+                            cb({ status: false, message: "Incorrect username/password." });
                         } else {
                             const response = res.toJSON();
-                            const { users_team } = response;
-                           
-                            const teamProject = await Members
-                                .findAll({
-                                    where: {
-                                        linkType: 'project',
-                                        usersType: 'team',
-                                        userTypeLinkId: _.map(users_team, ({ team }) => { return team.id }),
-                                        isDeleted: 0
-                                    }
-                                })
-                                .map((o) => {
-                                    return o.toJSON().linkId
-                                });
-                            const userProject = await Members
-                                .findAll({
-                                    where: {
-                                        linkType: 'project',
-                                        usersType: 'users',
-                                        userTypeLinkId: response.id,
-                                        isDeleted: 0
-                                    }
-                                })
-                                .map((o) => {
-                                    return o.toJSON().linkId
-                                });
+                            const { users_team, isActive } = response;
 
-                            const allUserProjectIds = [...teamProject, ...userProject];
-                            const allUserProject = await Projects.findAll({
-                                where: {
-                                    id: allUserProjectIds,
-                                    isDeleted: 0,
-                                    isActive: 1,
-                                    ...((response).user_role[0].roleId > 4) ? {
-                                        typeId: 1
-                                    } : {}
-                                }
-                            }).map((o) => {
-                                const { id } = o.toJSON();
-                                return id;
-                            });
-
-                            if ((allUserProject).length == 0 && response.user_role[0].roleId > 3) {
-                                cb({ status: false, message: "Your account has no assigned project. Your account's role requires a project to continue. For help, please contact the admin." })
+                            if (!isActive) {
+                                updateIpBlock(ipBlockData, body.ipAddress);
+                                cb({ status: false, message: "Account is inactive. Please contact your administrator." })
                             } else {
-                                const responseToReturn = {
-                                    ...response,
-                                    projectId: _.uniq(allUserProject),
-                                    userRole: response.user_role[0].roleId,
-                                    team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
+                                const teamProject = await Members
+                                    .findAll({
+                                        where: {
+                                            linkType: 'project',
+                                            usersType: 'team',
+                                            userTypeLinkId: _.map(users_team, ({ team }) => { return team.id }),
+                                            isDeleted: 0
+                                        }
+                                    })
+                                    .map((o) => {
+                                        return o.toJSON().linkId
+                                    });
+                                const userProject = await Members
+                                    .findAll({
+                                        where: {
+                                            linkType: 'project',
+                                            usersType: 'users',
+                                            userTypeLinkId: response.id,
+                                            isDeleted: 0
+                                        }
+                                    })
+                                    .map((o) => {
+                                        return o.toJSON().linkId
+                                    });
+
+                                const allUserProjectIds = [...teamProject, ...userProject];
+                                const allUserProject = await Projects.findAll({
+                                    where: {
+                                        id: allUserProjectIds,
+                                        isDeleted: 0,
+                                        isActive: 1,
+                                        ...((response).user_role[0].roleId > 4) ? {
+                                            typeId: 1
+                                        } : {}
+                                    }
+                                }).map((o) => {
+                                    const { id } = o.toJSON();
+                                    return id;
+                                });
+
+                                if ((allUserProject).length == 0 && response.user_role[0].roleId > 3) {
+                                    cb({ status: false, message: "Your account has no assigned project. Your account's role requires a project to continue. For help, please contact the admin." })
+                                } else {
+                                    const responseToReturn = {
+                                        ...response,
+                                        projectId: _.uniq(allUserProject),
+                                        userRole: response.user_role[0].roleId,
+                                        team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
+                                    }
+                                    nextThen(_.omit(responseToReturn, "team_as_teamLeader", "users_team"), ipBlockData)
                                 }
-                                nextThen(_.omit(responseToReturn, "team_as_teamLeader", "users_team"), ipBlockData)
                             }
                         }
                     })
@@ -324,10 +330,6 @@ exports.post = {
             if (!user.salt || typeof user.salt == "undefined") {
                 updateIpBlock(ipBlockData, body.ipAddress)
                 cb({ status: false, message: "Incorrect username/password." })
-            }
-
-            if (user.isActive == 0) {
-                cb({ status: false, message: "Account is inactive. Please contact your administrator." })
             }
 
             // manage password hash here
