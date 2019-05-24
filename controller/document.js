@@ -132,7 +132,7 @@ exports.get = {
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
-                ? { dateAdded: { [Op.between]: [moment(parseInt(queryString.uploadFrom)).add(8, 'hours').toDate(), moment(parseInt(queryString.uploadTo)).add(8, 'hours').toDate()] } } : {},
+                ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm"), moment(queryString.uploadTo, 'YYYY-MM-DD').endOf('day').utc().format("YYYY-MM-DD HH:mm")] } } : {},
             // ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
             //     [Op.or]: {
             //         ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
@@ -145,6 +145,7 @@ exports.get = {
             //     }
             // } : {}
         }
+
         if (typeof queryString.fileName !== 'undefined' && queryString.fileName !== '') {
             documentWhereObj = {
                 ...documentWhereObj,
@@ -258,7 +259,7 @@ exports.get = {
                                     where: documentWhereObj,
                                     include: associationStack,
                                     required: true,
-                                    hierarchy: true
+                                    logging: true
                                 }
                             ],
                         })
