@@ -128,7 +128,7 @@ exports.get = {
             ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
-            ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : {},
+            ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : { folderId: { [Op.ne]: null } },
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
@@ -149,7 +149,11 @@ exports.get = {
             documentWhereObj = {
                 ...documentWhereObj,
                 [Op.or]: [
-                    { origin: { [Op.like]: `%${queryString.fileName}%` } },
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('origin')),
+                        {
+                            [Op.like]: Sequelize.fn('lower', `%${queryString.fileName}%`)
+                        }
+                    )
                 ]
             }
         }

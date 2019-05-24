@@ -120,7 +120,7 @@ export default class ConversationList extends React.Component {
         });
     }
 
-    openMessage({ note, id, noteWorkstream, notesTagTask, privacyType, createdBy }) {
+    openMessage({ note, id, noteWorkstream, notesTagTask, privacyType, createdBy, projectId }) {
         const { dispatch, notes, loggedUser } = { ...this.props };
         const { id: noteId = 0 } = notes.Selected;
 
@@ -132,8 +132,8 @@ export default class ConversationList extends React.Component {
                     id,
                     privacyType,
                     createdBy,
-                    workstream: noteWorkstream,
-                    workstreamId: noteWorkstream.id,
+                    workstream: noteWorkstream ? noteWorkstream : "",
+                    workstreamId: noteWorkstream ? noteWorkstream.id : "",
                     users: _.map(notesTagTask, ({ user }) => {
                         return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
                     }),
@@ -150,7 +150,7 @@ export default class ConversationList extends React.Component {
             keyTimer = setTimeout(() => {
                 postData(`/api/conversation/seen`, {
                     noteId: id,
-                    projectId: noteWorkstream.project.id,
+                    projectId: noteWorkstream ? noteWorkstream.project.id : projectId,
                     usersId: loggedUser.data.id
                 }, (c) => {
 
@@ -203,7 +203,7 @@ export default class ConversationList extends React.Component {
                                             </a>
                                             <a onClick={() => { this.openMessage(params) }}>
                                                 <div>
-                                                    <p class="note mb0">{noteWorkstream.workstream}</p>
+                                                    <p class="note mb0">{noteWorkstream ? noteWorkstream.workstream : ""}</p>
                                                     <h3>{note}</h3>
                                                 </div>
                                             </a>
