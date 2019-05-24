@@ -148,8 +148,24 @@ export default class ProjectList extends React.Component {
                                             <tbody>
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
-                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted } = { ...projectElem };
+                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted, team } = { ...projectElem };
                                                         const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
+                                                        const memberList = [
+                                                            ..._.map(members, ({ firstName, lastName, avatar }) => {
+                                                                return {
+                                                                    name: firstName + " " + lastName,
+                                                                    avatar
+                                                                }
+                                                            }),
+                                                            ..._.flatten(_.map(team, ({ team }) => {
+                                                                return _.map(team.users_team, ({ user }) => {
+                                                                    return {
+                                                                        name: user.firstName + " " + user.lastName,
+                                                                        avatar: user.avatar
+                                                                    }
+                                                                })
+                                                            }))
+                                                        ]
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Project Name" class="td-left table-name">
@@ -233,10 +249,10 @@ export default class ProjectList extends React.Component {
                                                                 <td data-label="Members">
                                                                     <div class="display-flex">
                                                                         {
-                                                                            _.map(_.take(members, 2), ({ firstName, lastName, avatar }, index) => {
+                                                                            _.map(_.take(memberList, 2), ({ name, avatar }, index) => {
                                                                                 return (
                                                                                     <div class="thumbnail-profile" key={index}>
-                                                                                        <span title={firstName + " " + lastName}>
+                                                                                        <span title={name}>
                                                                                             <img src={avatar} alt="Profile Picture" class="img-responsive" />
                                                                                         </span>
                                                                                     </div>
@@ -244,17 +260,19 @@ export default class ProjectList extends React.Component {
                                                                             })
                                                                         }
                                                                         {
-                                                                            (members.length > 2) && <span
+                                                                            (memberList.length > 2) && <span
                                                                                 class="thumbnail-count"
                                                                                 title={
-                                                                                    _(members)
+                                                                                    _(memberList)
                                                                                         .filter((o, index) => { return index > 1 })
-                                                                                        .map(({ firstName, lastName }) => { return firstName + " " + lastName })
+                                                                                        .map(({ name }) => {
+                                                                                            return name
+                                                                                        })
                                                                                         .value()
                                                                                         .join("\r\n")
                                                                                 }
                                                                             >
-                                                                                +{members.length - 2}
+                                                                                +{memberList.length - 2}
                                                                             </span>
                                                                         }
                                                                     </div>

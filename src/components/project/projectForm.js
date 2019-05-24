@@ -35,7 +35,6 @@ export default class ProjectForm extends React.Component {
             "handleCheckbox",
             "renderArrayTd",
             "confirmDelete",
-            "getMembers",
             "handleColorSlider",
             "onDrop",
             "upload",
@@ -51,8 +50,6 @@ export default class ProjectForm extends React.Component {
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
             dispatch({ type: "SET_TEAM_LIST", list: c.data })
         });
-
-        this.getMembers();
         this.fetchProjetLeadList();
     }
 
@@ -63,13 +60,6 @@ export default class ProjectForm extends React.Component {
         dispatch({ type: "SET_MEMBERS_LIST", list: [], count: {} });
     }
 
-    getMembers() {
-        const { dispatch, project } = this.props;
-        getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-            dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
-        });
-    }
-
     deleteMember(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_MEMBERS_SELECTED", Selected: { ...value, action: "delete" } });
@@ -77,18 +67,25 @@ export default class ProjectForm extends React.Component {
     }
 
     confirmDelete() {
-        const { members, project } = { ...this.props };
-        const { id, memberByTeam } = members.Selected;
+        const { members, project, dispatch } = { ...this.props };
+        const { id, member_type, member_type_id } = members.Selected;
 
-        deleteData(`/api/project/deleteProjectMember/${id}?memberByTeam=${memberByTeam.length > 0}&project_id=${project.Selected.id}`, {}, (c) => {
+        deleteData(`/api/project/deleteProjectMember/${id}?project_id=${project.Selected.id}&member_type=${member_type}&member_type_id=${member_type_id}`, {}, (c) => {
             if (c.status == 200) {
-                this.getMembers();
+                if (member_type == "User") {
+                    const currentMember = _.filter(project.Selected.members, (o) => { return o.member_id != id });
+                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, members: currentMember } });
+                } else {
+                    const currentTeam = _.filter(project.Selected.team, (o) => { return o.team.id != member_type_id });
+                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
+                }
+
                 showToast("success", "Successfully Deleted");
             } else {
-                showToast("error", "Delete failed. Please try again.")
+                showToast('error', c.data.message, 360000)
             }
         });
-
+        dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
         $(`#delete-member`).modal("hide");
     }
 
@@ -193,14 +190,6 @@ export default class ProjectForm extends React.Component {
         );
     }
 
-    renderTeams(value) {
-        const team = _(value)
-            .orderBy(['team'], ['asc'])
-            .map((valueObj) => { return valueObj.team })
-            .value();
-        return team.join("\r\n");
-    }
-
     handleColorSlider(e) {
         const { dispatch, project } = { ...this.props };
         const { Selected } = project
@@ -258,10 +247,30 @@ export default class ProjectForm extends React.Component {
 
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, users, document } = { ...this.props };
+        const { dispatch, project, loggedUser, status, type, users, document, members } = { ...this.props };
         const { Files, Loading: documentLoading } = document;
-        const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.firstName + " " + members.Selected.lastName : "";
-        const isMemberByTeam = (typeof members.Selected.memberByTeam != "undefined" && _.isEmpty(members.Selected) == false) ? (members.Selected.memberByTeam).length > 0 : false;
+        const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.name : "";
+        const memberList = [
+            ..._.map(project.Selected.members, ({ firstName, lastName, member_id, id, emailAddress }) => {
+                return {
+                    id: member_id,
+                    name: firstName + " " + lastName,
+                    member_type: "User",
+                    member_type_id: id,
+                    email: emailAddress
+                }
+            }),
+            ..._.map(project.Selected.team, ({ id, team }) => {
+                return {
+                    id: id,
+                    name: team.team,
+                    member_type: "Team",
+                    member_type_id: team.id,
+                    users_team: team.users_team
+                }
+            })
+        ]
+
         let projectManagerOptions = users.SelectList;
         let statusList = [], typeList = [];
 
@@ -445,50 +454,44 @@ export default class ProjectForm extends React.Component {
                                     <ProjectMemberForm />
                                     <div class="mt20">
                                         {
-                                            (members.List.length > 0) && <table>
+                                            ((memberList).length > 0) && <table>
                                                 <thead>
                                                     <tr>
                                                         <th scope="col" class="td-left">Name</th>
-                                                        <th scope="col">Email Address</th>
                                                         <th scope="col">Member Type</th>
-                                                        <th scope="col">Teams</th>
+                                                        <th scope="col">Email Address</th>
+                                                        <th scope="col">Members</th>
                                                         <th scope="col">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {
-                                                        _.orderBy(members.List, ['firstName'], ['asc']).map((data, index) => {
+                                                        _.orderBy(memberList, ['name'], ['asc']).map((params, index) => {
+                                                            const { name, member_type, member_type_id, email = "N/A", users_team = [] } = params;
                                                             return (
                                                                 <tr
                                                                     key={index}
                                                                 >
-                                                                    <td data-label="Username" class="td-left">
-                                                                        <div>
-                                                                            <div class="profile-div">
-                                                                                <div class="thumbnail-profile">
-                                                                                    <img src={data.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                                </div>
-                                                                                <p class="m0">{data.firstName + " " + data.lastName}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td data-label="Email Address">{data.emailAddress}</td>
-                                                                    <td data-label="Member Type">
+                                                                    <td data-label="Name" class="td-left">
                                                                         {
-                                                                            (data.id == project.Selected.projectManagerId) ? "Project Lead" : "Member"
+                                                                            name
                                                                         }
                                                                     </td>
-                                                                    <td data-label="Teams">
-                                                                        {this.renderTeams(data.team)}
+                                                                    <td data-label="Member Type">{member_type}</td>
+                                                                    <td data-label="Email Address">{email}</td>
+                                                                    <td data-label="Members">
+                                                                        {
+                                                                            (users_team.length > 0) ? this.renderArrayTd(_.map(users_team, ({ user }) => { return user.firstName + " " + user.lastName })) : "N/A"
+                                                                        }
                                                                     </td>
                                                                     <td data-label="Actions">
                                                                         {
-                                                                            (data.id != project.Selected.projectManagerId)
-                                                                            && <a href="javascript:void(0);" title="DELETE"
-                                                                                onClick={(e) => this.deleteMember(data)}
-                                                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
-                                                                            >
-                                                                                <span class="glyphicon glyphicon-trash"></span>
+                                                                            ((project.Selected.projectManagerId != member_type_id && member_type == "User") ||
+                                                                                (member_type == "Team")) && <a href="javascript:void(0);" title="DELETE"
+                                                                                    onClick={(e) => this.deleteMember(params)}
+                                                                                    class="btn btn-action"
+                                                                                >
+                                                                                <span class="fa fa-trash"></span>
                                                                             </a>
                                                                         }
                                                                     </td>
@@ -500,7 +503,7 @@ export default class ProjectForm extends React.Component {
                                             </table>
                                         }
                                         {
-                                            (members.List.length == 0) && <p class="text-center"><strong>No Records Found</strong></p>
+                                            (memberList.length == 0) && <p class="text-center"><strong>No Records Found</strong></p>
                                         }
                                     </div>
                                 </div>
@@ -525,7 +528,6 @@ export default class ProjectForm extends React.Component {
                     type={'member'}
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
-                    note={(isMemberByTeam) ? "This is a member of a team assigned to this project. Deleting this user will remove all its team assigned to this project. Consider deleting this user from the team in Teams & Users." : ""}
                 />
                 <div id="upload-picture" class="modal fade upload-modal" data-backdrop="static" data-keyboard="false">
                     <div class="modal-dialog modal-sm" role="document">

@@ -81,9 +81,22 @@ export default class ProjectMemberForm extends React.Component {
         };
 
         postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
-            getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-                dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
-            });
+            if (members.Selected.type == "users") {
+                const currentMember = [...project.Selected.members, ..._.map(c.data, ({ id, user }) => {
+                    return {
+                        avatar: user.avatar,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        id: user.id,
+                        emailAddress: user.emailAddress,
+                        member_id: id
+                    }
+                })];
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, members: currentMember } });
+            } else {
+                const currentTeam = [...project.Selected.team, ...c.data];
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
+            }
             $('#project-member-form *').validator('destroy');
             showToast("success", "Successfully Added.");
             dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
@@ -102,17 +115,17 @@ export default class ProjectMemberForm extends React.Component {
                 userTypeLinkId: '',
                 memberType: ''
             };
-
             dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
-
-            switch (value) {
-                case "users":
-                    this.setAssignMemberUserList();
-                    break;
-                case "team":
-                    this.setAssignMemberTeamList();
-                    break;
-            }
+            setTimeout(() => {
+                switch (value) {
+                    case "users":
+                        this.setAssignMemberUserList();
+                        break;
+                    case "team":
+                        this.setAssignMemberTeamList();
+                        break;
+                }
+            }, 700);
         } else {
             Selected = {
                 ...Selected,

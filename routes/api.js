@@ -316,7 +316,6 @@ router.put('/:controller/:action/:id', (req, res, next) => {
             }
         })
     } catch (err) {
-        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -340,7 +339,6 @@ router.delete('/:controller/:id', (req, res, next) => {
             }
         })
     } catch (err) {
-        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -364,7 +362,6 @@ router.delete('/:controller/:action/:id', (req, res, next) => {
             }
         })
     } catch (err) {
-        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })

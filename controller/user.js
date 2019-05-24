@@ -259,7 +259,8 @@ exports.post = {
         sequence.create().then((nextThen) => {
             Users.findAll({
                 where: {
-                    [Op.or]: [{ emailAddress: body.emailAddress }, { username: body.username }]
+                    [Op.or]: [{ emailAddress: body.emailAddress }, { username: body.username }],
+                    isDeleted: 0
                 },
             }).then((res) => {
                 if (res.length) {
@@ -624,36 +625,80 @@ exports.put = {
         try {
             UsersRole
                 .findAll({ where: { roleId: 1 } })
-                .then((res) => {
+                .then(async (res) => {
                     if (res.length <= 1 && res[0].usersId == id) {
                         cb({ status: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
                     } else {
                         try {
-                            Users.update(body, { where: { id: id } })
-                                .then((updateRes) => {
-                                    async.parallel({
-                                        role: (parallelCallback) => {
-                                            UsersRole
-                                                .update(body, { where: { usersId: id } })
-                                                .then((userRoleRes) => {
-                                                    parallelCallback(null, userRoleRes)
-                                                })
+                            const userMemberList = await Members.findAll({
+                                where: {
+                                    [Op.or]: [
+                                        {
+                                            memberType: "assignedTo",
+                                            linkType: "task",
+                                            usersType: "users",
+                                            userTypeLinkId: id,
+                                            isDeleted: 0,
                                         },
-                                        team: (parallelCallback) => {
-                                            UsersTeam
-                                                .update(body, { where: { usersId: id } })
-                                                .then((userTeamRes) => {
-                                                    parallelCallback(null, userTeamRes)
+                                        {
+                                            memberType: "approver",
+                                            linkType: "task",
+                                            usersType: "users",
+                                            userTypeLinkId: id,
+                                            isDeleted: 0
+                                        },
+                                        {
+                                            memberType: "responsible",
+                                            linkType: "workstream",
+                                            usersType: "users",
+                                            userTypeLinkId: id,
+                                            isDeleted: 0
+                                        }
+                                    ]
+                                }
+                            }).map((o) => { return o.toJSON() });
+                            if (userMemberList.length > 0) {
+                                cb({ status: false, error: "User is a workstream responsible, assigned to a task or approver of a task under this project." })
+                            } else {
+                                Users.update(body, { where: { id: id } })
+                                    .then((updateRes) => {
+                                        async.parallel({
+                                            role: (parallelCallback) => {
+                                                UsersRole
+                                                    .update(body, { where: { usersId: id } })
+                                                    .then((userRoleRes) => {
+                                                        parallelCallback(null, userRoleRes)
+                                                    })
+                                            },
+                                            team: (parallelCallback) => {
+                                                UsersTeam
+                                                    .update(body, { where: { usersId: id } })
+                                                    .then((userTeamRes) => {
+                                                        parallelCallback(null, userTeamRes)
+                                                    })
+                                            },
+                                            following: (parallelCallback) => {
+                                                Members.update(body, {
+                                                    where: {
+                                                        memberType: "follower",
+                                                        linkType: "task",
+                                                        usersType: "users",
+                                                        userTypeLinkId: id,
+                                                        isDeleted: 0
+                                                    }
+                                                }).then((res) => {
+                                                    parallelCallback(null, res)
                                                 })
-                                        }
-                                    }, (err, parallelCallbackResult) => {
-                                        if (err) {
-                                            cb({ status: false, error: err })
-                                        } else {
-                                            cb({ status: true, data: { id: id } })
-                                        }
-                                    })
-                                })
+                                            }
+                                        }, (err, parallelCallbackResult) => {
+                                            if (err) {
+                                                cb({ status: false, error: err })
+                                            } else {
+                                                cb({ status: true, data: { id: id } })
+                                            }
+                                        })
+                                    });
+                            }
                         } catch (err) {
                             cb({ status: false, error: err })
                         }

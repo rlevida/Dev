@@ -54,13 +54,14 @@ export default class UserList extends React.Component {
         const userId = users.Selected.id;
 
         putData(`/api/user/deleteUser/${userId}`, { isDeleted: 1 }, (c) => {
-            if (c.data.error) {
-                showToast('error', c.data.message);
-            } else {
+            $(`#delete-user`).modal("hide");
+            dispatch({ type: 'SET_USER_SELECTED', Selected: "" });
+
+            if (c.status == 200) {
                 dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: userId });
-                dispatch({ type: 'SET_USER_SELECTED', Selected: "" });
                 showToast('success', 'Successfully Deleted.');
-                $(`#delete-user`).modal("hide");
+            } else {
+                showToast('error', c.data.message, 360000)
             }
         });
     }

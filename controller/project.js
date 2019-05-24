@@ -56,7 +56,8 @@ const associationFindAllStack = [
         as: 'members',
         where: {
             usersType: 'users',
-            linkType: 'project'
+            linkType: 'project',
+            isDeleted: 0
         },
         required: false,
     },
@@ -65,7 +66,8 @@ const associationFindAllStack = [
         as: 'team',
         where: {
             usersType: 'team',
-            linkType: 'project'
+            linkType: 'project',
+            isDeleted: 0
         },
         required: false,
         include: [{
@@ -75,7 +77,12 @@ const associationFindAllStack = [
             include: [{
                 model: UsersTeam,
                 as: 'users_team',
-                required: false
+                required: false,
+                include: [{
+                    model: Users,
+                    as: 'user',
+                    required: false
+                }]
             }]
         }]
     },
@@ -264,18 +271,26 @@ exports.get = {
                         .map(async (res) => {
                             const responseObj = res.toJSON();
                             const documentCount = _.filter((responseObj.document_link), ({ document }) => { return document != null }).length;
-                            const projectUserMembers = _.map(responseObj.members, (o) => { return o.userTypeLinkId });
-                            const projectTeamMembers = _.flatten(_.map(responseObj.team, (o) => { return o.team.users_team }), ({ usersId }) => { return usersId });
-                            const projectMembers = [...projectUserMembers, ..._.map(projectTeamMembers, ({ usersId }) => { return usersId })];
-
+                            const projectUserMembers = _(responseObj.members)
+                                .map((o) => { return o.userTypeLinkId })
+                                .filter((o) => { return o != null })
+                                .uniq()
+                                .value();
                             const memberList = await Users.findAll({
                                 where: {
-                                    id: projectMembers
+                                    id: projectUserMembers
                                 },
-                                attributes: ['id', 'firstName', 'lastName', 'avatar']
-                            }).map((o) => { return o.toJSON() })
+                                attributes: ['id', 'firstName', 'lastName', 'avatar', 'emailAddress']
+                            }).map((o) => {
+                                const userResponse = o.toJSON();
+                                return {
+                                    ...userResponse,
+                                    member_id: _.find(responseObj.members, ({ userTypeLinkId }) => { return userResponse.id == userTypeLinkId }).id
+                                }
+                            })
+
                             const resToReturn = {
-                                ...res.dataValues,
+                                ...responseObj,
                                 projectManagerId: ((res.projectManager).length > 0) ? res.projectManager[0].userTypeLinkId : "",
                                 newDocuments: documentCount,
                                 members: memberList
@@ -431,7 +446,7 @@ exports.get = {
                     const projectStack = _.map(projectResults, (obj) => {
                         const completionRate = _.find(projectCompletionStack, { projectId: obj.id });
                         return {
-                            ..._.omit(obj, ['team']),
+                            ...obj,
                             numberOfTasks: (typeof completionRate != "undefined") ? completionRate.total_tasks : 0,
                             completion_rate: {
                                 tasks_due_today: {
@@ -472,13 +487,33 @@ exports.get = {
                     include: associationFindAllStack,
                     where: { id: id }
                 })
-                .then((res) => {
-                    const response = res.toJSON();
-                    const returnObj = {
-                        ...response,
-                        projectManagerId: ((response.projectManager).length > 0) ? response.projectManager[0].userTypeLinkId : "",
+                .then(async (res) => {
+                    const responseObj = res.toJSON();
+                    const projectUserMembers = _(responseObj.members)
+                        .map((o) => { return o.userTypeLinkId })
+                        .filter((o) => { return o != null })
+                        .uniq()
+                        .value();
+                    const memberList = await Users.findAll({
+                        where: {
+                            id: projectUserMembers
+                        },
+                        attributes: ['id', 'firstName', 'lastName', 'avatar', 'emailAddress']
+                    }).map((o) => {
+                        const userResponse = o.toJSON();
+                        return {
+                            ...userResponse,
+                            member_id: _.find(responseObj.members, ({ userTypeLinkId }) => { return userResponse.id == userTypeLinkId }).id
+                        }
+                    })
+
+                    const resToReturn = {
+                        ...responseObj,
+                        projectManagerId: ((responseObj.projectManager).length > 0) ? responseObj.projectManager[0].userTypeLinkId : "",
+                        members: memberList
                     };
-                    cb({ status: true, data: returnObj })
+
+                    cb({ status: true, data: resToReturn })
                 })
         } catch (err) {
             cb({ status: false, error: err })
@@ -501,6 +536,7 @@ exports.get = {
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != "") ? {
                 usersType: queryString.usersType
             } : {},
+            isDeleted: 0
         }
 
         try {
@@ -978,7 +1014,7 @@ exports.post = {
         })
     },
     projectMember: (req, cb) => {
-        let d = req.body
+        let d = req.body;
         if (d.data.usersType == 'users') {
             try {
                 Members
@@ -986,10 +1022,7 @@ exports.post = {
                     .then((res) => {
                         Members
                             .findOne({
-                                where: {
-                                    userTypeLinkId: res.dataValues.userTypeLinkId,
-                                    usersType: 'users'
-                                },
+                                where: d.data,
                                 include: [{
                                     model: Users,
                                     as: 'user',
@@ -1534,71 +1567,119 @@ exports.delete = {
             });
         }
     },
-    deleteProjectMember: (req, cb) => {
-        const queryString = req.query;
+    deleteProjectMember: async (req, cb) => {
         const memberId = req.params.id;
+        const checkMember = await Members.findOne({ where: { id: memberId } }).then((o) => { return o.toJSON() });
+        const projectId = req.query.project_id;
+        const taskList = await Tasks.findAll({ where: { projectId, isDeleted: 0 } }).map((o) => { return o.toJSON() });
 
-        if (queryString.memberByTeam == 'true') {
-            async.parallel({
-                team_leaders: (parallelCallback) => {
-                    Teams
-                        .findAll({
-                            where: {
-                                teamLeaderId: memberId
-                            }
-                        })
-                        .map((o) => {
-                            return o.toJSON()
-                        }).then((res) => {
-                            parallelCallback(null, res);
-                        });
-                },
-                team_members: (parallelCallback) => {
-                    UsersTeam.findAll({
-                        where: {
-                            usersId: memberId
-                        }
-                    })
-                        .map((o) => {
-                            return o.toJSON()
-                        }).then((res) => {
-                            parallelCallback(null, res);
-                        });
-                }
-            }, (o, response) => {
-                const teamMemberToBeDeleted = _.map(response.team_members, (o) => { return o.teamId });
-                const teamToBeDeleted = _.map(response.team_leaders, (o) => { return o.id });
-                const teamToBeDeletedIds = _.uniq([...teamMemberToBeDeleted, ...teamToBeDeleted]);
-
-                Members.destroy({
-                    where: {
-                        userTypeLinkId: teamToBeDeletedIds,
-                        usersType: "team",
-                        linkType: "project",
-                        linkId: queryString.project_id
-                    }
-                }).then((res, err) => {
-                    cb({
-                        status: true,
-                        data: memberId
-                    })
-                })
-            });
-        } else {
-            Members.destroy({
+        if (checkMember.usersType == "team") {
+            const usersTeam = await UsersTeam.findAll({ where: { teamId: checkMember.userTypeLinkId, isDeleted: 0 } }).map((o) => { return o.toJSON() });
+            const userIdStack = _.map(usersTeam, (o) => { return o.usersId });
+            const teamMemberList = await Members.findAll({
                 where: {
-                    userTypeLinkId: memberId,
-                    usersType: "users",
-                    linkType: "project",
-                    linkId: queryString.project_id
+                    [Op.or]: [
+                        {
+                            memberType: "assignedTo",
+                            linkType: "task",
+                            linkId: _.map(taskList, ({ id }) => { return id }),
+                            usersType: "users",
+                            userTypeLinkId: userIdStack,
+                            isDeleted: 0,
+                        },
+                        {
+                            memberType: "approver",
+                            linkType: "task",
+                            linkId: _.map(taskList, ({ id }) => { return id }),
+                            usersType: "users",
+                            userTypeLinkId: userIdStack,
+                            isDeleted: 0
+                        },
+                        {
+                            memberType: "responsible",
+                            linkType: "workstream",
+                            linkId: _.map(taskList, ({ workstreamId }) => { return workstreamId }),
+                            usersType: "users",
+                            userTypeLinkId: userIdStack,
+                            isDeleted: 0
+                        }
+                    ]
                 }
-            })
-                .then((res) => {
-                    cb({
-                        status: true,
-                        data: memberId
-                    })
+            }).map((o) => { return o.toJSON() });
+
+            if (teamMemberList.length > 0) {
+                cb({ status: false, error: "One of the team members is a workstream responsible, assigned to a task or approver of a task under this project." })
+            } else {
+                Members.update({ isDeleted: 1 }, {
+                    where: {
+                        [Op.or]: [
+                            { id: memberId },
+                            {
+                                memberType: "follower",
+                                linkType: "task",
+                                linkId: _.map(taskList, ({ id }) => { return id }),
+                                usersType: "users",
+                                userTypeLinkId: userIdStack,
+                                isDeleted: 0
+                            }
+                        ]
+                    }
+                }).then((res) => {
+                    cb({ status: true, data: memberId });
                 })
+            }
+        } else {
+            const userMemberList = await Members.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            memberType: "assignedTo",
+                            linkType: "task",
+                            linkId: _.map(taskList, ({ id }) => { return id }),
+                            usersType: "users",
+                            userTypeLinkId: checkMember.userTypeLinkId,
+                            isDeleted: 0,
+                        },
+                        {
+                            memberType: "approver",
+                            linkType: "task",
+                            linkId: _.map(taskList, ({ id }) => { return id }),
+                            usersType: "users",
+                            userTypeLinkId: checkMember.userTypeLinkId,
+                            isDeleted: 0
+                        },
+                        {
+                            memberType: "responsible",
+                            linkType: "workstream",
+                            linkId: _.map(taskList, ({ workstreamId }) => { return workstreamId }),
+                            usersType: "users",
+                            userTypeLinkId: checkMember.userTypeLinkId,
+                            isDeleted: 0
+                        }
+                    ]
+                }
+            }).map((o) => { return o.toJSON() });
+            if (userMemberList.length > 0) {
+                cb({ status: false, error: "User is a workstream responsible, assigned to a task or approver of a task under this project." })
+            } else {
+                Members.update({ isDeleted: 1 }, {
+                    where: {
+                        [Op.or]: [
+                            { id: memberId },
+                            {
+                                memberType: "follower",
+                                linkType: "task",
+                                linkId: _.map(taskList, ({ id }) => { return id }),
+                                usersType: "users",
+                                userTypeLinkId: checkMember.userTypeLinkId,
+                                isDeleted: 0
+                            }
+                        ]
+                    }
+                }).then((res) => {
+                    cb({ status: true, data: memberId });
+                })
+            }
         }
     }
 }

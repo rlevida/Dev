@@ -48,7 +48,7 @@ const associationStack = [
                     as: 'workstream'
                 }]
         }],
-        where: { usersType: 'team', linkType: 'project' },
+        where: { usersType: 'team', linkType: 'project', isDeleted: 0 },
         required: false,
     }
 ]
@@ -200,7 +200,7 @@ exports.get = {
                     return usersId;
                 })
                 .filter((o) => { return o != queryString.userId });
-                
+
             const teamMembers = await Users
                 .findAll({
                     attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
