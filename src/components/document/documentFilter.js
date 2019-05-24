@@ -48,20 +48,16 @@ class DocumentFilter extends React.Component {
         if (ActiveTab === "active") {
             requestUrl += `&folderId=null&type=document`;
         }
-
         if (ActiveTab === 'library') {
             if (folder.Selected.id) {
                 requestUrl += `&folderId=${folder.Selected.id}`
-            } 
-            // else {
-            //     requestUrl += `&folderId=null&type=folder`;
-            // }
+            } else if (!uploadFrom && !uploadTo && !uploadedBy && !tagWorkstream && !tagTask && !fileName) {
+                requestUrl += `&type=folder&folderId=null`;
+            }
         }
-
         if (uploadFrom && uploadTo) {
             requestUrl += `&uploadFrom=${uploadFrom}&uploadTo=${uploadTo}`;
         }
-
         if (uploadedBy) {
             requestUrl += `&uploadedBy=${uploadedBy}`;
         }
@@ -148,10 +144,12 @@ class DocumentFilter extends React.Component {
                                 </div>
                             </div>
                             <div class="col-md-6 col-sm-6 col-xs-12 pd0 ">
-                                <div class="button-action">
-                                    <input class="form-control mr10" type="text" value={fileName} onChange={(e) => this.handleDropdown('fileName', e.target.value)} placeholder="Search File Name"></input>
-                                    <a class="btn btn-default" onClick={() => this.handleFilter()}><i className="fa fa-search"></i></a>
-                                </div>
+                                {document.Loading === "" &&
+                                    <div class="button-action">
+                                        <input class="form-control mr10" type="text" value={fileName} onChange={(e) => this.handleDropdown('fileName', e.target.value)} placeholder="Search File Name"></input>
+                                        <a class="btn btn-default" onClick={() => this.handleFilter()}><i className="fa fa-search"></i></a>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
