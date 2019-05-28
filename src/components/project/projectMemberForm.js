@@ -53,14 +53,22 @@ export default class ProjectMemberForm extends React.Component {
             }
         });
 
+        const dataToSubmit = {
+            usersType: (loggedUser.data.userRole < 4) ? members.Selected.type : "users",
+            userTypeLinkId: members.Selected.userTypeLinkId,
+            linkType: "project",
+            linkId: project.Selected.id,
+            memberType: 'assignedTo'
+        };
+
         if (!result) {
             showToast("error", "Please fill up the required fields.");
             return
-        } else if (members.Selected.type === "users" && _.find(project.Selected.members, { id: members.Selected.userTypeLinkId })) {
+        } else if (dataToSubmit.usersType == "users" && _.find(project.Selected.members, { id: members.Selected.userTypeLinkId })) {
             //CHECK IF THE USER SELECTED IS ALREADY IN PROJECT
             showToast("error", "The member selected is already assigned.");
             return;
-        } else if (members.Selected.type === "team") {
+        } else if (dataToSubmit.usersType == "team") {
             //CHECK IF TEAM MEMBERS ARE ALREADY IN PROJECT
             const projectTeam = _.filter(project.Selected.team, ({ userTypeLinkId }) => {
                 return userTypeLinkId == members.Selected.userTypeLinkId
@@ -71,16 +79,8 @@ export default class ProjectMemberForm extends React.Component {
             }
         }
 
-        const dataToSubmit = {
-            usersType: (loggedUser.data.userRole < 4) ? members.Selected.type : "users",
-            userTypeLinkId: members.Selected.userTypeLinkId,
-            linkType: "project",
-            linkId: project.Selected.id,
-            memberType: 'assignedTo'
-        };
-
         postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
-            if (members.Selected.type == "users") {
+            if (dataToSubmit.usersType == "users") {
                 const currentMember = [...project.Selected.members, ..._.map(c.data, ({ id, user }) => {
                     return {
                         avatar: user.avatar,
