@@ -62,19 +62,18 @@ export default class ProjectMemberForm extends React.Component {
             return;
         } else if (members.Selected.type === "team") {
             //CHECK IF TEAM MEMBERS ARE ALREADY IN PROJECT
-            const selectedTeam = _.find(teams.SelectList, { id: members.Selected.userTypeLinkId }).teamUsers.map((e) => { return e.user });
-            const usersArr = _.filter(project.Selected.members, (e) => {
-                return _.findIndex(selectedTeam, (f) => { return (e.id == f.id) }) >= 0;
-            })
-            if (usersArr.length > 0) {
-                showToast("error", "One of the team member is already assigned.");
+            const projectTeam = _.filter(project.Selected.team, ({ userTypeLinkId }) => {
+                return userTypeLinkId == members.Selected.userTypeLinkId
+            });
+            if (projectTeam.length > 0) {
+                showToast("error", "Team member is already assigned.");
                 return
             }
         }
 
         const dataToSubmit = {
-            usersType: members.Selected.type,
-            userTypeLinkId: (loggedUser.data.userRole < 4) ? members.Selected.userTypeLinkId : "users",
+            usersType: (loggedUser.data.userRole < 4) ? members.Selected.type : "users",
+            userTypeLinkId: members.Selected.userTypeLinkId,
             linkType: "project",
             linkId: project.Selected.id,
             memberType: 'assignedTo'
@@ -171,7 +170,6 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     setAssignMemberUserList(options) {
-        const { members } = this.props;
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
             this.fetchUserList(options);
