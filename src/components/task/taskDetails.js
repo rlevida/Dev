@@ -716,16 +716,21 @@ export default class TaskDetails extends React.Component {
                                             >
                                                 <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true"></i>
                                             </a>
-                                            <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
-                                                <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
-                                            </a>
                                             {
-                                                (
-                                                    status != "Completed" ||
-                                                    (loggedUser.data.userRole < 6)
-                                                ) && <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                                (status != "Completed") && <div>
+                                                    <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
+                                                        <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
+                                                    </a>
+                                                    {
+                                                        (
+                                                            status != "Completed" ||
+                                                            (loggedUser.data.userRole < 6)
+                                                        ) && <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                                    }
+                                                    <a data-dismiss="modal" onClick={() => { $(`#delete-task`).modal("show"); }} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
+                                                </div>
                                             }
-                                            <a data-dismiss="modal" onClick={() => { $(`#delete-task`).modal("show"); }} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
+
                                         </div>
                                     </div>
                                 </div>
@@ -1058,13 +1063,15 @@ export default class TaskDetails extends React.Component {
                                                         <h3 class="mb0">
                                                             Checklist
                                                         </h3>
-                                                        <p class="mb10">
-                                                            <a
-                                                                onClick={() => {
-                                                                    $(`#task-documents`).modal('show');
-                                                                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ['document_type']: 'checklist_document' } });
-                                                                }}>Upload Checklist Document</a>
-                                                        </p>
+                                                        {
+                                                            (status != "Completed") && <p class="mb10">
+                                                                <a
+                                                                    onClick={() => {
+                                                                        $(`#task-documents`).modal('show');
+                                                                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ['document_type']: 'checklist_document' } });
+                                                                    }}>Upload Checklist Document</a>
+                                                            </p>
+                                                        }
                                                         <div id="checklist">
                                                             {
                                                                 _.map(_.sortBy(checklist, function (o) { return new moment(o.dateAdded) }).reverse(), (checklistObj, index) => {
