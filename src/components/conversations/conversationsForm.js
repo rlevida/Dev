@@ -170,7 +170,6 @@ export default class ConversationForm extends React.Component {
             );
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
             postData(`/api/conversation/message`, data, (c) => {
-                console.log(c.data)
                 const selectedNote = c.data[0];
                 const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
 

@@ -181,10 +181,13 @@ export default class TeamForm extends React.Component {
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName + " - " + e.username, image: e.avatar } })
                 .value();
 
-            let checkTeamLead = _.find(taskMemberOptions, { id: teamLeader.id })
-            if (typeof checkTeamLead === "undefined") {
-                taskMemberOptions.push({ id: teamLeader.id, name: `${teamLeader.firstName} ${teamLeader.lastName}`, image: teamLeader.avatar })
+            if (typeof teams.Selected.id !== "undefined") {
+                let checkTeamLead = _.find(taskMemberOptions, { id: teamLeader.id })
+                if (typeof checkTeamLead === "undefined") {
+                    taskMemberOptions.push({ id: teamLeader.id, name: `${teamLeader.firstName} ${teamLeader.lastName}`, image: teamLeader.avatar })
+                }
             }
+            
             dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
         });
     }

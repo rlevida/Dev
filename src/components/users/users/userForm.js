@@ -243,8 +243,11 @@ export default class UserForm extends React.Component {
                 return { id: e.id, name: e.role }
             })
             .value();
+            console.log(teams.SelectList)
+
         const surpervisorSelectList = _(teams.SelectList)
-            .map(({ teamLeader, id }) => { return { id: teamLeader.id, name: teamLeader.firstName + " " + teamLeader.lastName, teamId: id, image: teamLeader.avatar } })
+            .map(({ teamLeader, id }) => { 
+                return { id: teamLeader.id, name: teamLeader.firstName + " " + teamLeader.lastName, teamId: id, image: teamLeader.avatar } })
             .filter((p) => {
                 return _.includes(_.map(users.Selected.team, ({ value }) => { return value }), p.teamId);
             })
