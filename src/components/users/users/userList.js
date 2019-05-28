@@ -186,7 +186,7 @@ export default class UserList extends React.Component {
                                                     <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>
                                                     <ul class="dropdown-menu">
                                                         <li><a onClick={() => this.handleEdit(user)}>Edit</a></li>
-                                                        <li><a onClick={() => this.deleteData(user)}>Delete</a></li>
+                                                        {/* <li><a onClick={() => this.deleteData(user)}>Delete</a></li> */}
                                                     </ul>
                                                 </div>
                                             </td>

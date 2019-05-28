@@ -181,13 +181,13 @@ export default class TeamForm extends React.Component {
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName + " - " + e.username, image: e.avatar } })
                 .value();
 
-            if (typeof teams.Selected.id !== "undefined") {
+            if (typeof teams.Selected.id !== "undefined" && teamLeader) {
                 let checkTeamLead = _.find(taskMemberOptions, { id: teamLeader.id })
                 if (typeof checkTeamLead === "undefined") {
                     taskMemberOptions.push({ id: teamLeader.id, name: `${teamLeader.firstName} ${teamLeader.lastName}`, image: teamLeader.avatar })
                 }
             }
-            
+
             dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
         });
     }
@@ -218,7 +218,7 @@ export default class TeamForm extends React.Component {
 
     render() {
         const { teams, users } = { ...this.props };
-        const { users_team = [], teamLeader } = teams.Selected;
+        const { users_team = [] } = teams.Selected;
         let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
         memberOptions = _.uniqBy([...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })], 'id');
 
