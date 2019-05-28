@@ -1606,9 +1606,33 @@ exports.delete = {
                     ]
                 }
             }).map((o) => { return o.toJSON() });
-
             if (teamMemberList.length > 0) {
-                cb({ status: false, error: "One of the team members is a workstream responsible, assigned to a task or approver of a task under this project." })
+                const taskCount = await Tasks.findAll({
+                    group: ['status'],
+                    where: {
+                        isDeleted: 0,
+                        id: _(teamMemberList)
+                            .filter(({ linkType }) => { return linkType == "task" })
+                            .map(({ linkId }) => { return linkId })
+                            .value()
+                    },
+                    attributes: [
+                        'status',
+                        [models.sequelize.literal('COUNT(*)'), 'count']
+                    ],
+                    logging: true
+                }).map((response) => {
+                    return response.toJSON();
+                });
+
+                if (_.filter(taskCount, ({ status }) => { return status == "Completed" }).length > 0) {
+                    cb({ status: false, error: "The user(s) have already completed task for this project. Removal of his membership not allowed." });
+                } else if (_.filter(taskCount, ({ status }) => { return status == "In Progress" }).length > 0) {
+                    cb({ status: false, error: "The user(s) are currently assigned to an open task. Please re-assign the task first before removing the user from the project membership." })
+                } else {
+                    cb({ status: false, error: "The user(s) are workstream responsible. Please change the responsible of the workstreams before removing the user from the project membership." })
+                }
+
             } else {
                 Members.update({ isDeleted: 1 }, {
                     where: {
@@ -1660,7 +1684,31 @@ exports.delete = {
                 }
             }).map((o) => { return o.toJSON() });
             if (userMemberList.length > 0) {
-                cb({ status: false, error: "User is a workstream responsible, assigned to a task or approver of a task under this project." })
+                const taskCount = await Tasks.findAll({
+                    group: ['status'],
+                    where: {
+                        isDeleted: 0,
+                        id: _(userMemberList)
+                            .filter(({ linkType }) => { return linkType == "task" })
+                            .map(({ linkId }) => { return linkId })
+                            .value()
+                    },
+                    attributes: [
+                        'status',
+                        [models.sequelize.literal('COUNT(*)'), 'count']
+                    ],
+                    logging: true
+                }).map((response) => {
+                    return response.toJSON();
+                });
+
+                if (_.filter(taskCount, ({ status }) => { return status == "Completed" }).length > 0) {
+                    cb({ status: false, error: "This user has already completed task for this project. Removal of his membership not allowed." });
+                } else if (_.filter(taskCount, ({ status }) => { return status == "In Progress" }).length > 0) {
+                    cb({ status: false, error: "The user is currently assigned to an open task. Please re-assign the task first before removing the user from the project membership." })
+                } else {
+                    cb({ status: false, error: "The user is a workstream responsible. Please change the responsible of the workstream before removing the user from the project membership." })
+                }
             } else {
                 Members.update({ isDeleted: 1 }, {
                     where: {
