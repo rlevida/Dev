@@ -678,14 +678,15 @@ export default class TaskDetails extends React.Component {
                                             }
                                             {
                                                 (
-                                                    (typeof isAssignedToMe != "undefined" || loggedUser.data.userRole < 4) &&
+                                                    (loggedUser.data.userRole < 4) &&
                                                     (
                                                         (
                                                             Selected.status == "Completed" &&
                                                             Selected.approvalRequired == 0) ||
                                                         (
                                                             Selected.status == "For Approval" &&
-                                                            Selected.approvalRequired == 1
+                                                            Selected.approvalRequired == 1 &&
+                                                            typeof isAssignedToMe != "undefined"
                                                         )
                                                     )
                                                 ) && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
