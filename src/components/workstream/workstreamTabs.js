@@ -68,9 +68,10 @@ export default class WorkstreamTabs extends React.Component {
     }
 
     render() {
-        const { project_id, workstream_id, dispatch, notes, loggedUser, history } = { ...this.props };
+        const { project_id, workstream_id, dispatch, notes, loggedUser, history, workstream } = { ...this.props };
         let tab = history.location.search ? workstreamActiveTab(parseQuery(history.location.search).tab) : this.state.tab;
-
+        const projectType = (typeof workstream.Selected.project != "undefined") ? workstream.Selected.project.type.type : "";
+        console.log(projectType)
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -90,7 +91,13 @@ export default class WorkstreamTabs extends React.Component {
                                         name="task"
                                     />
                                     {
-                                        (loggedUser.data.userRole <= 4) && <a class="btn btn-default"
+                                        (
+                                            loggedUser.data.userRole < 4 ||
+                                            (
+                                                loggedUser.data.userRole == 4 &&
+                                                projectType != "Client"
+                                            )
+                                        ) && <a class="btn btn-default"
                                             onClick={(e) => {
                                                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
                                                 dispatch({ type: "SET_TASK_SELECTED", Selected: {} });

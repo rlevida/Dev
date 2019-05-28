@@ -862,6 +862,7 @@ exports.post = {
                                                 if (typeof body.approverId != "undefined" && body.approverId != "") {
                                                     members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                                 }
+                                                
                                                 if (members.length > 0) {
                                                     Members.bulkCreate(members).then((response) => {
                                                         parallelCallback(null, response);

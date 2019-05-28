@@ -1079,7 +1079,7 @@ exports.post = {
                 },
                 function (userIds, callback) {
                     try {
-                        Members.destroy({
+                        Members.update({ isDeleted: 1 }, {
                             where: {
                                 userTypeLinkId: userIds,
                                 usersType: 'users'
@@ -1493,7 +1493,7 @@ exports.delete = {
                     });
                 },
                 members: (parallelCallback) => {
-                    Members.destroy({
+                    Members.update({ isDeleted: 1 }, {
                         where: {
                             [Op.or]: [{
                                 linkType: 'project',

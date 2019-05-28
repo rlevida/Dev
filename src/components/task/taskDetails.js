@@ -580,7 +580,7 @@ export default class TaskDetails extends React.Component {
         const totalHours = _(tasktimeLog.TotalHours)
             .map(({ period, value }) => {
                 const toBeAdded = (period == "hours") ? value * 60 : value;
-                return toBeAdded;
+                return _.toNumber(toBeAdded);
             })
             .value();
         const totalHoursValue = (_.sum(totalHours) / 60).toFixed(2);
@@ -637,7 +637,21 @@ export default class TaskDetails extends React.Component {
                                                     (
                                                         Selected.status == "In Progress" &&
                                                         Selected.approvalRequired == 1 &&
-                                                        typeof isAssignedToMe != "undefined"
+
+                                                        (
+                                                            typeof isAssignedToMe != "undefined" ||
+                                                            loggedUser.data.userRole < 4 ||
+                                                            (
+                                                                loggedUser.data.userRole >= 4 &&
+                                                                (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
+                                                                assigned.user.userType == "External"
+                                                            ) ||
+                                                            (
+                                                                loggedUser.data.userRole >= 4 &&
+                                                                (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") &&
+                                                                assigned.user.user_role[0].roleId == 4
+                                                            )
+                                                        )
                                                     ) ||
                                                     (
                                                         Selected.status == "Rejected" &&
@@ -647,6 +661,13 @@ export default class TaskDetails extends React.Component {
                                                         Selected.status == "Completed" &&
                                                         Selected.approvalRequired == 1 &&
                                                         Selected.approverId == loggedUser.data.id
+                                                    ) ||
+                                                    (
+                                                        Selected.status == "In Progress" &&
+                                                        Selected.approvalRequired == 1 &&
+                                                        loggedUser.data.userRole >= 4 &&
+                                                        (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
+                                                        assigned.user.userType == "External"
                                                     )
                                                 ) && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
                                                     <span>

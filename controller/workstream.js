@@ -15,7 +15,13 @@ const associationStack = [
     },
     {
         model: Projects,
-        as: 'project'
+        as: 'project',
+        include: [{
+            model: Type,
+            as: 'type',
+            required: false,
+            attributes: ["type"]
+        }]
     },
     {
         model: Tasks,
@@ -595,7 +601,7 @@ exports.put = {
                 return Workstream.findOne({ where: { id: workstreamId }, ...options, })
             }).then((response) => {
                 const resultObj = response.toJSON();
-                Members.destroy({
+                Members.update({ isDeleted: 1 }, {
                     where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
                 }).then((response) => {
                     const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };

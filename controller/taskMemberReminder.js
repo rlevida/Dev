@@ -116,9 +116,7 @@ exports.delete = {
             raw: true
         };
         try {
-            Members.destroy(
-                { ...options, where: whereObj }
-            ).then((response) => {
+            Members.update({ isDeleted: 1 },{ where: whereObj }).then((response) => {
                 cb({ status: true, data: response });
             });
         } catch (err) {

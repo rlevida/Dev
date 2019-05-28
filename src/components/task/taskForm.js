@@ -442,7 +442,6 @@ export default class TaskForm extends React.Component {
         if (typeof workstream.Selected.id != "undefined") {
             workstreamList.push({ id: workstream.Selected.id, name: workstream.Selected.workstream });
         }
-
         return (
             <div class="row" >
                 <div class="col-lg-12">
@@ -530,7 +529,8 @@ export default class TaskForm extends React.Component {
                                                             placeholder={'Search workstream'}
                                                             disabled={
                                                                 (
-                                                                    loggedUser.data.userRole >= 4 && (
+                                                                    loggedUser.data.userRole >= 4 && 
+                                                                    (
                                                                         typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                     )
                                                                 )
