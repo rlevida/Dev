@@ -164,7 +164,8 @@ export default class TeamForm extends React.Component {
     }
 
     fetchTeamLeadList(options) {
-        const { dispatch, teams } = this.props;
+        const { dispatch, teams } = { ...this.props };
+        const { teamLeader } = { ...teams.Selected }
         let fetchUrl = "/api/user?page=1&isDeleted=0&type=teamLead";
 
         if (typeof options != "undefined" && options != "") {
@@ -179,6 +180,14 @@ export default class TeamForm extends React.Component {
                 })
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName + " - " + e.username, image: e.avatar } })
                 .value();
+
+            if (typeof teams.Selected.id !== "undefined" && teamLeader) {
+                let checkTeamLead = _.find(taskMemberOptions, { id: teamLeader.id })
+                if (typeof checkTeamLead === "undefined") {
+                    taskMemberOptions.push({ id: teamLeader.id, name: `${teamLeader.firstName} ${teamLeader.lastName}`, image: teamLeader.avatar })
+                }
+            }
+
             dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
         });
     }
@@ -212,6 +221,7 @@ export default class TeamForm extends React.Component {
         const { users_team = [] } = teams.Selected;
         let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
         memberOptions = _.uniqBy([...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })], 'id');
+
 
         return <div>
             <div class="mb20">

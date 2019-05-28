@@ -55,8 +55,10 @@ class DocumentFilter extends React.Component {
                 requestUrl += `&type=folder&folderId=null`;
             }
         }
+
+        
         if (uploadFrom && uploadTo) {
-            requestUrl += `&uploadFrom=${uploadFrom}&uploadTo=${uploadTo}`;
+            requestUrl += `&uploadFrom=${moment(uploadFrom).format("YYYY-MM-DD")}&uploadTo=${moment(uploadTo).format("YYYY-MM-DD")}`;
         }
         if (uploadedBy) {
             requestUrl += `&uploadedBy=${uploadedBy}`;

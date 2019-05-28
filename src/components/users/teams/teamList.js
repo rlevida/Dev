@@ -91,7 +91,6 @@ export default class TeamList extends React.Component {
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";
         const teamList = teams.List;
-
         return (
             <div>
                 {
@@ -113,7 +112,7 @@ export default class TeamList extends React.Component {
                                 _.map(teamList, (team, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td data-label="Team ID">
+                                             <td data-label="Team ID">
                                                 {team.id}
                                             </td>
                                             <td data-label="Team Name">
@@ -170,7 +169,7 @@ export default class TeamList extends React.Component {
                                                         }
                                                     </div>
                                                 }
-                                            </td>
+                                            </td> 
                                             <td data-label="Actions" class={(loggedUser.data.userRole >= 4) ? "hide" : "actions"}>
                                                 <a href="javascript:void(0);"
                                                     onClick={() => this.editData(team)}

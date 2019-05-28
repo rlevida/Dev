@@ -54,7 +54,6 @@ exports.get = {
                     }
                 })
         }).then((nextThen, ipBlockData) => {
-            console.log(`here`)
             try {
                 Users
                     .findOne({
