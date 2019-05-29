@@ -1082,7 +1082,9 @@ exports.post = {
                         Members.update({ isDeleted: 1 }, {
                             where: {
                                 userTypeLinkId: userIds,
-                                usersType: 'users'
+                                usersType: 'users',
+                                linkType: 'project',
+                                linkId: d.data.linkId
                             }
                         })
                             .then((res) => {
