@@ -111,7 +111,6 @@ export default class ProjectForm extends React.Component {
     handleSubmit(e) {
         const { project, loggedUser, dispatch } = this.props
         let result = true;
-
         $('#project-form *').validator('validate');
         $('#project-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -129,7 +128,7 @@ export default class ProjectForm extends React.Component {
                         showToast("error", c.data.message)
                     } else {
                         showToast("success", "Project successfully added.");
-                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...c.data.project, members: _.map(c.data.members, ({ user }) => { return user }) } });
                         dispatch({ type: "SET_MEMBERS_LIST", list: _.map(c.data.members, ({ user }) => { return user }) });
                     }
                 });

@@ -78,10 +78,10 @@ export default class ProjectMemberForm extends React.Component {
                 return
             }
         }
-
         postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
             if (dataToSubmit.usersType == "users") {
-                const currentMember = [...project.Selected.members, ..._.map(c.data, ({ id, user }) => {
+                const currentProjectMembers = (typeof project.Selected.members != "undefined") ? project.Selected.members : [];
+                const currentMember = [...currentProjectMembers, ..._.map(c.data, ({ id, user }) => {
                     return {
                         avatar: user.avatar,
                         firstName: user.firstName,
@@ -93,7 +93,8 @@ export default class ProjectMemberForm extends React.Component {
                 })];
                 dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, members: currentMember } });
             } else {
-                const currentTeam = [...project.Selected.team, ...c.data];
+                const currentProjectTeam = (typeof project.Selected.team != "undefined") ? project.Selected.team : [];
+                const currentTeam = [...currentProjectTeam, ...c.data];
                 dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
             }
             $('#project-member-form *').validator('destroy');
