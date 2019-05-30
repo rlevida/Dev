@@ -91,43 +91,43 @@ const NotificationInclude = [
     {
         model: Projects,
         as: 'project_notification',
-        required: true,
+        required: false,
         include: [{
             model: Type,
             as: 'type',
-            required: false,
+            required: true,
             attributes: ["type"]
         }]
     },
     {
         model: Document,
         as: 'document_notification',
-        required: true,
+        required: false,
         attributes: ["origin"]
     },
     {
         model: Workstream,
         as: 'workstream_notification',
-        required: true,
+        required: false,
         attributes: ["workstream"]
     },
     {
         model: Tasks,
         as: 'task_notification',
-        required: true,
+        required: false,
         attributes: ["task"]
 
     },
     {
         model: Notes,
         as: 'note_notification',
-        required: true,
+        required: false,
         include: NotesInclude
     },
     {
         model: Conversation,
         as: 'conversation_notification',
-        required: true
+        required: false
     }
 ]
 
@@ -143,11 +143,10 @@ exports.get = {
         };
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['isRead', 'ASC'],['dateAdded','ASC']]
+            order: [['isRead', 'ASC'], ['dateAdded', 'ASC']]
         };
 
         const notificationStack = _.cloneDeep(NotificationInclude)
-
         try {
             async.parallel({
                 count: (parallelCallback) => {
