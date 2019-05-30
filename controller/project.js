@@ -537,13 +537,13 @@ exports.get = {
                 usersType: queryString.usersType
             } : {},
             isDeleted: 0
-        }
+        };
 
         try {
             const memberList = await Members
                 .findAll({
-                    ...options,
-                    where: whereObj
+                    where: whereObj,
+                    logging: true
                 })
                 .map((o) => {
                     return o.toJSON()
@@ -551,7 +551,6 @@ exports.get = {
 
             const userMembers = _.filter(memberList, (o) => { return o.usersType == "users" });
             const teamMembers = _.filter(memberList, (o) => { return o.usersType == "team" });
-
             async.parallel({
                 users: (parallelCallback) => {
                     const userIds = _.map(userMembers, (o) => { return o.userTypeLinkId });
@@ -594,7 +593,6 @@ exports.get = {
                 }
             }, async (err, results) => {
                 let userMemberIds = _.uniq([...results.users, ...results.team_users]);
-
                 if (
                     (typeof queryString.project_type != "undefined" && queryString.project_type != "") ||
                     (typeof queryString.memberType != "undefined" && queryString.memberType != "")
