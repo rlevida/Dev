@@ -91,7 +91,7 @@ const NotificationInclude = [
     {
         model: Projects,
         as: 'project_notification',
-        required: false,
+        required: true,
         include: [{
             model: Type,
             as: 'type',
