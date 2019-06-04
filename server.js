@@ -102,4 +102,4 @@ var server = http.createServer(app);
 var io = require('socket.io')(server);
 app.io = io;
 require("./serverSocket")(io);
-server.listen(app.get('port'), server_ip_address);
+server.listen(app.get('port'));

@@ -34,21 +34,17 @@ module.exports = {
     mode: (debug) ? "development" : "production",
     plugins: debug ? [
         new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-            },
-        })
-    ] : [
-            new webpack.optimize.UglifyJsPlugin({
-                compress: {
-                    warnings: false
-                }
-            }),
-            new UnminifiedWebpackPlugin({ mangle: false, sourcemap: false }),
-            new webpack.DefinePlugin({
-                'process.env': {
-                    NODE_ENV: JSON.stringify(process.env.NODE_ENV),
-                },
-            })
-        ]
+          'process.env': {
+            NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+          },
+        }),
+      ] :
+      [
+        new UnminifiedWebpackPlugin({ mangle: false, sourcemap: false }),
+        new webpack.DefinePlugin({
+          'process.env': {
+            NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+          },
+        }),
+      ],
 }

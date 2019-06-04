@@ -1,0 +1,13 @@
+version: "3.2"
+services:
+  cloudcfo:
+    container_name: cloudcfo
+    build: './'
+    networks:
+      - cloudcfo
+    volumes:
+      - ./:/var/www/html/
+    ports:
+      - "8080:8080"
+networks:
+  cloudcfo:

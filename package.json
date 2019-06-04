@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
+    "build": "gulp && webpack",
     "dev": "gulp & webpack --watch & nodemon server.js",
     "manageORM": "sequelize-auto -o \"./temp\" -d cloud_cfo -h 192.168.10.187 -u root -p 3306 -x password -e mysql"
   },
