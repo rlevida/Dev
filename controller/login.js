@@ -47,7 +47,7 @@ exports.get = {
                     }
                     if (failedTimes < 5) {
                         nextThen(ipBlockData)
-                    } else if (failedTimes >= 5 && (dateFailed.getTime() + 300000) < ((new Date()).getTime())) {// blocking of ip by 5 mins
+                    } else if (failedTimes >= 5 && (dateFailed.getTime() + 30000) < ((new Date()).getTime())) {// blocking of ip by 3 sec
                         nextThen(ipBlockData)
                     } else {
                         cb({ status: false, data: res, message: 'Your login attempts reached. Please try again in a few minutes.' })
@@ -204,7 +204,7 @@ exports.post = {
                     }
                     if (failedTimes < 5) {
                         nextThen(ipBlockData)
-                    } else if (failedTimes >= 5 && (dateFailed.getTime() + 300000) < ((new Date()).getTime())) {// blocking of ip by 5 mins
+                    } else if (failedTimes >= 5 && (dateFailed.getTime() + 30000) < ((new Date()).getTime())) {// blocking of ip by 3 sec
                         nextThen(ipBlockData)
                     } else {
                         cb({ status: false, data: res, message: 'Your login attempts reached. Please try again in a few minutes.' })
