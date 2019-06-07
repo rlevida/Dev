@@ -922,6 +922,7 @@ export default class TaskDetails extends React.Component {
                                                             Attachments
                                                         </h3>
                                                         <div>
+                                                            {console.log(documentList)}
                                                             {
                                                                 _.map(documentList, (params, index) => {
                                                                     const { id, origin, name, child = [], document_read, user, dateAdded } = params;
@@ -962,7 +963,7 @@ export default class TaskDetails extends React.Component {
                                                                                         ) ? "hide" : ""
                                                                                     }>
                                                                                         <p class="m0">
-                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: isRead.length, user })}>
+                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: document_read.length, user })}>
                                                                                                 {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
                                                                                             </a>
                                                                                         </p>
