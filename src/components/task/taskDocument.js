@@ -61,7 +61,7 @@ export default class TaskDocument extends React.Component {
                             .sortBy('dateAdded')
                             .reverse()
                             .value(),
-                        tag_task: c.data.result.tags
+                        // tag_task: c.data.result.tags
                     }
                 });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });

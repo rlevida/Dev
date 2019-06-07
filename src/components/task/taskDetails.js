@@ -555,7 +555,7 @@ export default class TaskDetails extends React.Component {
                     name: o.document.name,
                     type: "Task Document",
                     dateAdded: o.document.dateAdded,
-                    document_read: o.document.document_read,
+                    isRead: o.document.document_read,
                     user: o.document.user
                 }
             })
@@ -922,10 +922,9 @@ export default class TaskDetails extends React.Component {
                                                             Attachments
                                                         </h3>
                                                         <div>
-                                                            {console.log(documentList)}
                                                             {
                                                                 _.map(documentList, (params, index) => {
-                                                                    const { id, origin, name, child = [], document_read, user, dateAdded } = params;
+                                                                    const { id, origin, name, child = [], isRead, user, dateAdded } = params;
                                                                     const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                                     const editFilename = (typeof document.Selected.file_name != "undefined") ? document.Selected.file_name : "";
@@ -963,7 +962,7 @@ export default class TaskDetails extends React.Component {
                                                                                         ) ? "hide" : ""
                                                                                     }>
                                                                                         <p class="m0">
-                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: document_read.length, user })}>
+                                                                                            <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: isRead.length, user })}>
                                                                                                 {(origin).substring(0, 50)}{(origin.length > 50) ? "..." : ""}
                                                                                             </a>
                                                                                         </p>

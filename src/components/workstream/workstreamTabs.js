@@ -71,7 +71,6 @@ export default class WorkstreamTabs extends React.Component {
         const { project_id, workstream_id, dispatch, notes, loggedUser, history, workstream } = { ...this.props };
         let tab = history.location.search ? workstreamActiveTab(parseQuery(history.location.search).tab) : this.state.tab;
         const projectType = (typeof workstream.Selected.project != "undefined") ? workstream.Selected.project.type.type : "";
-        console.log(projectType)
         return (
             <div class="row">
                 <div class="col-lg-12">
