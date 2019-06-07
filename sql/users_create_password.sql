@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS `users_create_password`;
+
+CREATE TABLE `users_create_password` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT,
+    `usersId` VARCHAR(100),
+    `hash` VARCHAR(50),
+    `dateAdded` DATETIME,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY(`id`)
+) ENGINE=INNODB;

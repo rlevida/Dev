@@ -11,4 +11,6 @@ switch (page) {
     case "forgotPassword":
         require('./container/resetPassword');
         break;
+    case "createPassword":
+        require('./container/createPassword')
 }
