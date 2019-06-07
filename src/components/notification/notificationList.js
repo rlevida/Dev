@@ -29,6 +29,13 @@ import MarkAsReadModal from "./markAsReadModal";
 class NotificationList extends React.Component {
     constructor(props) {
         super(props)
+        _.map([
+            "fetchData",
+            "getNextResult",
+            "archive",
+            "handleNotificationRedirect",
+            "markAsRead"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     async componentDidMount() {
@@ -110,6 +117,14 @@ class NotificationList extends React.Component {
         }
     }
 
+    async markAsRead(data) {
+        const { loggedUser, dispatch } = { ...this.props }
+        await putData(`/api/notification/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 0 }, (c) => {
+            dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
+            showToast('success', 'Successfully Updated.');
+        })
+    }
+
 
     render() {
         const { notification } = { ...this.props };
@@ -128,49 +143,49 @@ class NotificationList extends React.Component {
                                     _.orderBy(List, ['isRead'], ['asc']).map((e, i) => {
                                         switch (e.type) {
                                             case 'fileNewUpload': {
-                                                return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case 'fileTagged': {
-                                                return <div key={i}><FileTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><FileTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case 'taskAssigned': {
-                                                return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case 'taskApproved':
                                             case 'taskApprover': {
-                                                return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case 'messageSend': {
-                                                return <div key={i}><MessageSend data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><MessageSend data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskTagged": {
-                                                return <div key={i}><TaskTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "commentReplies": {
-                                                return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskFollowingCompleted": {
-                                                return <div key={i}><TaskFollowingCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskFollowingCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskMemberCompleted": {
-                                                return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskDeadline": {
-                                                return <div key={i}><TaskDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskTeamDeadline": {
-                                                return <div key={i}><TaskTeamDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskTeamDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskFollowingDeadline": {
-                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskApproved": {
-                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             case "taskResponsibleDeadLine":
                                             case "taskResponsibleBeforeDeadline":
                                             case "taskBeforeDeadline": {
-                                                return <div key={i}><TaskResponsibleDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                                return <div key={i}><TaskResponsibleDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
                                             }
                                             default:
                                                 return;

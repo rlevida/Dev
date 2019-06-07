@@ -12,7 +12,7 @@ import { notificationType } from "../../../globalFunction";
 })
 export default class Component extends React.Component {
     render() {
-        const { dispatch, data, index, handleNotificationRedirect } = { ...this.props }
+        const { dispatch, data, index, handleNotificationRedirect, markAsRead } = { ...this.props }
         const { document_notification, from, dateAdded, workstream_notification, task_notification } = { ...data }
         const { workstream } = { ...workstream_notification };
         const { task } = { ...task_notification };
@@ -45,18 +45,30 @@ export default class Component extends React.Component {
                             </div>
                         </div>
                         <div class="n-action">
-                            {
-                                (!data.isArchived) &&
-                                <div>
+                            <div>
+                                {
+                                    (data.isRead === 1) &&
+                                    <a href="javascript:void(0)"
+                                        className="mr10"
+                                        title="mark as unread"
+                                        onClick={() => markAsRead(data)}
+                                    >
+                                        <i class="fa fa-eye-slash fa-lg text-grey" />
+                                    </a>
+                                }
+                                {
+                                    (!data.isArchived) &&
+
                                     <a href="javascript:void(0)"
                                         onClick={() => dispatch({ type: "SET_NOTIFICATION_SELECTED", Selected: data })}
+                                        title="archive"
                                         data-toggle="modal"
                                         data-target="#archiveModal"
                                     >
                                         <i class="fa fa-times fa-lg text-grey"></i>
                                     </a>
-                                </div>
-                            }
+                                }
+                            </div>
                         </div>
                     </div>
                 </li>
