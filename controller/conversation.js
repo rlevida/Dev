@@ -1499,7 +1499,7 @@ exports.post = {
                                         createdBy: sender.id,
                                         noteId: responseObj.linkId,
                                         conversationId: responseObj.id,
-                                        workstreamId: responseObj.conversationNotes.noteWorkstream.id,
+                                        workstreamId: responseObj.conversationNotes.noteWorkstream ? responseObj.conversationNotes.noteWorkstream.id : null,
                                         type: "messageSend",
                                         message: "Sent you a new message",
                                         emailAddress: nSetting.notification_setting.emailAddress,
