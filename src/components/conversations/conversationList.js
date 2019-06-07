@@ -32,7 +32,6 @@ export default class ConversationList extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { notes } = { ...this.props };
-
         if (_.isEqual(prevProps.notes.Filter, notes.Filter) == false) {
             this.fetchNotes(1);
         }

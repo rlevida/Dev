@@ -4,7 +4,8 @@ export default function reducer(state = {
     Count: {},
     CountList: [],
     Filter: {
-        title: ""
+        title: "",
+        note: ""
     },
     FormActive: "List",
     FormAction: "",
