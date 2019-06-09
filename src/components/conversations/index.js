@@ -1,29 +1,89 @@
 import React from "react";
 import { connect } from "react-redux";
-
+import { getData } from "../../globalFunction";
+import Mark from "mark.js";
 import ConversationForm from "./conversationsForm";
 import ConversationList from "./conversationList";
+let keyTimer = "";
 
 @connect((store) => {
     return {
         socket: store.socket.container,
         notes: store.notes,
         projectData: store.project,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        conversation: store.conversation
     }
 })
+
+
 export default class Component extends React.Component {
+    constructor(props) {
+        super(props)
+        _.map([
+            "handleChange"
+        ], (fn) => {
+            this[fn] = this[fn].bind(this);
+        });
+    }
+
     componentWillUnmount() {
         const { dispatch } = this.props;
-
         dispatch({ type: "SET_COMMENT_LIST", list: [] });
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_NOTES_LIST", list: [] });
         dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
+
     }
+
+    handleChange(e) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_COMMENT_LIST", list: [] });
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
+
+        dispatch({
+            type: "SET_COMMENT_FILTER", filter: {
+                search: e.target.value
+            }
+        });
+    }
+
+    componentDidUpdate(prevProps) {
+        const { conversation, notes, dispatch } = { ...this.props };
+        if (conversation.Filter.search) {
+            this.highlight(conversation.Filter.search)
+        }
+
+        if (_.isEqual(prevProps.conversation.Filter, conversation.Filter) == false) {
+            clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                const { search } = { ...conversation.Filter }
+                let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${notes.Selected.id}`
+                if (search) {
+                    requestUrl += `&search=${search}`
+                }
+                getData(requestUrl, {}, (c) => {
+                    dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
+                    dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+                });
+            }, 1500);
+        }
+    }
+
+    highlight(text) {
+        var instance = new Mark(document.querySelector("#message-thread"));
+        instance.mark(text, {
+            accuracy: {
+                value: "exactly",
+                limiters: [".", ",", "!"]
+            }, background: 'orange'
+        });
+    }
+
     render() {
         const { match = "", dispatch, notes, workstream_id = "", project_id } = { ...this.props };
+        const { Filter } = { ...notes }
         const projectId = (match != "") ? match.params.projectId : project_id;
         return (
             <div class={(workstream_id == "") ? "card" : ""}>
@@ -40,10 +100,27 @@ export default class Component extends React.Component {
                                     (workstream_id == "") && <h3 class="title m0">Messages</h3>
                                 }
                             </div>
-                            <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
-                                {
-                                    (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") && <div class="button-action">
-                                        <a class="btn btn-default"
+                            {
+                                (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") &&
+                                <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
+
+                                    < div class="mb20 display-flex">
+                                        <input
+                                            type="text"
+                                            name="note"
+                                            class="form-control"
+                                            placeholder="Search note"
+                                            onChange={this.handleChange}
+                                        />
+                                        {
+                                            (typeof Filter.title != "undefined" && Filter.title != "") && <a
+                                                class="logo-action text-grey"
+                                                onClick={this.clearSearch}
+                                            >
+                                                <i class="fa fa-times-circle-o ml5" aria-hidden="true"></i>
+                                            </a>
+                                        }
+                                        <a class="btn btn-default ml10"
                                             onClick={(e) => {
                                                 dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
                                                 dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
@@ -55,8 +132,8 @@ export default class Component extends React.Component {
                                          </span>
                                         </a>
                                     </div>
-                                }
-                            </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -68,7 +145,7 @@ export default class Component extends React.Component {
                         <ConversationForm projectId={projectId} workstreamId={workstream_id} />
                     </div>
                 </div>
-            </div>
+            </div >
         )
     }
 }

@@ -62,7 +62,9 @@ export default class ConversationForm extends React.Component {
     }
 
     scrollToBottom() {
-        this.newData.scrollIntoView({ behavior: "smooth" })
+        if (this.newData) {
+            this.newData.scrollIntoView({ behavior: "smooth" })
+        }
     };
 
     fetchUsers(options) {
@@ -238,7 +240,12 @@ export default class ConversationForm extends React.Component {
 
     fetchConversation() {
         const { dispatch, notes, conversation } = { ...this.props };
+        const { search } = { ...conversation };
         let requestUrl = `/api/conversation/getConversationList?page=${conversation.Count.current_page + 1}&linkType=notes&linkId=${notes.Selected.id}`;
+        
+        if (search) {
+            requestUrl = + `&search=${search}`
+        }
 
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
 
@@ -408,7 +415,7 @@ export default class ConversationForm extends React.Component {
                                             const duration = moment.duration(moment().diff(moment(dateAdded)));
                                             const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                             return (
-                                                <div class="thread" key={index} ref={(ref) => this.newData = ref}  >
+                                                <div className="thread" key={index} ref={(ref) => this.newData = ref}  >
                                                     <div class="thumbnail-profile">
                                                         <img src={users.avatar} alt="Profile Picture" class="img-responsive" />
                                                     </div>
