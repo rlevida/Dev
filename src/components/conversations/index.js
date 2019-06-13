@@ -51,13 +51,12 @@ export default class Component extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { conversation, notes, dispatch } = { ...this.props };
-        if (conversation.Filter.search) {
-            this.highlight(conversation.Filter.search)
-        }
-
+     
         if (_.isEqual(prevProps.conversation.Filter, conversation.Filter) == false) {
+           
             clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
+                
                 const { search } = { ...conversation.Filter }
                 let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${notes.Selected.id}`
                 if (search) {
@@ -66,6 +65,9 @@ export default class Component extends React.Component {
                 getData(requestUrl, {}, (c) => {
                     dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
                     dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+                    if (conversation.Filter.search) {
+                        this.highlight(conversation.Filter.search)
+                    }
                 });
             }, 1500);
         }
@@ -75,7 +77,7 @@ export default class Component extends React.Component {
         var instance = new Mark(document.querySelector("#message-thread"));
         instance.mark(text, {
             accuracy: {
-                value: "exactly",
+                value: "partially",
                 limiters: [".", ",", "!"]
             }, background: 'orange'
         });
