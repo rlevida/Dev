@@ -352,7 +352,13 @@ exports.get = {
         if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
             whereObj = {
                 ...whereObj,
-                comment: { [Op.like]: `%${queryString.search}%` }
+                [Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('comment')),
+                        {
+                            [Op.like]: sequelize.fn('lower', `%${queryString.search}%`)
+                        }
+                    )
+                ]
             }
         }
 
