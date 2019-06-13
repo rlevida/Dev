@@ -200,7 +200,7 @@ class DocumentUpload extends React.Component {
         })
 
         await postData(`/api/document/upload`, data, async (c) => {
-            const documentToSave = c.data.map(e => {
+            const documentToSave = await c.data.map(e => {
                 e = {
                     name: e.filename, origin: e.origin, project: projectId, uploadedBy: loggedUser.data.id,
                     status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
@@ -208,24 +208,23 @@ class DocumentUpload extends React.Component {
                 return e
             })
             selectedObj.DocumentToSave = documentToSave
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
+            await dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
+            await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
         })
     }
 
     removefile(selecindextedId) {
         const { dispatch, document } = { ...this.props };
-        const { Files } = document;
-        (Files).splice(selecindextedId, 1);
-        dispatch({ type: "SET_DOCUMENT_FILES", Files: Files });
+        const selectedObj = { ...document.Selected }
+        selectedObj.DocumentToSave.splice(selecindextedId, 1);
+        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
     }
 
     render() {
         const { dispatch, project, workstream, folder, match, document } = { ...this.props };
         const projectId = match.params.projectId;
-        const { Files = [], Selected, Loading } = { ...document };
+        const { Selected, Loading } = { ...document };
         const { DocumentToSave = [] } = { ...Selected }
-        const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
         const projectObj = _.find(project.SelectList, { id: project.Selected.id });
         if (!projectObj) {
             project.SelectList.push({ id: project.Selected.id, name: project.Selected.project });
@@ -320,50 +319,24 @@ class DocumentUpload extends React.Component {
                                                         <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
                                                         :
                                                         <div class="upload-wrapper">
-                                                            {
-                                                                (Files.length > 0) ?
-                                                                    <div class="img-wrapper">
-                                                                        {
-                                                                            (fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg") ?
-                                                                                <img src={Files[0].preview} alt="Task Document" class="img-responsive" /> :
-                                                                                <i class={`fa ${(Files.length > 1) ? "fa-files-o" : "fa-file"}`} aria-hidden="true"></i>
-                                                                        }
-
-                                                                    </div>
-                                                                    : <p class="m0">Drop task document</p>
-                                                            }
+                                                            <p class="m0">Select Files</p>
                                                         </div>
                                                 }
                                             </div>
                                         </Dropzone>
-                                        {(Loading !== "SUBMITTING") &&
-                                            _.map(Files, ({ name, id }, index) => {
-                                                return (
-                                                    <div class="file-div" key={index}>
-                                                        <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
-                                                        <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
-                                                    </div>
-                                                )
-                                            })
-                                        }
+
                                     </div>
                                     }
-                                    <div class="form-group">
-                                        <table id="dataTable" class="table responsive-table" >
-                                            <tbody>
-
-                                                {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
-                                                    document.Selected.DocumentToSave.map((data, index) => {
-                                                        return (
-                                                            <tr key={index}>
-                                                                <td style={{ border: "none", width: "20%" }}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    {(Loading !== "SUBMITTING") &&
+                                        _.map(document.Selected.DocumentToSave, ({ origin, id }, index) => {
+                                            return (
+                                                <div class="file-div" key={index}>
+                                                    <p class="m0"><strong>{origin.substring(0, 30)}{(origin.length > 30) ? "..." : ""}</strong></p>
+                                                    <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
+                                                </div>
+                                            )
+                                        })
+                                    }
                                     {(Loading === "" && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
                                         <a class="btn btn-violet mr5" type="button" onClick={() => this.uploadFile()}> Upload Document</a>
                                     }
