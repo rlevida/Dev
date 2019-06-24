@@ -867,7 +867,7 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
-        let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png" };
+        let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png",color: (typeof req.body.color !== "undefined") ? req.body.color :"#fff"};
         sequence.create().then((nextThen) => {
             Projects
                 .findAll({
