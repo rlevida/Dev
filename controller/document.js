@@ -264,15 +264,16 @@ exports.get = {
                             ],
                         })
                         .map((res) => {
+                            const tagDocumentObj = res.document.toJSON();
                             let resToReturn = {
-                                ...res.document.toJSON(),
-                                tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
-                                tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
-                                tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
-                                members: res.document.share.map((e) => { return e.user }),
-                                share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                ...tagDocumentObj,
+                                tagWorkstream: tagDocumentObj.tagDocumentWorkstream.filter(e => { return e.tagWorkstream }).map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                tagTask: tagDocumentObj.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                tagNote: tagDocumentObj.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
+                                members: tagDocumentObj.share.map((e) => { return e.user }),
+                                share: JSON.stringify(tagDocumentObj.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
                                 isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0,
-                                isRead: res.document.document_read.length > 0 ? 1 : 0
+                                isRead: tagDocumentObj.document_read.length > 0 ? 1 : 0
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask', 'tagDocumentNotes')
                         })
