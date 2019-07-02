@@ -47,6 +47,7 @@ class DeleteModal extends React.Component {
         const { document, dispatch, loggedUser, match } = { ...this.props };
         const { current_page, last_page } = { ...document.Count };
         const projectId = match.params.projectId;
+
         if (document.ActiveTab !== "trash") {
             putData(`/api/document/${document.Selected.id}`, {
                 isActive: 0, usersId: loggedUser.data.id,

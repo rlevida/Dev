@@ -232,9 +232,12 @@ class FolderModal extends React.Component {
     }
 
     render() {
-        const { project, workstream, folder, match, document } = { ...this.props };
+        const { project, workstream, folder, document } = { ...this.props };
         const { Selected, Loading } = { ...document };
-        const projectId = match.params.projectId;
+        const hasSelectedProject = _.find(project.SelectList , { id : project.Selected.id });
+        if(!hasSelectedProject){
+            project.SelectList.push({ id : project.Selected.id ,name:project.Selected.project})
+        }
         return (
             <div class="modal fade" id="folderModal" tabIndex="-1" role="dialog" aria-labelledby="folderModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog" role="document">
@@ -262,7 +265,7 @@ class FolderModal extends React.Component {
                                     <DropDown
                                         id="project-options"
                                         options={project.SelectList}
-                                        selected={projectId}
+                                        selected={project.Selected.id}
                                         onChange={(e) => {
                                             this.setDropDown("projectId", (e == null) ? "" : e.value);
                                         }}
