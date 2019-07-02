@@ -270,34 +270,36 @@ exports.post = {
                     nextThen()
                 }
             })
-        }).then((nextThen) => {
-            try {
-                Users.create(body)
-                    .then((res) => {
-                        nextThen(res)
-                    })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        }).then((nextThen, result) => {
-            async.parallel({
-                usersNotificationSetting: (parallelCallback) => {
-                    UsersNotificationSetting
-                        .create({ usersId: result.id })
-                        .then((res) => {
-                            parallelCallback(null, res)
-                        })
-                },
-                usersCreatePassword: (parallelCallback) => {
-                    let func = global.initFunc(),
-                        salt = func.randomString(32),
-                        d = new Date(),
-                        hash = func.generatePassword(d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay() + "-" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds(), salt)
-                    let html = `<p>Hi ${result.firstName}<br></p>`;
-                    html += `<p>Your account for CloudCFO is now created.</p>`;
-                    html += `<p>Please access the link below to activate your account and create your password..</p>`;
-                    html += `<a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}createPassword?hash=${hash}">Click Here</a>`;
-                    html += `<p>Regards,<br>Admin</p>`;
+            .then((nextThen, result) => {
+                async.parallel(
+                    {
+                        usersNotificationSetting: parallelCallback => {
+                            UsersNotificationSetting.create({ usersId: result.id }).then(res => {
+                                parallelCallback(null, res);
+                            });
+                        },
+                        usersCreatePassword: parallelCallback => {
+                            let func = global.initFunc(),
+                                salt = func.randomString(32),
+                                d = new Date(),
+                                hash = func.generatePassword(d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay() + "-" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds(), salt);
+                            let html = `<p>Hi ${result.firstName}<br></p>`;
+                            html += `<p>Your account for CloudCFO is now created.</p>`;
+                            html += `<p>Id: ${result.id}</p>`;
+                            html += `<p>Username: ${result.username}</p>`;
+                            html += `<p>Please access the link below to activate your account and create your password..</p>`;
+                            html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}createPassword?hash=${hash}">Click Here</a>`;
+                            html += `<p>Regards,<br>Admin</p>`;
+
+                            UsersCreatePassword.create({ hash: hash, usersId: result.id }).then(() => {
+                                const mailOptions = {
+                                    from: '"no-reply" <no-reply@c_cfo.com>',
+                                    to: `${result.emailAddress}`,
+                                    subject: "[CLOUD-CFO]",
+                                    html: html
+                                };
+                                global.emailtransport(mailOptions);
+                            });
 
                     UsersCreatePassword
                         .create({ hash: hash, usersId: result.id })
