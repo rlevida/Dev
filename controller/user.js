@@ -753,7 +753,6 @@ exports.put = {
     notificationSetting: async (req, cb) => {
         const body = req.body;
         const id = req.params.id;
-
         try {
             await UsersNotificationSetting.update(body, { where: { usersId: id } });
             const findResult = await UsersNotificationSetting.findOne({ where: { usersId: id } });

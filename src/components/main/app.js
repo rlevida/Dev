@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
-import { Route, Switch, Link } from 'react-router-dom';
+import { Route, Switch, Link } from "react-router-dom";
 import _ from "lodash";
-import { getData, notificationType, putData, textColor } from '../../globalFunction';
+import { getData, notificationType, putData, textColor } from "../../globalFunction";
 
 import Menu from "./menu";
 import Home from "../home";
@@ -14,29 +14,27 @@ import Profile from "../profile";
 import notAvailable from "../notAvailable";
 import Notification from "../notification";
 
-@connect((store) => {
+@connect(store => {
     return {
         user: store.loggedUser.data,
         project: store.project,
         reminder: store.reminder,
         loggedUser: store.loggedUser,
         notification: store.notification
-    }
+    };
 })
-
 class Main extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             showLeft: true,
             showMore: "",
             reminderCount: 0,
             getReminder: true
-        }
-        _.map([
-            "showLeft",
-            "handleAdd"
-        ], (fn) => { this[fn] = this[fn].bind(this) });
+        };
+        _.map(["showLeft", "handleAdd"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     showLeft() {
@@ -47,58 +45,65 @@ class Main extends React.Component {
     componentWillMount() {
         const { dispatch, user, location } = this.props;
 
-        getData(`/api/reminder?usersId=${user.id}`, {}, (c) => {
-            dispatch({ type: "SET_REMINDER_LIST", list: c.data })
-        })
+        getData(`/api/reminder?usersId=${user.id}`, {}, c => {
+            dispatch({ type: "SET_REMINDER_LIST", list: c.data });
+        });
 
-        getData(`/api/globalORM/settings`, {}, (c) => {
-            dispatch({ type: 'UPDATE_SETTINGS', value: c.data.value, name: 'imageUrl' })
-        })
-       
+        getData(`/api/globalORM/settings`, {}, c => {
+            dispatch({ type: "UPDATE_SETTINGS", value: c.data.value, name: "imageUrl" });
+        });
+
         if (location.pathname !== "/notification") {
-            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
-                const { count, result } = { ...c.data }
-                dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
-            })
+            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, c => {
+                const { count, result } = { ...c.data };
+                dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            });
         }
 
         if (window.innerHeight <= 550) {
-            this.setState({ showMore: "" })
-            $("body").css("overflow-y", "auto").css("min-height", "550px")
+            this.setState({ showMore: "" });
+            $("body")
+                .css("overflow-y", "auto")
+                .css("min-height", "550px");
             $("html").scrollTop(0);
         } else {
-            this.setState({ showMore: "bottom" })
+            this.setState({ showMore: "bottom" });
         }
         $(window).resize(() => {
             if (window.innerHeight <= 550) {
-                this.setState({ showMore: "" })
-                $("#menu").css("overflow", "hidden").css("margin-top", "0px")
-                $("body").css("overflow-y", "auto").css("min-height", "550px")
+                this.setState({ showMore: "" });
+                $("#menu")
+                    .css("overflow", "hidden")
+                    .css("margin-top", "0px");
+                $("body")
+                    .css("overflow-y", "auto")
+                    .css("min-height", "550px");
             } else {
-                this.setState({ showMore: "bottom" })
-                $("body").css("overflow-y", "").css("min-height", "")
+                this.setState({ showMore: "bottom" });
+                $("body")
+                    .css("overflow-y", "")
+                    .css("min-height", "");
                 $("html").scrollTop(0);
             }
         });
     }
 
-
     setSideMenuState(status) {
-        this.setState({ miniSideMenu: status })
+        this.setState({ miniSideMenu: status });
         setCookie("sidemenu", status, 1);
     }
 
     setShowMore(type) {
         if (type == "top") {
-            $("#menu").css("overflow", "hidden")
-                .css("margin-top",
-                    "-" + (((window.innerHeight) < 767)
-                        ? (767 - window.innerHeight)
-                        : 0) + "px")
+            $("#menu")
+                .css("overflow", "hidden")
+                .css("margin-top", "-" + (window.innerHeight < 767 ? 767 - window.innerHeight : 0) + "px");
         } else {
-            $("#menu").css("overflow", "hidden").css("margin-top", "0px")
+            $("#menu")
+                .css("overflow", "hidden")
+                .css("margin-top", "0px");
         }
-        this.setState({ showMore: type })
+        this.setState({ showMore: type });
     }
 
     handleAdd(type) {
@@ -108,30 +113,30 @@ class Main extends React.Component {
 
         switch (type) {
             case "task":
-                if (location.pathname != '/my-tasks') {
-                    history.push('/my-tasks');
+                if (location.pathname != "/my-tasks") {
+                    history.push("/my-tasks");
                 }
                 formType = "SET_TASK_FORM_ACTIVE";
                 selectedType = "SET_TASK_SELECTED";
                 break;
             case "project":
-                if (location.pathname != '/projects') {
-                    history.push('/projects');
+                if (location.pathname != "/projects") {
+                    history.push("/projects");
                 }
                 formType = "SET_PROJECT_FORM_ACTIVE";
                 selectedType = "SET_PROJECT_SELECTED";
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
                 break;
             case "user":
-                if (location.pathname != '/users-and-team') {
-                    history.push('/users-and-team');
+                if (location.pathname != "/users-and-team") {
+                    history.push("/users-and-team");
                 }
                 formType = "SET_USER_FORM_ACTIVE";
                 selectedType = "SET_USER_SELECTED";
                 break;
             case "team":
-                if (location.pathname != '/users-and-team') {
-                    history.push('/users-and-team');
+                if (location.pathname != "/users-and-team") {
+                    history.push("/users-and-team");
                 }
                 formType = "SET_TEAM_FORM_ACTIVE";
                 selectedType = "SET_TEAM_SELECTED";
@@ -145,42 +150,44 @@ class Main extends React.Component {
 
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser } = { ...this.props };
-        const { taskId, workstreamId, projectId, } = { ...notif };
+        const { taskId, workstreamId, projectId } = { ...notif };
 
         if (!notif.isRead) {
-            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
-                dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
-            })
+            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
+                dispatch({ type: "UPDATE_DATA_NOTIFICATION_LIST", updatedData: c.data });
+            });
         }
 
         let url = `/projects/${projectId}`;
         switch (notif.type) {
             case "fileNewUpload": {
-
                 if (notif.taskId === null) {
                     history.push(`${url}/workstreams/${workstreamId}?tab=document`);
                 } else {
                     history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-
                 }
             }
-            case "fileTagged": {
-                history.push(`${url}/files?file-id=${notif.documentId}`);
-            }
-                break;
-            case "messageSend": {
-                history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
-            }
-                break;
-            case "commentReplies": {
-                if (notif.taskId === null) {
+            case "fileTagged":
+                {
                     history.push(`${url}/files?file-id=${notif.documentId}`);
-                } else {
-                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
                 }
-            }
-                break
+                break;
+            case "messageSend":
+                {
+                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                }
+                break;
+            case "commentReplies":
+                {
+                    if (notif.taskId === null) {
+                        history.push(`${url}/files?file-id=${notif.documentId}`);
+                    } else {
+                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                    }
+                }
+                break;
             case "taskAssgined":
+            case "taskAssignedComment":
             case "taskApprover":
             case "taskTagged":
             case "taskApproved":
@@ -192,10 +199,11 @@ class Main extends React.Component {
             case "taskResponsibleDeadLine":
             case "taskResponsibleBeforeDeadline":
             case "taskBeforeDeadline":
-            case "taskAssigned": {
-                history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                window.location.reload();
-            }
+            case "taskAssigned":
+                {
+                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                    window.location.reload();
+                }
                 break;
         }
     }
@@ -243,20 +251,16 @@ class Main extends React.Component {
             {
                 label: "",
                 path_name: "not-found",
-                component: notAvailable,
-            }, {
+                component: notAvailable
+            },
+            {
                 label: "Notification",
                 path_name: "notification",
                 component: Notification,
                 show_menu: false
-            },
+            }
         ];
-        const dropdownAddLinks = [
-            { id: "task", label: "Task" },
-            { id: "project", label: "Project" },
-            { id: "user", label: "User" },
-            { id: "team", label: "Team" }
-        ];
+        const dropdownAddLinks = [{ id: "task", label: "Task" }, { id: "project", label: "Project" }, { id: "user", label: "User" }, { id: "team", label: "Team" }];
         const projectMenu = [
             { label: "Info", link: "/info" },
             { label: "Dashboard", link: "" },
@@ -268,143 +272,152 @@ class Main extends React.Component {
 
         if (loggedUser.data.userType === "External") {
             pages = _.filter(pages, ({ path_name }) => {
-                return path_name != "users-and-team"
+                return path_name != "users-and-team";
             });
         }
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
-        const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
+        const currentPage = _.find(pages, page => {
+            return page.path_name == parentPath;
+        });
         const getProjectDetailsPath = currentPath.split("/");
-        const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
-        const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
-        const notificationUnreadCount = _.filter(notification.List, (o) => { return !o.isRead }).length
+        const showProjectMenu = getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined";
+        const currentProjectPage = typeof getProjectDetailsPath[3] == "undefined" ? "dashboard" : getProjectDetailsPath[3];
+        const notificationUnreadCount = _.filter(notification.List, o => {
+            return !o.isRead;
+        }).length;
 
         return (
-            <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
-                {(showLeft) &&
+            <div class={showLeft ? "flex-row" : ""} id="main-container">
+                {showLeft && (
                     <div class="menu-bar flex-col">
                         <div class="site-logo">
                             <img src="/images/cloudcfo-flogo.png" class="img-responsive" />
                         </div>
                         <a id="close-menu" onClick={() => this.showLeft()}>
-                            <span class="fa fa-chevron-left text-white"></span>
+                            <span class="fa fa-chevron-left text-white" />
                         </a>
                         <Menu
-                            pages={_.filter(pages, (page) => { return page.show_menu == true })}
+                            pages={_.filter(pages, page => {
+                                return page.show_menu == true;
+                            })}
                             current_page={currentPage}
                         />
                     </div>
-                }
+                )}
                 <div class="flex-col content-div">
-                    <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + ""} id="wrap">
+                    <div class={(this.state.miniSideMenu == "true" ? "sidebar-left-mini" : "") + ""} id="wrap">
                         <header class="head shadow-dark-div">
                             <div class="main-bar">
-                                <div class={`${(showLeft) ? "hide" : "toggle-menu"} item`}>
+                                <div class={`${showLeft ? "hide" : "toggle-menu"} item`}>
                                     <a onClick={() => this.showLeft()} class="text-white">
-                                        <i class="fa fa-bars" aria-hidden="true"></i>
+                                        <i class="fa fa-bars" aria-hidden="true" />
                                     </a>
                                 </div>
-                                <div class="title item">
-                                    {
-                                        (_.isEmpty(currentPage) == false && currentPage.label != "Projects") && <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
-                                            {currentPage.label}
-                                        </h3>
-                                    }
-                                </div>
-                                {
-                                    (showProjectMenu) && <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
-
-                                        {
-                                            _.map(projectMenu, (o, index) => {
-                                                return (
-                                                    <div class="flex-col vh-center flex-center" key={index}>
-                                                        <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
-                                                            {
-                                                                (o.label == "Info") ? <div class="project-image-wrapper">
-                                                                    <span title={project.Selected.project}>
-                                                                        <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
-                                                                    </span>
-                                                                </div> : o.label
-                                                            }
-                                                        </Link>
-                                                    </div>
-                                                )
-                                            })
-                                        }
+                                <div class="title item">{_.isEmpty(currentPage) == false && currentPage.label != "Projects" && <h3 style={{ textTransform: "capitalize", marginTop: 0, marginBottom: 0 }}>{currentPage.label}</h3>}</div>
+                                {showProjectMenu && (
+                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
+                                        {_.map(projectMenu, (o, index) => {
+                                            return (
+                                                <div class="flex-col vh-center flex-center" key={index}>
+                                                    <Link to={`/projects/${project.Selected.id + o.link}`} class={`${currentProjectPage == o.label.toLowerCase() ? "active" : ""}`}>
+                                                        {o.label == "Info" ? (
+                                                            <div class="project-image-wrapper">
+                                                                <span title={project.Selected.project}>
+                                                                    <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            o.label
+                                                        )}
+                                                    </Link>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                }
+                                )}
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
                                         <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
-                                            <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notificationUnreadCount > 0) ? "bell-active" : ""}`}> </span>
-                                            {
-                                                (notificationUnreadCount > 0 && this.props.location.pathname !== "/notification") &&
-                                                <div class="circle"><p>{notificationUnreadCount || ""}</p></div>
-                                            }
+                                            <span class={`fa fa-bell ${this.props.location.pathname !== "/notification" && notificationUnreadCount > 0 ? "bell-active" : ""}`}> </span>
+                                            {notificationUnreadCount > 0 && this.props.location.pathname !== "/notification" && (
+                                                <div class="circle">
+                                                    <p>{notificationUnreadCount || ""}</p>
+                                                </div>
+                                            )}
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="notif-wrapper">
-                                                {
-                                                    _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
-                                                        const { from, dateAdded, project_notification } = { ...e }
-                                                        const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                        const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-                                                        return (
-                                                            <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
-                                                                <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
-                                                                    <div class="menu-profile">
-                                                                        {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" 
-                                                                            ? <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                            : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
-                                                                        }
-                                                                    </div>
-                                                                    <div class="ml10 w100">
-                                                                        <p class="m0 ">
-                                                                            {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" 
-                                                                                ?
-                                                                                <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
-                                                                                :
-                                                                                <span>{`${notificationType(e.type)} `}<strong>{`Checkout the task ${e.task_notification.task}`}</strong></span>
-                                                                            }
-                                                                        </p>
-                                                                        <p class="note m0">{date}</p>
-                                                                        <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
-                                                                            <span title={e.project_notification.type.type}>
-                                                                                <i class={(e.project_notification.type.type == "Client") ? "fa fa-users mr5" : (e.project_notification.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
-                                                                            </span>
-                                                                            {e.project_notification.project}
-                                                                        </p>
-                                                                    </div>
+                                                {_.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
+                                                    const { from, dateAdded, project_notification } = { ...e };
+                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                    const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                    return (
+                                                        <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
+                                                            <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
+                                                                <div class="menu-profile">
+                                                                    {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
+                                                                        <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                    ) : (
+                                                                        <span class="n-tod-warning">
+                                                                            <i class="fa fa-exclamation-circle" />
+                                                                        </span>
+                                                                    )}
                                                                 </div>
-                                                            </a>
-                                                        )
-                                                    })
-                                                }
+                                                                <div class="ml10 w100">
+                                                                    <p class="m0 ">
+                                                                        {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
+                                                                            <span>
+                                                                                {`${from.firstName} ${from.lastName} `}
+                                                                                <strong>{notificationType(e.type)}</strong>
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span>
+                                                                                {`${notificationType(e.type)} `}
+                                                                                <strong>{`Checkout the task ${e.task_notification.task}`}</strong>
+                                                                            </span>
+                                                                        )}
+                                                                    </p>
+                                                                    <p class="note m0">{date}</p>
+                                                                    <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
+                                                                        <span title={e.project_notification.type.type}>
+                                                                            <i class={e.project_notification.type.type == "Client" ? "fa fa-users mr5" : e.project_notification.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
+                                                                        </span>
+                                                                        {e.project_notification.project}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    );
+                                                })}
                                             </div>
                                             <a href={`/account#/notification`}>
-                                                <div class="notify-drop-footer text-center">
-                                                    View All Notification
-                                            </div>
+                                                <div class="notify-drop-footer text-center">View All Notification</div>
                                             </a>
                                         </div>
-                                        {
-                                            (loggedUser.data.userType != "External") && <div>
+                                        {loggedUser.data.userType != "External" && (
+                                            <div>
                                                 <a class="mr15 btn btn-default btn-orange dropdown-toggle" type="button" id="new" data-toggle="dropdown">
-                                                    <span><i class="fa fa-plus mr10" aria-hidden="true"></i>New</span>
+                                                    <span>
+                                                        <i class="fa fa-plus mr10" aria-hidden="true" />
+                                                        New
+                                                    </span>
                                                 </a>
                                                 <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
                                                     <ul>
-                                                        {
-                                                            _.map(dropdownAddLinks, ({ id, label }, index) => {
-                                                                return (
-                                                                    <li role="presentation" key={index}><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
-                                                                )
-                                                            })
-                                                        }
+                                                        {_.map(dropdownAddLinks, ({ id, label }, index) => {
+                                                            return (
+                                                                <li role="presentation" key={index}>
+                                                                    <a role="menuitem" onClick={() => this.handleAdd(id)}>
+                                                                        {label}
+                                                                    </a>
+                                                                </li>
+                                                            );
+                                                        })}
                                                     </ul>
                                                 </div>
                                             </div>
-                                        }
+                                        )}
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />
@@ -413,22 +426,25 @@ class Main extends React.Component {
                                     </div>
                                     <div class="dropdown visible-sm visible-xs">
                                         <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span class="fa fa-ellipsis-v" title="MORE"></span>
+                                            <span class="fa fa-ellipsis-v" title="MORE" />
                                         </a>
                                         <div class="dropdown-menu pull-right" aria-labelledby="dropdownMenuButton">
-                                            {
-                                                (showProjectMenu) && _.map(projectMenu, (o, index) => {
+                                            {showProjectMenu &&
+                                                _.map(projectMenu, (o, index) => {
                                                     return (
                                                         <li key={index}>
-                                                            <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
+                                                            <Link to={`/projects/${project.Selected.id + o.link}`} class={`${currentProjectPage == o.label.toLowerCase() ? "active" : ""}`}>
                                                                 {o.label}
                                                             </Link>
                                                         </li>
-                                                    )
-                                                })
-                                            }
-                                            <li class="bt"><Link to={"/notification"}>Notification</Link></li>
-                                            <li><Link to={"/profile"}>Profile</Link></li>
+                                                    );
+                                                })}
+                                            <li class="bt">
+                                                <Link to={"/notification"}>Notification</Link>
+                                            </li>
+                                            <li>
+                                                <Link to={"/profile"}>Profile</Link>
+                                            </li>
                                         </div>
                                     </div>
                                 </div>
@@ -436,25 +452,16 @@ class Main extends React.Component {
                         </header>
                         <div id="content">
                             <Switch>
-                                {
-                                    _.map(pages, (page, index) => {
-                                        return (
-                                            <Route
-                                                exact={(typeof page.exact != "undefined") ? page.exact : false}
-                                                path={`/${page.path_name}`}
-                                                component={page.component}
-                                                key={index}
-                                            />
-                                        )
-                                    })
-                                }
+                                {_.map(pages, (page, index) => {
+                                    return <Route exact={typeof page.exact != "undefined" ? page.exact : false} path={`/${page.path_name}`} component={page.component} key={index} />;
+                                })}
                                 <Route component={notAvailable} />
                             </Switch>
                         </div>
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
 
