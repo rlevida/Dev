@@ -116,7 +116,7 @@ class FolderModal extends React.Component {
                 } else {
                     dispatch({ type: "ADD_FOLDER_LIST", list: result });
                 }
-            } else if (folder.Selected.id && !document.Selected.folderId) {
+            } else if ((folder.Selected.id && !document.Selected.folderId) || (!folder.Selected.id && !document.Selected.folderId)) {
                 dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
             }
 
