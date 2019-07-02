@@ -295,7 +295,7 @@ exports.post = {
                             html += `<p>Please access the link below to activate your account and create your password..</p>`;
                             html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}createPassword?hash=${hash}">Click Here</a>`;
                             html += `<p>Regards,<br>Admin</p>`;
-                            console.log(html);
+
                             UsersCreatePassword.create({ hash: hash, usersId: result.id }).then(() => {
                                 const mailOptions = {
                                     from: '"no-reply" <no-reply@c_cfo.com>',
