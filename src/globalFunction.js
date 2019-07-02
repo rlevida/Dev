@@ -340,6 +340,9 @@ var notificationType = (exports.notificationType = function(type) {
         case "taskBeforeDeadline": {
             return "Task about to be due";
         }
+        case "taskAssignedComment": {
+            return "Commented on a tasks that assigned to you";
+        }
         default:
             return;
     }

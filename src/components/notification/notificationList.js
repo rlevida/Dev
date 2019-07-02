@@ -1,9 +1,9 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, putData, showToast } from '../../globalFunction';
-import { connect } from "react-redux"
+import { getData, putData, showToast } from "../../globalFunction";
+import { connect } from "react-redux";
 import { withRouter } from "react-router";
-import _ from "lodash"
+import _ from "lodash";
 import FileNewUpload from "./template/fileNewUpload";
 import TaskAssgined from "./template/taskAssigned";
 import TaskApprover from "./template/taskApprover";
@@ -19,29 +19,26 @@ import TaskResponsibleDeadline from "./template/taskResponsibleDeadline";
 import FileTagged from "./template/fileTagged";
 import ArchivedModal from "./archiveModal";
 import MarkAsReadModal from "./markAsReadModal";
-@connect((store) => {
+import TaskAssginedComment from "./template/taskAssignedComment";
+
+@connect(store => {
     return {
         loggedUser: store.loggedUser,
         notification: store.notification
-    }
+    };
 })
-
 class NotificationList extends React.Component {
     constructor(props) {
-        super(props)
-        _.map([
-            "fetchData",
-            "getNextResult",
-            "archive",
-            "handleNotificationRedirect",
-            "markAsRead"
-        ], (fn) => { this[fn] = this[fn].bind(this) });
+        super(props);
+        _.map(["fetchData", "getNextResult", "archive", "handleNotificationRedirect", "markAsRead"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     async componentDidMount() {
-        const { dispatch } = { ...this.props }
+        const { dispatch } = { ...this.props };
         await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
-        await this.fetchData(1)
+        await this.fetchData(1);
     }
 
     fetchData(page) {
@@ -49,11 +46,11 @@ class NotificationList extends React.Component {
         const { List, Filter } = { ...notification };
 
         dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
-        getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`, {}, (c) => {
+        getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`, {}, c => {
             const { count, result } = { ...c.data };
             dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "" });
-            dispatch({ type: 'SET_NOTIFICATION_LIST', list: List.concat(result), count: count });
-        })
+            dispatch({ type: "SET_NOTIFICATION_LIST", list: List.concat(result), count: count });
+        });
     }
 
     getNextResult() {
@@ -63,41 +60,41 @@ class NotificationList extends React.Component {
     }
 
     archive(data) {
-        const { dispatch, loggedUser } = { ...this.props }
-        putData(`/api/notification/archive/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, (c) => {
+        const { dispatch, loggedUser } = { ...this.props };
+        putData(`/api/notification/archive/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, c => {
             const { count, result } = { ...c.data };
-            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
-            showToast('success', 'Successfully Archived.');
-        })
+            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            showToast("success", "Successfully Archived.");
+        });
     }
 
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser } = { ...this.props };
-        const { taskId, workstreamId, projectId, } = { ...notif };
+        const { taskId, workstreamId, projectId } = { ...notif };
         if (!notif.isRead) {
-            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
-                dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
-
-            })
+            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
+                dispatch({ type: "UPDATE_DATA_NOTIFICATION_LIST", updatedData: c.data });
+            });
         }
 
         let url = `/projects/${projectId}`;
         switch (notif.type) {
-            case "fileNewUpload": {
-
-                if (notif.taskId === null) {
-                    history.push(`${url}/workstreams/${workstreamId}?tab=document`);
-                } else {
-                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-
+            case "fileNewUpload":
+                {
+                    if (notif.taskId === null) {
+                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
+                    } else {
+                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                    }
                 }
-            }
                 break;
-            case "messageSend": {
-                history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
-            }
+            case "messageSend":
+                {
+                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                }
                 break;
             case "taskAssgined":
+            case "taskAssignedComment":
             case "taskApprover":
             case "taskTagged":
             case "taskApproved":
@@ -110,105 +107,168 @@ class NotificationList extends React.Component {
             case "taskResponsibleDeadline":
             case "taskResponsibleBeforeDeadLine":
             case "taskBeforeDeadline":
-            case "taskAssigned": {
-                history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-            }
+            case "taskAssigned":
+                {
+                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                }
                 break;
         }
     }
 
     async markAsRead(data) {
-        const { loggedUser, dispatch } = { ...this.props }
-        await putData(`/api/notification/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 0 }, (c) => {
-            dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
-            showToast('success', 'Successfully Updated.');
-        })
+        const { loggedUser, dispatch } = { ...this.props };
+        await putData(`/api/notification/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 0 }, c => {
+            dispatch({ type: "UPDATE_DATA_NOTIFICATION_LIST", updatedData: c.data });
+            showToast("success", "Successfully Updated.");
+        });
     }
-
 
     render() {
         const { notification } = { ...this.props };
         const { Count, List } = { ...notification };
-        const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
-        const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
+        const currentPage = typeof Count.current_page != "undefined" ? Count.current_page : 1;
+        const lastPage = typeof Count.last_page != "undefined" ? Count.last_page : 1;
         return (
             <div>
                 <div>
-                    <div class="card-header">
-                    </div>
+                    <div class="card-header" />
                     <div>
                         <div class="card-body m0">
                             <ul class="n-list">
-                                {(notification.Loading === "") &&
-                                    _.orderBy(List, ['isRead'], ['asc']).map((e, i) => {
+                                {notification.Loading === "" &&
+                                    _.orderBy(List, ["isRead"], ["asc"]).map((e, i) => {
                                         switch (e.type) {
-                                            case 'fileNewUpload': {
-                                                return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                            case "fileNewUpload": {
+                                                return (
+                                                    <div key={i}>
+                                                        <FileNewUpload data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
-                                            case 'fileTagged': {
-                                                return <div key={i}><FileTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                            case "fileTagged": {
+                                                return (
+                                                    <div key={i}>
+                                                        <FileTagged data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
-                                            case 'taskAssigned': {
-                                                return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                            case "taskAssigned": {
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskAssgined data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
-                                            case 'taskApproved':
-                                            case 'taskApprover': {
-                                                return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                            case "taskApproved":
+                                            case "taskApprover": {
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskApprover data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
-                                            case 'messageSend': {
-                                                return <div key={i}><MessageSend data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                            case "messageSend": {
+                                                return (
+                                                    <div key={i}>
+                                                        <MessageSend data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskTagged": {
-                                                return <div key={i}><TaskTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskTagged data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "commentReplies": {
-                                                return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <CommentReplies data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskFollowingCompleted": {
-                                                return <div key={i}><TaskFollowingCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskFollowingCompleted data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskMemberCompleted": {
-                                                return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskMemberCompleted data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskDeadline": {
-                                                return <div key={i}><TaskDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskTeamDeadline": {
-                                                return <div key={i}><TaskTeamDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskTeamDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskFollowingDeadline": {
-                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskFollowingDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskApproved": {
-                                                return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskFollowingDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
+                                            }
+                                            case "taskAssignedComment": {
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskAssginedComment data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             case "taskResponsibleDeadLine":
                                             case "taskResponsibleBeforeDeadline":
                                             case "taskBeforeDeadline": {
-                                                return <div key={i}><TaskResponsibleDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} /></div>
+                                                return (
+                                                    <div key={i}>
+                                                        <TaskResponsibleDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
                                             }
                                             default:
                                                 return;
                                         }
                                     })}
-
                             </ul>
                         </div>
-                        {
-                            ((currentPage != lastPage) && List.length > 0 && notification.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Notifications</a></p>
-                        }
-                        {
-                            (notification.Loading === "RETRIEVING" && (List).length > 0) && <Loading />
-                        }
-                        {
-                            (List.length === 0 && notification.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                        }
+                        {currentPage != lastPage && List.length > 0 && notification.Loading != "RETRIEVING" && (
+                            <p class="mb0 text-center">
+                                <a onClick={() => this.getNextResult()}>Load More Notifications</a>
+                            </p>
+                        )}
+                        {notification.Loading === "RETRIEVING" && List.length > 0 && <Loading />}
+                        {List.length === 0 && notification.Loading != "RETRIEVING" && (
+                            <p class="mb0 text-center">
+                                <strong>No Records Found</strong>
+                            </p>
+                        )}
                     </div>
                 </div>
                 <ArchivedModal />
                 <MarkAsReadModal />
             </div>
-        )
+        );
     }
 }
 
