@@ -235,10 +235,38 @@ class DocumentList extends React.Component {
                         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "NewDocumentLoading" });
                         dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
                         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
+                        this.fetchFolderSelectList(data.id);
                     }
                 }
             );
         }
+    }
+
+    fetchFolderSelectList(folderId) {
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+            loggedUser.data.id
+        }&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
+
+        if (typeof options != "undefined" && options != "") {
+            requestUrl += `&name=${options}`;
+        }
+
+        getData(requestUrl, {}, c => {
+            if (c.status == 200) {
+                const folderOptions = _(c.data.result)
+                    .map(e => {
+                        const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                        return { id: e.id, name: fName };
+                    })
+                    .value();
+                dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
+            } else {
+                showToast("success", "Something went wrong!");
+            }
+        });
     }
 
     starredDocument({ id, isStarred, origin }) {
