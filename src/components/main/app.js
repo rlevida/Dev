@@ -380,12 +380,14 @@ class Main extends React.Component {
                                                                         )}
                                                                     </p>
                                                                     <p class="note m0">{date}</p>
-                                                                    <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
-                                                                        <span title={e.project_notification.type.type}>
-                                                                            <i class={e.project_notification.type.type == "Client" ? "fa fa-users mr5" : e.project_notification.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
-                                                                        </span>
-                                                                        {e.project_notification.project}
-                                                                    </p>
+                                                                    {e.project_notification && (
+                                                                        <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
+                                                                            <span title={e.project_notification.type.type}>
+                                                                                <i class={e.project_notification.type.type == "Client" ? "fa fa-users mr5" : e.project_notification.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
+                                                                            </span>
+                                                                            {e.project_notification.project}
+                                                                        </p>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </a>

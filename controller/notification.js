@@ -1,260 +1,240 @@
-const Sequelize = require("sequelize")
-const models = require('../modelORM');
-const {
-    Notification,
-    Users,
-    Workstream,
-    Tasks,
-    Document,
-    Notes,
-    Conversation,
-    Tag,
-    Projects,
-    Type
-} = models;
-
+const Sequelize = require("sequelize");
+const models = require("../modelORM");
+const { Notification, Users, Workstream, Tasks, Document, Notes, Conversation, Tag, Projects, Type } = models;
 
 const NotesInclude = [
     {
         model: Tag,
         where: {
-            linkType: 'task', tagType: 'notes'
+            linkType: "task",
+            tagType: "notes"
         },
-        as: 'notesTagTask',
+        as: "notesTagTask",
         required: false,
         include: [
             {
                 model: Tasks,
-                as: 'tagTask',
+                as: "tagTask"
             }
         ]
     },
     {
         model: Workstream,
-        as: 'noteWorkstream'
+        as: "noteWorkstream"
     },
     {
         model: Tag,
         where: {
-            linkType: 'notes', tagType: 'document'
+            linkType: "notes",
+            tagType: "document"
         },
-        as: 'documentTags',
+        as: "documentTags",
         required: false,
         include: [
             {
                 model: Document,
-                as: 'document',
-                include: [{
-                    model: Users,
-                    as: 'user',
-                    attributes: ['id', 'firstName', 'lastName', 'emailAddress']
-                }]
+                as: "document",
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "emailAddress"]
+                    }
+                ]
             }
         ]
     },
     {
         model: Conversation,
         where: {
-            linkType: 'notes'
+            linkType: "notes"
         },
-        as: 'comments',
+        as: "comments",
         required: false,
         include: [
             {
                 model: Users,
-                as: 'users',
-                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                as: "users",
+                attributes: ["id", "firstName", "lastName", "emailAddress"]
             }
         ]
     },
     {
         model: Users,
-        as: 'creator',
+        as: "creator",
         required: false,
-        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+        attributes: ["id", "firstName", "lastName", "emailAddress"]
     }
 ];
 
 const NotificationInclude = [
     {
         model: Users,
-        as: 'to',
+        as: "to",
         required: false,
         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
     },
     {
         model: Users,
-        as: 'from',
+        as: "from",
         required: false,
         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
     },
     {
         model: Projects,
-        as: 'project_notification',
+        as: "project_notification",
         required: true,
-        include: [{
-            model: Type,
-            as: 'type',
-            required: true,
-            attributes: ["type"]
-        }]
+        include: [
+            {
+                model: Type,
+                as: "type",
+                required: true,
+                attributes: ["type"]
+            }
+        ]
     },
     {
         model: Document,
-        as: 'document_notification',
+        as: "document_notification",
         required: false,
         attributes: ["origin"]
     },
     {
         model: Workstream,
-        as: 'workstream_notification',
+        as: "workstream_notification",
         required: false,
         attributes: ["workstream"]
     },
     {
         model: Tasks,
-        as: 'task_notification',
+        as: "task_notification",
         required: false,
         attributes: ["task"]
-
     },
     {
         model: Notes,
-        as: 'note_notification',
+        as: "note_notification",
         required: false,
         include: NotesInclude
     },
     {
         model: Conversation,
-        as: 'conversation_notification',
+        as: "conversation_notification",
         required: false
     }
-]
+];
 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
-            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "" ? { usersId: parseInt(queryString.usersId) } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "" ? { isRead: queryString.isRead } : {}),
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: queryString.isArchived } : {})
         };
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['isRead', 'ASC'], ['dateAdded', 'ASC']]
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["isRead", "ASC"], ["dateAdded", "ASC"]]
         };
 
-        const notificationStack = _.cloneDeep(NotificationInclude)
+        const notificationStack = _.cloneDeep(NotificationInclude);
         try {
-            async.parallel({
-                count: (parallelCallback) => {
-                    Notification
-                        .findAndCountAll({
+            async.parallel(
+                {
+                    count: parallelCallback => {
+                        Notification.findAndCountAll({
                             ...options,
-                            where: whereObj,
-                        })
-                        .then((res) => {
+                            where: whereObj
+                        }).then(res => {
                             const pageData = {
                                 total_count: res.count,
-                                ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (res.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {}
-                            }
-                            parallelCallback(null, pageData)
-                        })
-                },
-                result: (parallelCallback) => {
-                    Notification
-                        .findAll({
+                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
+                            };
+                            parallelCallback(null, pageData);
+                        });
+                    },
+                    result: parallelCallback => {
+                        Notification.findAll({
                             ...options,
                             where: whereObj,
                             include: notificationStack
-                        })
-                        .then((res) => {
-                            parallelCallback(null, res)
-                        })
+                        }).then(res => {
+                            parallelCallback(null, res);
+                        });
+                    }
+                },
+                (err, results) => {
+                    cb({ status: true, data: results });
                 }
-            }, (err, results) => {
-                cb({ status: true, data: results })
-            })
-
+            );
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     },
     count: (req, cb) => {
-        const queryString = req.query
+        const queryString = req.query;
         const whereObj = {
-            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "" ? { usersId: parseInt(queryString.usersId) } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "" ? { isRead: queryString.isRead } : {})
         };
         try {
-            Notification
-                .findAndCountAll({
-                    where: whereObj,
-                })
-                .then((res) => {
-                    cb({ status: true, data: { count: res.count } })
-                })
+            Notification.findAndCountAll({
+                where: whereObj
+            }).then(res => {
+                cb({ status: true, data: { count: res.count } });
+            });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};
 
 exports.post = {
     index: (req, cb) => {
-        const body = req.body
+        const body = req.body;
         try {
-            Notification
-                .create(body)
-                .then((res) => {
-                    Notification
-                        .findOne({
-                            where: { id: res.dataValues.id },
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'user'
-                                },
-                                {
-                                    model: Workstream,
-                                    as: 'workstream'
-                                }
-                            ]
-                        })
-                        .then((findRes) => {
-
-                            cb({ status: true, data: findRes })
-                        })
-                })
+            Notification.create(body).then(res => {
+                Notification.findOne({
+                    where: { id: res.dataValues.id },
+                    include: [
+                        {
+                            model: Users,
+                            as: "user"
+                        },
+                        {
+                            model: Workstream,
+                            as: "workstream"
+                        }
+                    ]
+                }).then(findRes => {
+                    cb({ status: true, data: findRes });
+                });
+            });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};
 
 exports.put = {
     index: (req, cb) => {
-        const id = req.params.id
-        const body = req.body
-        const notificationStack = _.cloneDeep(NotificationInclude)
+        const id = req.params.id;
+        const body = req.body;
+        const notificationStack = _.cloneDeep(NotificationInclude);
         try {
-            Notification
-                .update(body, { where: { id: id } })
-                .then((res) => {
-                    Notification
-                        .findOne({
-                            where: { id: id },
-                            include: notificationStack
-                        })
-                        .then((findRes) => {
-                            cb({ status: true, data: findRes })
-                        })
-                })
+            Notification.update(body, { where: { id: id } }).then(res => {
+                Notification.findOne({
+                    where: { id: id },
+                    include: notificationStack
+                }).then(findRes => {
+                    cb({ status: true, data: findRes });
+                });
+            });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     },
     archive: (req, cb) => {
@@ -264,58 +244,53 @@ exports.put = {
         const limit = 10;
         const notificationStack = _.cloneDeep(NotificationInclude);
         const whereObj = {
-            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "" ? { usersId: parseInt(queryString.usersId) } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "" ? { isRead: queryString.isRead } : {}),
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: queryString.isArchived } : {})
         };
 
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dateUpdated', 'DESC'], ['isRead', 'DESC']]
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["dateUpdated", "DESC"], ["isRead", "DESC"]]
         };
 
         try {
-            Notification
-                .update(body, { where: { id: id } })
-                .then((res) => {
-                    async.parallel({
-                        count: (parallelCallback) => {
-                            Notification
-                                .findAndCountAll({
-                                    ...options,
-                                    where: whereObj,
-                                })
-                                .then((res) => {
-                                    const pageData = {
-                                        total_count: res.count,
-                                        ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (res.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {}
-                                    }
-                                    parallelCallback(null, pageData)
-                                })
+            Notification.update(body, { where: { id: id } }).then(res => {
+                async.parallel(
+                    {
+                        count: parallelCallback => {
+                            Notification.findAndCountAll({
+                                ...options,
+                                where: whereObj
+                            }).then(res => {
+                                const pageData = {
+                                    total_count: res.count,
+                                    ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
+                                };
+                                parallelCallback(null, pageData);
+                            });
                         },
-                        result: (parallelCallback) => {
-                            Notification
-                                .findAll({
-                                    ...options,
-                                    where: whereObj,
-                                    include: notificationStack
-
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
+                        result: parallelCallback => {
+                            Notification.findAll({
+                                ...options,
+                                where: whereObj,
+                                include: notificationStack
+                            }).then(res => {
+                                parallelCallback(null, res);
+                            });
                         }
-                    }, (err, results) => {
-                        cb({ status: true, data: results })
-                    })
-
-                })
+                    },
+                    (err, results) => {
+                        cb({ status: true, data: results });
+                    }
+                );
+            });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};
 
 exports.delete = {
     index: (req, cb) => {
@@ -327,4 +302,4 @@ exports.delete = {
         //     }
         // })
     }
-}
+};
