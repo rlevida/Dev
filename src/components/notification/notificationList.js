@@ -20,6 +20,7 @@ import FileTagged from "./template/fileTagged";
 import ArchivedModal from "./archiveModal";
 import MarkAsReadModal from "./markAsReadModal";
 import TaskAssginedComment from "./template/taskAssignedComment";
+import MessageMentioned from "./template/messageMentioned";
 
 @connect(store => {
     return {
@@ -89,6 +90,7 @@ class NotificationList extends React.Component {
                 }
                 break;
             case "messageSend":
+            case "messageMentioned":
                 {
                     history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
                 }
@@ -171,6 +173,13 @@ class NotificationList extends React.Component {
                                                 return (
                                                     <div key={i}>
                                                         <MessageSend data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                    </div>
+                                                );
+                                            }
+                                            case "messageMentioned": {
+                                                return (
+                                                    <div key={i}>
+                                                        <MessageMentioned data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }

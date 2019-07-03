@@ -173,6 +173,7 @@ class Main extends React.Component {
                 }
                 break;
             case "messageSend":
+            case "messageMentioned":
                 {
                     history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
                 }

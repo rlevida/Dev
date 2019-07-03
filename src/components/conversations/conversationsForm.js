@@ -478,9 +478,9 @@ export default class ConversationForm extends React.Component {
                                                     <p class="note mb0">
                                                         <strong>{users.firstName + " " + users.lastName}</strong> {date}
                                                     </p>
-                                                    {/* <p class="mb0" style={{ wordBreak: "break-word" }}>
-                                                        {parseToHtml(comment)}
-                                                    </p> */}
+                                                    <p class="mb0" style={{ wordBreak: "break-word" }}>
+                                                        <MentionConvert string={comment} />
+                                                    </p>
                                                     {conversationDocuments.length > 0 &&
                                                         _.map(conversationDocuments, ({ document }, index) => {
                                                             return (
