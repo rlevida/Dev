@@ -4,8 +4,10 @@ import moment from "moment";
 import { connect } from "react-redux";
 import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
+import { MentionsInput, Mention } from "react-mentions";
+import defaultStyle from "../global/react-mention-style";
 
-import { DropDown, Loading } from "../../globalComponents";
+import { DropDown, Loading, MentionConvert } from "../../globalComponents";
 import { getData, postData, putData, showToast, parseToHtml } from "../../globalFunction";
 
 import DocumentViewerModal from "../document/modal/documentViewerModal";
@@ -26,7 +28,24 @@ export default class ConversationForm extends React.Component {
         super(props);
 
         _.map(
-            ["fetchUsers", "getUsers", "setDropDownMultiple", "handleChange", "handleSubmit", "setWorkstreamList", "fetchWorkstreamList", "handleFile", "removefile", "fetchConversation", "handleEditTitle", "updateMessage", "handleShowEmoticons"],
+            [
+                "fetchUsers",
+                "renderUsers",
+                "getUsers",
+                "setDropDownMultiple",
+                "handleChange",
+                "handleSubmit",
+                "setWorkstreamList",
+                "fetchWorkstreamList",
+                "handleFile",
+                "removefile",
+                "fetchConversation",
+                "handleEditTitle",
+                "updateMessage",
+                "handleShowEmoticons",
+                "renderUsers",
+                "handleCommentChange"
+            ],
             fn => {
                 this[fn] = this[fn].bind(this);
             }
@@ -103,14 +122,27 @@ export default class ConversationForm extends React.Component {
         const { Selected, List } = notes;
         let data = new FormData();
 
+        const commentText = Selected.message;
+        const commentSplit = commentText.split(/{([^}]+)}/g).filter(Boolean);
+        const commentIds = _(commentSplit)
+            .filter(o => {
+                const regEx = /\[([^\]]+)]/;
+                return regEx.test(o);
+            })
+            .map(o => {
+                return _.toNumber(o.match(/\((.*)\)/).pop());
+            })
+            .value();
+
         if (typeof Selected.id != "undefined" && Selected.id != "") {
             const messageObj = {
-                comment: Selected.message,
+                comment: commentText,
                 usersId: loggedUser.data.id,
                 workstreamId: workstreamId != "" ? workstreamId : Selected.workstreamId,
                 linkType: "notes",
                 linkId: Selected.id,
-                users: Selected.users
+                users: Selected.users,
+                mentionedUsers: _.uniqBy(commentIds, `userId`)
             };
             if (typeof Selected.files != "undefined" && Selected.files.length > 0) {
                 _.map(Selected.files, file => {
@@ -159,7 +191,9 @@ export default class ConversationForm extends React.Component {
                     ...Selected,
                     projectId,
                     userId: loggedUser.data.id,
-                    workstreamId: workstreamId != "" ? workstreamId : Selected.workstreamId
+                    workstreamId: workstreamId != "" ? workstreamId : Selected.workstreamId,
+                    message: commentText,
+                    mentionedUsers: _.uniqBy(commentIds, `userId`)
                 })
             );
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
@@ -314,6 +348,26 @@ export default class ConversationForm extends React.Component {
         }
     }
 
+    handleCommentChange(name, e) {
+        const { dispatch, notes } = { ...this.props };
+        const { Selected } = notes;
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, [name]: e.target.value } });
+    }
+
+    renderUsers(query, callback) {
+        const { notes } = { ...this.props };
+        const noteMembers = notes.Selected.users ? notes.Selected.users : [];
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            const noteMemberOptions = _(noteMembers)
+                .map(o => {
+                    return { id: o.value, display: o.label };
+                })
+                .value();
+            callback(noteMemberOptions);
+        }, 500);
+    }
+
     render() {
         const { teams, workstream, notes, conversation, loggedUser, workstreamId, dispatch } = this.props;
         const workstreamList = workstream.SelectList;
@@ -414,6 +468,7 @@ export default class ConversationForm extends React.Component {
                                     {_.map(conversationList, ({ comment, users, dateAdded, conversationDocuments }, index) => {
                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
                                         return (
                                             <div className="thread" key={index} ref={ref => (this.newData = ref)}>
                                                 <div class="thumbnail-profile">
@@ -423,9 +478,9 @@ export default class ConversationForm extends React.Component {
                                                     <p class="note mb0">
                                                         <strong>{users.firstName + " " + users.lastName}</strong> {date}
                                                     </p>
-                                                    <p class="mb0" style={{ wordBreak: "break-word" }}>
+                                                    {/* <p class="mb0" style={{ wordBreak: "break-word" }}>
                                                         {parseToHtml(comment)}
-                                                    </p>
+                                                    </p> */}
                                                     {conversationDocuments.length > 0 &&
                                                         _.map(conversationDocuments, ({ document }, index) => {
                                                             return (
@@ -449,7 +504,22 @@ export default class ConversationForm extends React.Component {
                             <input accept=".jpg,.png,.pdf,.doc,.docx,.xlsx" type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
                         </div>
                         <div class="form-group" id="message-div">
-                            <textarea name="message" value={typeof notes.Selected.message == "undefined" || notes.Selected.message == null ? "" : notes.Selected.message} class="form-control" placeholder="Message" onChange={this.handleChange} />
+                            <MentionsInput
+                                value={typeof notes.Selected.message == "undefined" || notes.Selected.message == null ? "" : notes.Selected.message}
+                                onChange={this.handleCommentChange.bind(this, "message")}
+                                style={defaultStyle}
+                                classNames={{
+                                    mentions__input: "form-control"
+                                }}
+                                placeholder={"Type your comment"}
+                                markup="{[__display__](__id__)}"
+                                inputRef={input => {
+                                    this.mentionInput = input;
+                                }}
+                            >
+                                <Mention trigger="@" data={this.renderUsers} appendSpaceOnAdd={true} style={{ backgroundColor: "#ecf0f1", padding: 1 }} />
+                            </MentionsInput>
+                            {/* <textarea name="message" value={typeof notes.Selected.message == "undefined" || notes.Selected.message == null ? "" : notes.Selected.message} class="form-control" placeholder="Message" onChange={this.handleChange} /> */}
                             <a class="logo-action text-grey mr30" onClick={() => this.refs.fileUploader.click()}>
                                 <i class="fa fa-paperclip" aria-hidden="true" />
                             </a>

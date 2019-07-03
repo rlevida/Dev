@@ -15,7 +15,7 @@ CREATE TABLE `notification`
     `isRead` TINYINT DEFAULT '0',
     `isArchived` TINYINT DEFAULT '0',
     `type` ENUM
-("taskAssigned","taskAssignedComment","taskApprover","taskTagged","fileNewUpload","messageSend","commentReplies","taskDeadline","taskBeforeDeadline","taskMemberCompleted","taskFollowingCompleted","taskTeamDeadline","taskFollowingDeadline","taskApproved","taskResponsibleDeadLine","taskResponsibleBeforeDeadline","fileTagged"),
+("taskAssigned","taskAssignedComment","taskApprover","taskTagged","fileNewUpload","messageSend","commentReplies","taskDeadline","taskBeforeDeadline","taskMemberCompleted","taskFollowingCompleted","taskTeamDeadline","taskFollowingDeadline","taskApproved","taskResponsibleDeadLine","taskResponsibleBeforeDeadline","fileTagged","messageMentioned"),
     `createdBy` BIGINT,
     `isDeleted` TINYINT DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

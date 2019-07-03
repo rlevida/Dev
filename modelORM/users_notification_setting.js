@@ -38,6 +38,10 @@ module.exports = function(sequelize, DataTypes) {
                 type: DataTypes.BIGINT,
                 allowNull: true
             },
+            messageMentioned: {
+                type: DataTypes.BIGINT,
+                allowNull: true
+            },
             commentReplies: {
                 type: DataTypes.BIGINT,
                 allowNull: true

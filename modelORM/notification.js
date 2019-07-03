@@ -50,6 +50,7 @@ module.exports = function(sequelize, DataTypes) {
                     "taskTagged",
                     "fileNewUpload",
                     "messageSend",
+                    "messageMentioned",
                     "commentReplies",
                     "taskDeadline",
                     "taskBeforeDeadline",

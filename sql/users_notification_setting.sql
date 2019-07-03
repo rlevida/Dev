@@ -15,6 +15,8 @@ CREATE TABLE `users_notification_setting`
     `fileNewUpload` TINYINT
 (1) DEFAULT '1',   
     `messageSend` TINYINT
+(1) DEFAULT '1',   
+    `messageMentioned` TINYINT
 (1) DEFAULT '1',
     `commentReplies` TINYINT
 (1) DEFAULT '1',  

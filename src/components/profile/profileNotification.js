@@ -56,7 +56,8 @@ export default class ProfileNotification extends React.Component {
             taskTeamDeadline,
             taskFollowingDeadline,
             receiveEmail,
-            taskBeforeDeadline
+            taskBeforeDeadline,
+            messageMentioned
         } = {
             ...users.NotificationSetting
         };
@@ -112,6 +113,13 @@ export default class ProfileNotification extends React.Component {
                         <label class="custom-checkbox">
                             Someone replies to a comment I posted
                             <input type="checkbox" checked={commentReplies ? 1 : 0} onChange={() => {}} onClick={() => this.handleChange("commentReplies", commentReplies ? 0 : 1)} />
+                            <span class="checkmark" />
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="custom-checkbox">
+                            Someone mentioned me to a message
+                            <input type="checkbox" checked={messageMentioned ? 1 : 0} onChange={() => {}} onClick={() => this.handleChange("messageMentioned", messageMentioned ? 0 : 1)} />
                             <span class="checkmark" />
                         </label>
                     </div>
