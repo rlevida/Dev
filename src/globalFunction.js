@@ -291,7 +291,6 @@ var removeTempFile = (exports.removeTempFile = function(fileToRemove, cb) {
 });
 
 var notificationType = (exports.notificationType = function(type) {
-    console.log(type);
     switch (type) {
         case "fileNewUpload": {
             return "uploaded a new file";
@@ -306,7 +305,7 @@ var notificationType = (exports.notificationType = function(type) {
             return "sent you a new message";
         }
         case "messageMentioned": {
-            return "mentioned you to a message";
+            return "mentioned you in a message";
         }
         case "fileTagged": {
             return "mentioned you in a file";

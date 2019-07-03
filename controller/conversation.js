@@ -124,7 +124,10 @@ exports.get = {
                 ]
             }
         ];
+
         let taggedUser = [];
+        let conversationQuery = "";
+        let taggedUserQuery = "";
 
         if (typeof queryString.userId && queryString.userId != "") {
             taggedUser = await Tag.findAll({
@@ -138,19 +141,60 @@ exports.get = {
                 return o.toJSON();
             });
         }
+        if (typeof queryString.message !== "undefined" && queryString.message !== "") {
+            taggedUserQuery = "(";
+            taggedUserQuery += `SELECT tagTypeId from tag where linkType = "user" AND linkId=${
+                queryString.userId
+            } AND tagType = "notes" AND tagTypeId IN ( SELECT DISTINCT notes.id FROM notes LEFT JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${
+                queryString.message
+            }%'))`;
+            taggedUserQuery += ")";
+
+            conversationQuery = "(";
+            conversationQuery += `SELECT DISTINCT notes.id FROM notes LEFT JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${queryString.message}%')`;
+            conversationQuery += ")";
+        }
+
         const whereObj = {
             ...(typeof queryString.projectId !== "undefined" && queryString.projectId !== "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId !== "undefined" && queryString.workstreamId !== "" ? { workstreamId: queryString.workstreamId } : {}),
-            ...(typeof queryString.title != "undefined" && queryString.title != ""
+            ...(typeof queryString.title !== "undefined" && queryString.title !== "undefined"
                 ? {
-                      [Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
-                              [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
-                          })
+                      [Op.or]: [
+                          {
+                              [Op.and]: [
+                                  {
+                                      [Sequelize.Op.or]: [
+                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
+                                              [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
+                                          })
+                                      ]
+                                  },
+                                  {
+                                      id: _.map(taggedUser, ({ tagTypeId }) => {
+                                          return tagTypeId;
+                                      })
+                                  }
+                              ]
+                          },
+                          {
+                              [Op.and]: [
+                                  {
+                                      id: {
+                                          [Sequelize.Op.in]: Sequelize.literal(conversationQuery)
+                                      }
+                                  },
+                                  {
+                                      id: {
+                                          [Sequelize.Op.in]: Sequelize.literal(taggedUserQuery)
+                                      }
+                                  }
+                              ]
+                          }
                       ]
                   }
                 : {}),
-            ...(typeof queryString.userId && queryString.userId != ""
+            ...(typeof queryString.userId && queryString.userId != "" && !queryString.message
                 ? {
                       id: _.map(taggedUser, ({ tagTypeId }) => {
                           return tagTypeId;
@@ -158,7 +202,6 @@ exports.get = {
                   }
                 : {})
         };
-
         if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
             getAssociation.push({
                 model: Starred,
@@ -844,7 +887,7 @@ exports.post = {
                                                     return response.toJSON();
                                                 })
                                                 .then(response => {
-                                                    let message = "Mentioned you to a message";
+                                                    let message = "mentioned you in a message";
 
                                                     const notificationArr = _.filter(response, nSetting => {
                                                         return nSetting.messageSend === 1;
