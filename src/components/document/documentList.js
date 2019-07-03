@@ -21,8 +21,15 @@ class DocumentList extends React.Component {
     }
 
     async componentDidMount() {
-        const { dispatch } = { ...this.props };
-        this.fetchData(1);
+        const { dispatch, fetchWorkstreamDocument, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        if (match.url === `/projects/${projectId}/files` || match.url === `/projects/${projectId}`) {
+            this.fetchData(1);
+        } else {
+            fetchWorkstreamDocument(document.Count.current_page + 1);
+        }
+
         if (getParameterByName("file-id")) {
             const documentId = getParameterByName("file-id");
             getData(`/api/document/detail/${documentId}`, {}, ret => {

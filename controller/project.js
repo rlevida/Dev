@@ -619,7 +619,6 @@ exports.get = {
         try {
             const memberList = await Members.findAll({
                 where: whereObj,
-                logging: true
             }).map(o => {
                 return o.toJSON();
             });
@@ -1828,7 +1827,6 @@ exports.delete = {
                             .value()
                     },
                     attributes: ["status", [models.sequelize.literal("COUNT(*)"), "count"]],
-                    logging: true
                 }).map(response => {
                     return response.toJSON();
                 });
@@ -1926,7 +1924,6 @@ exports.delete = {
                             .value()
                     },
                     attributes: ["status", [models.sequelize.literal("COUNT(*)"), "count"]],
-                    logging: true
                 }).map(response => {
                     return response.toJSON();
                 });

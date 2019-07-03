@@ -237,8 +237,7 @@ exports.get = {
                                     as: "document",
                                     where: documentWhereObj,
                                     include: associationStack,
-                                    required: true,
-                                    logging: true
+                                    required: true
                                 }
                             ]
                         })
@@ -387,12 +386,12 @@ exports.get = {
 
         let documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
-            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId } : {}),
-            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: queryString.isCompleted } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
+            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
+            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
             ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: queryString.isArchived } : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {})
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
         };
 
         const tagWhereObj = {
