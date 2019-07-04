@@ -28,7 +28,9 @@ let keyTimer = "";
 export default class TaskForm extends React.Component {
     constructor(props) {
         super(props);
-
+        this.state = {
+            currentData: {}
+        };
         _.map(
             [
                 "handleChange",
@@ -203,6 +205,9 @@ export default class TaskForm extends React.Component {
         const { dispatch, task } = { ...this.props };
 
         getData(`/api/task/detail/${task.Selected.id}`, {}, c => {
+            this.setState({
+                currentData: c.data
+            });
             dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
         });
 
@@ -398,6 +403,7 @@ export default class TaskForm extends React.Component {
 
     render() {
         const { dispatch, task, users, project, workstream, taskDependency, members, document, loggedUser } = { ...this.props };
+        const { currentData } = { ...this.state };
         const { workstream: taskWorkstream = "" } = task.Selected;
         const taskDependencyValue = typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false ? taskDependency.task.task : "";
         let projectList = _.cloneDeep(project.SelectList);
@@ -724,7 +730,7 @@ export default class TaskForm extends React.Component {
                                                                     class="form-control"
                                                                     placeholder="Enter number instance"
                                                                     onChange={this.handleChange}
-                                                                    disabled={task.Selected.periodType}
+                                                                    disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>
@@ -737,7 +743,7 @@ export default class TaskForm extends React.Component {
                                                         <div class="col-lg-8 md-8 col-sm-8">
                                                             <div class="form-group">
                                                                 <label>
-                                                                    Period123:<span class="text-red">*</span>
+                                                                    Period:<span class="text-red">*</span>
                                                                 </label>
                                                                 <DropDown
                                                                     multiple={false}
@@ -747,7 +753,7 @@ export default class TaskForm extends React.Component {
                                                                     })}
                                                                     selected={typeof task.Selected.periodType == "undefined" ? "" : task.Selected.periodType}
                                                                     onChange={e => this.setDropDown("periodType", e.value)}
-                                                                    disabled={task.Selected.periodType}
+                                                                    disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>
