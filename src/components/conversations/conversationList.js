@@ -18,7 +18,7 @@ export default class ConversationList extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map(["fetchNotes", "getNextResult", "handleChange", "clearSearch", "starredTask", "openMessage"], fn => {
+        _.map(["fetchNotes", "getNextResult", "handleChange", "clearSearch", "starredTask", "openMessage", "clearMessage"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -82,24 +82,45 @@ export default class ConversationList extends React.Component {
     handleChange(e) {
         const { dispatch, notes } = this.props;
         const { Filter } = notes;
-
-        if (typeof e.key != "undefined" && e.key === "Enter" && e.target.value != "" && Filter.title != e.target.value) {
-            dispatch({ type: "SET_NOTES_LIST", list: [] });
-            dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
-            dispatch({
-                type: "SET_NOTES_FILTER",
-                filter: {
-                    title: e.target.value,
-                    message: e.target.value
-                }
-            });
+        const value = e.target.value;
+        if (typeof e.key != "undefined" && e.key === "Enter" && value != "" && Filter.title != value) {
+            this.clearMessage();
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                dispatch({
+                    type: "SET_NOTES_FILTER",
+                    filter: {
+                        title: value,
+                        message: value
+                    }
+                });
+            }, 500);
+        } else if (typeof e.key != "undefined" && e.key === "Enter" && e.target.value === "" && Filter.title != e.target.value) {
+            this.clearMessage();
         }
+    }
+
+    clearMessage() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_NOTES_LIST", list: [] });
+        dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
+        dispatch({
+            type: "SET_NOTES_FILTER",
+            filter: {
+                title: "",
+                message: ""
+            }
+        });
+        dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
 
     clearSearch() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_NOTES_LIST", list: [] });
-        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "" } });
+        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
+        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
     }
 
     starredTask({ id, isStarred }) {
@@ -197,8 +218,8 @@ export default class ConversationList extends React.Component {
         return (
             <div id="message_list">
                 <div class="mb20 display-flex">
-                    <input type="text" name="search" class="form-control" placeholder="Search message" onKeyPress={this.handleChange} />
-                    {typeof Filter.title != "undefined" && Filter.title != "" && (
+                    <input type="text" name="title" class="form-control" placeholder="Search message" onKeyPress={this.handleChange} />
+                    {Filter.title && Filter.message && (
                         <a class="logo-action text-grey" onClick={this.clearSearch}>
                             <i class="fa fa-times-circle-o ml5" aria-hidden="true" />
                         </a>

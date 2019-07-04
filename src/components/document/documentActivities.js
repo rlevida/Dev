@@ -48,7 +48,6 @@ class DocumentActivities extends React.Component {
         const { dateAdded, user, actionType, title } = { ...log };
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-        console.log(log);
         switch (actionType) {
             case "created":
             case "deleted":
@@ -113,7 +112,6 @@ class DocumentActivities extends React.Component {
         const { Count } = { ...activities };
         const currentPage = typeof Count.current_page != "undefined" ? Count.current_page : 1;
         const lastPage = typeof Count.last_page != "undefined" ? Count.last_page : 1;
-        console.log(this.props);
         return (
             <div class={activities.Loading == "RETRIEVING" && activities.List.length === 0 ? "linear-background" : ""}>
                 <div class="card-body m0">
