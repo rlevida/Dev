@@ -6,6 +6,7 @@ import { withRouter } from "react-router";
 import DocumentSortFile from "./documentSortFile";
 import DocumentActivities from "./documentActivities";
 import moment from "moment";
+import _ from "lodash";
 
 @connect(store => {
     return {
@@ -21,13 +22,15 @@ class DocumentList extends React.Component {
     }
 
     async componentDidMount() {
-        const { dispatch, fetchWorkstreamDocument, match } = { ...this.props };
+        const { dispatch, fetchWorkstreamDocument, match, document } = { ...this.props };
         const projectId = match.params.projectId;
 
         if (match.url === `/projects/${projectId}/files` || match.url === `/projects/${projectId}`) {
-            this.fetchData(1);
+            if (document.List.length === 0) {
+                this.fetchData(1);
+            }
         } else {
-            fetchWorkstreamDocument(document.Count.current_page + 1);
+            fetchWorkstreamDocument(1);
         }
 
         if (getParameterByName("file-id")) {
@@ -41,13 +44,6 @@ class DocumentList extends React.Component {
                 });
             });
         }
-    }
-
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-        dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
-        dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
     }
 
     fetchData(page) {

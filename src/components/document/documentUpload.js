@@ -165,19 +165,20 @@ class DocumentUpload extends React.Component {
         postData(`/api/document`, document.Selected, c => {
             if (c.status == 200) {
                 this.setState({ upload: false, dataToSubmit: [] });
-                const list = _(c.data.result)
-                    .map(e => {
-                        if (typeof e.folderId !== "undefined" && folder.SelectedNewFolder.id !== "undefined" && e.folderId === folder.SelectedNewFolder.id) {
-                            return e;
-                        } else if (e.folderId === null) {
-                            return e;
-                        }
-                    })
-                    .filter(e => {
-                        return e;
-                    })
-                    .value();
+                // const list = _(c.data.result)
+                //     .map(e => {
+                //         if (typeof e.folderId !== "undefined" && folder.SelectedNewFolder.id !== "undefined" && e.folderId === folder.SelectedNewFolder.id) {
+                //             return e;
+                //         } else if (e.folderId === null) {
+                //             return e;
+                //         }
+                //     })
+                //     .filter(e => {
+                //         return e;
+                //     })
+                //     .value();
                 // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data.result });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 dispatch({ type: "SET_DOCUMENT_FILES", Files: [] });
                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
