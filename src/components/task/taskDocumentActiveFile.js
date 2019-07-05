@@ -27,10 +27,17 @@ class TaskActiveFile extends React.Component {
         this.fetchData(1);
     }
 
+    componentDidUpdate(prevProps) {
+        const { dispatch } = { ...this.props };
+        if (prevProps.document.uploadType !== this.props.document.uploadType) {
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
+            this.fetchData(1);
+        }
+    }
+
     fetchData(page) {
         const { loggedUser, project, task, dispatch, document, uploadType } = this.props;
         let requestUrl = "";
-        console.log(document);
         if (document.uploadType === "active") {
             requestUrl = `/api/document/getFiles?&isArchived=0&isDeleted=0&projectId=${project.Selected.id}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
                 loggedUser.data.id
