@@ -60,6 +60,12 @@ export default class TaskDetails extends React.Component {
             }
         );
     }
+    componentDidMount() {
+        const { dispatch } = { ...this.props };
+        $("#task-documents").on("hidden.bs.modal", () => {
+            dispatch({ type: "SET_DOCUMENT_UPLOAD_TYPE", uploadType: null });
+        });
+    }
 
     componentWillUnmount() {
         $(`#task-details`).modal("hide");
@@ -597,12 +603,12 @@ export default class TaskDetails extends React.Component {
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
                         isRead: o.document.document_read,
-                        user: o.document.user
+                        user: o.document.user,
+                        documentNameCount: o.document.documentNameCount
                     };
                 });
             })
             .value();
-
         const taskDocuments = _(tag_task)
             .map(o => {
                 return {
@@ -612,7 +618,8 @@ export default class TaskDetails extends React.Component {
                     type: "Task Document",
                     dateAdded: o.document.dateAdded,
                     isRead: o.document.document_read,
-                    user: o.document.user
+                    user: o.document.user,
+                    documentNameCount: o.document.documentNameCount
                 };
             })
             .value();
@@ -915,7 +922,8 @@ export default class TaskDetails extends React.Component {
                                                         <h3>Attachments</h3>
                                                         <div>
                                                             {_.map(documentList, (params, index) => {
-                                                                const { id, origin, name, child = [], isRead, user, dateAdded } = params;
+                                                                const { id, origin, name, child = [], isRead, user, dateAdded, documentNameCount } = params;
+                                                                const documentName = `${origin}${documentNameCount > 0 ? `(${documentNameCount})` : ``}`;
                                                                 const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                 const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                                 const editFilename = typeof document.Selected.file_name != "undefined" ? document.Selected.file_name : "";
@@ -948,9 +956,9 @@ export default class TaskDetails extends React.Component {
                                                                             <div>
                                                                                 <div class={typeof document.Selected.action != "undefined" && document.Selected.action == "RENAME" && document.Selected.id == params.id ? "hide" : ""}>
                                                                                     <p class="m0">
-                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: isRead.length, user })}>
-                                                                                            {origin.substring(0, 50)}
-                                                                                            {origin.length > 50 ? "..." : ""}
+                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: documentName, isRead: isRead.length, user })}>
+                                                                                            {documentName.substring(0, 50)}
+                                                                                            {documentName.length > 50 ? "..." : ""}
                                                                                         </a>
                                                                                     </p>
                                                                                     <p class="note mb0">
@@ -1257,7 +1265,7 @@ export default class TaskDetails extends React.Component {
                 <DeleteModal id="delete-document" type={"task document"} type_value={documentValue} delete_function={this.confirmDeleteDocument} />
                 <DocumentViewerModal />
                 <div class="modal fade" id="task-documents" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-md">
+                    <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <a
