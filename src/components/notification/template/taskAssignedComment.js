@@ -2,8 +2,6 @@ import React from "react";
 import { connect } from "react-redux";
 import moment from "moment";
 import { notificationType } from "../../../globalFunction";
-import { MentionConvert } from "../../../globalComponents";
-
 @connect(store => {
     return {
         project: store.project,
@@ -14,8 +12,9 @@ import { MentionConvert } from "../../../globalComponents";
 export default class Component extends React.Component {
     render() {
         const { dispatch, data, index, handleNotificationRedirect, markAsRead } = { ...this.props };
-        const { from, dateAdded, conversation_notification } = { ...data };
-        const { comment } = { ...conversation_notification };
+        const { from, dateAdded, workstream_notification, task_notification } = { ...data };
+        const { workstream } = { ...workstream_notification };
+        const { task } = { ...task_notification };
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
@@ -25,9 +24,17 @@ export default class Component extends React.Component {
                     <div class="d-flex-sb">
                         <div class="n">
                             <a href="javascript:void(0)" onClick={() => handleNotificationRedirect(data)}>
-                                <p class="m0">Messages</p>
+                                <p class="m0">
+                                    <i class={`fa fa-check-circle mr5 ${data.isRead ? "text-green" : ""}`} />
+                                    Task in <strong>{workstream}</strong>
+                                </p>
                             </a>
-                            <div class="m20">
+                            <div>
+                                <div class="n-title mb10">
+                                    <h4>
+                                        <strong>{task}</strong>
+                                    </h4>
+                                </div>
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">
                                         <img src={from.avatar} alt="Profile Picture" class="img-responsive" />
@@ -38,12 +45,6 @@ export default class Component extends React.Component {
                                         </p>
                                         <p class="note m0">{date}</p>
                                     </div>
-                                </div>
-                                <div class="n-b-content">
-                                    <p class="m0 n-message d-flex">
-                                        <i class="fa fa-comment-o mr10" />
-                                        "<MentionConvert string={comment} />"
-                                    </p>
                                 </div>
                             </div>
                         </div>
