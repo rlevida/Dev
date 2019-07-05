@@ -30,8 +30,8 @@ class TaskActiveFile extends React.Component {
     fetchData(page) {
         const { loggedUser, project, task, dispatch, document, uploadType } = this.props;
         let requestUrl = "";
-
-        if (uploadType === "active") {
+        console.log(document);
+        if (document.uploadType === "active") {
             requestUrl = `/api/document/getFiles?&isArchived=0&isDeleted=0&projectId=${project.Selected.id}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
                 loggedUser.data.id
             }&isActive=1&t&&tagType=document&folderId=null&type=document`;
@@ -252,8 +252,8 @@ class TaskActiveFile extends React.Component {
                         })}
                     </tbody>
                 </table>
-                {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
-                {document.List.length === 0 && document.Loading != "RETRIEVING" && (
+                {document.Loading == "RETRIEVING" && documentList.length > 0 && <Loading />}
+                {documentList.length === 0 && document.Loading != "RETRIEVING" && (
                     <p class="mb0 text-center">
                         <strong>No Records Found</strong>
                     </p>

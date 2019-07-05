@@ -244,7 +244,7 @@ export default class TaskDocument extends React.Component {
                             })}
                         </div>
                     )}
-                    {uploadType === "active" || (uploadType === "library" && <TaskDocumentActiveFile handleSelectedDocument={this.handleSelectedDocument} />)}
+                    {(uploadType === "active" || uploadType === "library") && <TaskDocumentActiveFile handleSelectedDocument={this.handleSelectedDocument} />}
                     {Selected.document_type == "checklist_document" && (
                         <div class="form-group">
                             <label for="email">
