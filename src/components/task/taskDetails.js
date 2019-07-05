@@ -64,6 +64,8 @@ export default class TaskDetails extends React.Component {
         const { dispatch } = { ...this.props };
         $("#task-documents").on("hidden.bs.modal", () => {
             dispatch({ type: "SET_DOCUMENT_UPLOAD_TYPE", uploadType: null });
+            dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
+            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
         });
     }
 

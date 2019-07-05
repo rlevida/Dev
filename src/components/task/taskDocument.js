@@ -37,7 +37,7 @@ export default class TaskDocument extends React.Component {
         const { document } = { ...this.props };
         if (document.uploadType === "local") {
             this.handleUploadLocal();
-        } else if (document.uploadType === "active") {
+        } else if (document.uploadType === "active" || document.uploadType === "library") {
             this.handleUploadActiveFile();
         }
     }
@@ -70,7 +70,6 @@ export default class TaskDocument extends React.Component {
                             .sortBy("dateAdded")
                             .reverse()
                             .value()
-                        // tag_task: c.data.result.tags
                     }
                 });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
@@ -133,6 +132,7 @@ export default class TaskDocument extends React.Component {
         });
 
         const checklist = typeof document.Selected.tagged != "undefined" ? document.Selected.tagged : [];
+
         postData(`/api/task/documentActiveFile?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, { data: { task: JSON.stringify(tagTask), workstream: JSON.stringify(tagWorkstream), checklist: JSON.stringify(checklist) } }, c => {
             if (c.data.type == "checklist") {
             } else {
@@ -244,7 +244,7 @@ export default class TaskDocument extends React.Component {
                             })}
                         </div>
                     )}
-                    {uploadType === "active" && <TaskDocumentActiveFile handleSelectedDocument={this.handleSelectedDocument} />}
+                    {uploadType === "active" || (uploadType === "library" && <TaskDocumentActiveFile handleSelectedDocument={this.handleSelectedDocument} />)}
                     {Selected.document_type == "checklist_document" && (
                         <div class="form-group">
                             <label for="email">

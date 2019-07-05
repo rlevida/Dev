@@ -546,7 +546,6 @@ exports.get = {
                             nextThen(res);
                         });
                 } catch (err) {
-                    console.err(err);
                     cb({ status: false, error: err });
                 }
             })
@@ -566,7 +565,6 @@ exports.get = {
                             nextThen(documentId);
                         });
                 } catch (err) {
-                    console.err(err);
                     cb({ status: false, error: err });
                 }
             })
