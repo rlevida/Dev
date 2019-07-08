@@ -427,7 +427,8 @@ exports.get = {
             .create()
             .then(nextThen => {
                 Tag.findAll({
-                    where: tagWhereObj
+                    where: tagWhereObj,
+                    logging: true
                 })
                     .map(res => {
                         return res.tagTypeId;
@@ -435,6 +436,137 @@ exports.get = {
                     .then(res => {
                         nextThen(res);
                     });
+            })
+            .then((nextThen, result) => {
+                async.parallel(
+                    {
+                        count: parallelCallback => {
+                            try {
+                                Document.findAndCountAll({
+                                    where: { ...documentWhereObj, id: result },
+                                    include: associationFindAllStack,
+                                    ...options
+                                }).then(res => {
+                                    const pageData = {
+                                        total_count: res.count,
+                                        ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
+                                    };
+                                    parallelCallback(null, pageData);
+                                });
+                            } catch (err) {
+                                parallelCallback(err);
+                            }
+                        },
+                        result: parallelCallback => {
+                            try {
+                                Document.findAll({
+                                    where: { ...documentWhereObj, id: result },
+                                    include: associationFindAllStack,
+                                    ...options
+                                })
+                                    .map(res => {
+                                        let resToReturn = {
+                                            ...res.toJSON(),
+                                            tagWorkstream: res.tagDocumentWorkstream.map(e => {
+                                                return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
+                                            }),
+                                            tagTask: res.tagDocumentTask.map(e => {
+                                                return { value: e.tagTask.id, label: e.tagTask.task };
+                                            }),
+                                            tagNote: res.tagDocumentNotes.map(e => {
+                                                return { value: e.TagNotes.id, label: e.TagNotes.note };
+                                            }),
+                                            members: res.share.map(e => {
+                                                return e.user;
+                                            }),
+                                            share: JSON.stringify(
+                                                res.share.map(e => {
+                                                    return { value: e.user.id, label: e.user.firstName };
+                                                })
+                                            ),
+                                            isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document_starred.length > 0 ? res.document_starred[0].isActive : 0,
+                                            isRead: res.document_read.length > 0 ? 1 : 0
+                                        };
+                                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask");
+                                    })
+                                    .then(res => {
+                                        parallelCallback(null, res);
+                                    });
+                            } catch (err) {
+                                parallelCallback(err);
+                            }
+                        }
+                    },
+                    (err, results) => {
+                        if (err != null) {
+                            cb({ status: false, error: err });
+                        } else {
+                            cb({ status: true, data: results });
+                        }
+                    }
+                );
+            });
+    },
+    getFiles: (req, cb) => {
+        const queryString = req.query;
+        const limit = 10;
+
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["dateAdded", "DESC"]]
+        };
+        let documentWhereObj = {
+            ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
+            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
+            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
+            ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
+        };
+
+        const tagWhereObj = {
+            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "" ? { linkType: queryString.linkType } : {}),
+            ...(typeof queryString.linkId != "undefined" && queryString.linkId != "" ? { linkId: parseInt(queryString.linkId) } : {})
+        };
+        const documentLinkWhereObj = {
+            linkType: "project",
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { linkId: parseInt(queryString.projectId) } : {})
+        };
+
+        sequence
+            .create()
+            .then(nextThen => {
+                try {
+                    DocumentLink.findAll({ where: { ...documentLinkWhereObj } })
+                        .map(res => {
+                            return res.documentId;
+                        })
+                        .then(res => {
+                            nextThen(res);
+                        });
+                } catch (err) {
+                    cb({ status: false, error: err });
+                }
+            })
+            .then((nextThen, result) => {
+                try {
+                    Tag.findAll({
+                        where: { ...tagWhereObj },
+                        logging: true
+                    })
+                        .map(res => {
+                            return res.tagTypeId;
+                        })
+                        .then(res => {
+                            const documentId = result.filter(e => {
+                                return res.indexOf(e) < 0;
+                            });
+                            nextThen(documentId);
+                        });
+                } catch (err) {
+                    cb({ status: false, error: err });
+                }
             })
             .then((nextThen, result) => {
                 async.parallel(
