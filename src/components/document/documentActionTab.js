@@ -107,7 +107,7 @@ class DocumentActionTab extends React.Component {
                     .value();
                 dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
             } else {
-                showToast("success", "Something went wrong!");
+                showToast("error", "Something went wrong!");
             }
         });
     }
