@@ -1,112 +1,132 @@
 const async = require("async");
 const dbName = "workstream";
 const sequence = require("sequence").Sequence;
-const models = require('../modelORM');
-const moment = require('moment');
+const models = require("../modelORM");
+const moment = require("moment");
 const { defaultDelete } = require("./");
-const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs, Notes } = models;
+const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs, Notes, TaskChecklist } = models;
 const associationStack = [
     {
         model: Type,
-        as: 'type',
+        as: "type",
         required: false,
-        where: { linkType: 'workstream' },
-        attributes: ['id', 'type', 'linkType']
+        where: { linkType: "workstream" },
+        attributes: ["id", "type", "linkType"]
     },
     {
         model: Projects,
-        as: 'project',
-        include: [{
-            model: Type,
-            as: 'type',
-            required: false,
-            attributes: ["type"]
-        }]
+        as: "project",
+        include: [
+            {
+                model: Type,
+                as: "type",
+                required: false,
+                attributes: ["type"]
+            }
+        ]
     },
     {
         model: Tasks,
-        as: 'task',
+        as: "task",
         required: false,
-        attributes: ['id', 'task', 'status', 'dueDate', 'isDeleted'],
+        attributes: ["id", "task", "status", "dueDate", "isDeleted"],
         where: { isDeleted: 0 },
-        include: [{
-            model: Members,
-            as: 'task_members',
-            required: false,
-            where: { linkType: 'task', isDeleted: 0 },
-            include: [
-                {
-                    model: Users,
-                    as: 'user',
-                    attributes: ['id', 'firstName', 'lastName', 'avatar']
-                }
-            ]
-        }]
+        include: [
+            {
+                model: Members,
+                as: "task_members",
+                required: false,
+                where: { linkType: "task", isDeleted: 0 },
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ]
+            }
+        ]
     },
     {
         model: Members,
-        as: 'responsible',
+        as: "responsible",
         required: false,
         where: {
-            linkType: 'workstream'
+            linkType: "workstream"
         },
         include: [
             {
                 model: Users,
-                as: 'user',
-                attributes: ['id', 'firstName', 'lastName', 'avatar']
+                as: "user",
+                attributes: ["id", "firstName", "lastName", "avatar"]
             }
         ]
     },
     {
         model: Tag,
-        as: 'tag',
+        as: "tag",
         required: false,
-        where: { linkType: 'workstream', tagType: 'document' },
+        where: { linkType: "workstream", tagType: "document" },
         include: [
             {
                 required: false,
                 model: Document,
-                as: 'document',
-                where: { isDeleted: 0 },
+                as: "document",
+                where: { isDeleted: 0 }
             }
         ]
     },
     {
         model: Notes,
-        as: 'workstreamNotes',
-        required: false,
+        as: "workstreamNotes",
+        required: false
     }
 ];
+
+const taskInclude = [
+    {
+        model: TaskChecklist,
+        as: "checklist",
+        where: { isDeleted: 0 },
+        required: false
+    }
+];
+
 exports.get = {
     index: async (req, cb) => {
         const includeStack = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
-            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { id: queryString.workstreamId } : {},
-            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
-            ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
-            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
-            ...(typeof queryString.workstream != "undefined" && queryString.workstream != "") ? {
-                [Sequelize.Op.and]: [
-                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('workstream')),
-                        {
-                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.workstream}%`)
-                        }
-                    )
-                ]
-            } : {}
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { id: queryString.workstreamId } : {}),
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {}),
+            ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "" ? { isTemplate: queryString.isTemplate } : {}),
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
+            ...(typeof queryString.workstream != "undefined" && queryString.workstream != ""
+                ? {
+                      [Sequelize.Op.and]: [
+                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
+                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
+                          })
+                      ]
+                  }
+                : {})
         };
 
         if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
             const dueDate = queryString.dueDate || new Date();
-            const startMonth = moment(dueDate, 'YYYY-MM-DD').startOf('year').utc().format("YYYY-MM-DD HH:mm");
-            const endMonth = moment(dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
+            const startMonth = moment(dueDate, "YYYY-MM-DD")
+                .startOf("year")
+                .utc()
+                .format("YYYY-MM-DD HH:mm");
+            const endMonth = moment(dueDate, "YYYY-MM-DD")
+                .endOf("month")
+                .utc()
+                .format("YYYY-MM-DD HH:mm");
 
-            _.find(includeStack, { as: 'task' }).where = {
+            _.find(includeStack, { as: "task" }).where = {
                 dueDate: {
                     [Sequelize.Op.between]: [startMonth, endMonth]
                 },
@@ -117,23 +137,23 @@ exports.get = {
         if (typeof queryString.userRole != "undefined" && queryString.userRole > 4) {
             const workstreamResponsible = await Members.findAll({
                 where: {
-                    memberType: 'responsible',
-                    linkType: 'workstream',
-                    usersType: 'users',
+                    memberType: "responsible",
+                    linkType: "workstream",
+                    usersType: "users",
                     userTypeLinkId: queryString.userId
                 }
-            }).map((o) => {
+            }).map(o => {
                 const response = o.toJSON();
                 return response.linkId;
             });
             const taskMemberAssigned = await Members.findAll({
                 where: {
-                    memberType: ['assignedTo', 'approver'],
-                    linkType: 'task',
-                    usersType: 'users',
+                    memberType: ["assignedTo", "approver"],
+                    linkType: "task",
+                    usersType: "users",
                     userTypeLinkId: queryString.userId
                 }
-            }).map((o) => {
+            }).map(o => {
                 const response = o.toJSON();
                 return response.linkId;
             });
@@ -141,15 +161,17 @@ exports.get = {
                 where: {
                     id: taskMemberAssigned
                 }
-            }).map((o) => { return o.toJSON().workstreamId })
+            }).map(o => {
+                return o.toJSON().workstreamId;
+            });
 
             whereObj["id"] = [...workstreamResponsible, ...taskList];
         }
 
         const options = {
             include: includeStack,
-            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dateAdded', 'DESC']]
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["dateAdded", "DESC"]]
         };
 
         if (typeof queryString.workstreamStatus != "undefined" && queryString.workstreamStatus != "") {
@@ -166,7 +188,9 @@ exports.get = {
                                 LEFT JOIN
                                     task
                                 ON task.workstreamId = workstream.id
-                                WHERE task.dueDate >= "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                                WHERE task.dueDate >= "${moment(queryString.dueDate, "YYYY-MM-DD")
+                                    .utc()
+                                    .format("YYYY-MM-DD HH:mm")}"
                                 OR task.dueDate IS NULL
                                 OR task.status = "Completed"
                                 )`),
@@ -177,11 +201,13 @@ exports.get = {
                             LEFT JOIN
                                 task
                             ON task.workstreamId = workstream.id
-                            WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}" 
+                            WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")}" 
                             AND (task.status != "Completed" OR task.status IS NULL)
                             )`)
                         }
-                    }
+                    };
                     break;
                 case "Issues":
                     whereObj["id"] = {
@@ -192,121 +218,132 @@ exports.get = {
                         LEFT JOIN
                             task
                         ON task.workstreamId = workstream.id
-                        WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                        WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm")}"
                         AND (task.status = "In Progress" OR task.status IS NULL)
                     )`)
-                    }
+                    };
                     break;
                 default:
             }
         }
 
-        async.parallel({
-            count: function (callback) {
-                try {
-                    Workstream.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then((response) => {
-                        const pageData = {
-                            total_count: response.count,
-                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
-                        }
+        async.parallel(
+            {
+                count: function(callback) {
+                    try {
+                        Workstream.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then(response => {
+                            const pageData = {
+                                total_count: response.count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
+                            };
 
-                        callback(null, pageData)
-                    });
-                } catch (err) {
-                    callback(err)
+                            callback(null, pageData);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                },
+                result: function(callback) {
+                    try {
+                        Workstream.findAll({
+                            where: whereObj,
+                            ...options
+                        })
+                            .map(response => {
+                                const resultObj = response.toJSON();
+                                const completedTasks = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "Completed";
+                                });
+                                const issuesTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
+                                });
+                                const pendingTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
+                                });
+                                const dueTodayTask = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
+                                });
+                                const newDoc = _.filter(resultObj.tag, tagObj => {
+                                    return tagObj.document && tagObj.document.status == "new";
+                                });
+                                const members = [
+                                    ...resultObj.responsible,
+                                    ..._(resultObj.task)
+                                        .map(o => {
+                                            return o.task_members;
+                                        })
+                                        .flatten()
+                                        .uniqBy(e => {
+                                            return e.user.id;
+                                        })
+                                        .value()
+                                ];
+                                const forApproval = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "For Approval";
+                                });
+                                const responsible = _.filter(members, member => {
+                                    return member.memberType == "responsible";
+                                });
+                                return {
+                                    ...resultObj,
+                                    pending: pendingTasks,
+                                    completed: completedTasks,
+                                    for_approval: forApproval.length,
+                                    issues: issuesTasks.length,
+                                    dueToday: dueTodayTask.length,
+                                    new_documents: newDoc.length,
+                                    numberOfTasks: resultObj.task.length,
+                                    completion_rate: {
+                                        tasks_due_today: {
+                                            value: dueTodayTask.length > 0 ? (dueTodayTask.length / resultObj.task.length) * 100 : 0,
+                                            color: "#f6dc64",
+                                            count: dueTodayTask.length
+                                        },
+                                        tasks_for_approval: {
+                                            value: forApproval.length > 0 ? (forApproval.length / resultObj.task.length) * 100 : 0,
+                                            color: "#ff754a",
+                                            count: forApproval.length
+                                        },
+                                        delayed_task: {
+                                            value: issuesTasks.length > 0 ? (issuesTasks.length / resultObj.task.length) * 100 : 0,
+                                            color: "#f9003b",
+                                            count: issuesTasks.length
+                                        },
+                                        completed: {
+                                            value: completedTasks.length > 0 ? (completedTasks.length / resultObj.task.length) * 100 : 0,
+                                            color: "#00e589",
+                                            count: completedTasks.length
+                                        }
+                                    },
+                                    members,
+                                    messages: resultObj.workstreamNotes.length,
+                                    responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                                };
+                            })
+                            .then(resultArray => {
+                                callback(null, resultArray);
+                            });
+                    } catch (err) {
+                        callback(err);
+                    }
                 }
             },
-            result: function (callback) {
-                try {
-                    Workstream.findAll({
-                        where: whereObj,
-                        ...options
-                    }).map((response) => {
-                        const resultObj = response.toJSON();
-                        const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                        const issuesTasks = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
-                        });
-                        const pendingTasks = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
-                        });
-                        const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
-                        });
-                        const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                            return tagObj.document && tagObj.document.status == "new"
-                        });
-                        const members = [...resultObj.responsible,
-                        ..._(resultObj.task)
-                            .map((o) => { return o.task_members })
-                            .flatten()
-                            .uniqBy((e) => {
-                                return e.user.id;
-                            })
-                            .value()
-                        ];
-                        const forApproval = _.filter(resultObj.task, (taskObj) => {
-                            return taskObj.status == "For Approval"
-                        });
-                        const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
-                        return {
-                            ...resultObj,
-                            pending: pendingTasks,
-                            completed: completedTasks,
-                            for_approval: forApproval.length,
-                            issues: issuesTasks.length,
-                            dueToday: dueTodayTask.length,
-                            new_documents: newDoc.length,
-                            numberOfTasks: (resultObj.task).length,
-                            completion_rate: {
-                                tasks_due_today: {
-                                    value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
-                                    color: "#f6dc64",
-                                    count: dueTodayTask.length
-                                },
-                                tasks_for_approval: {
-                                    value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
-                                    color: "#ff754a",
-                                    count: forApproval.length
-                                },
-                                delayed_task: {
-                                    value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
-                                    color: '#f9003b',
-                                    count: issuesTasks.length
-                                },
-                                completed: {
-                                    value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
-                                    color: '#00e589',
-                                    count: completedTasks.length
-                                },
-                            },
-                            members,
-                            messages: (resultObj.workstreamNotes).length,
-                            responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
-                        }
-                    }).then((resultArray) => {
-                        callback(null, resultArray);
-                    })
-                } catch (err) {
-                    callback(err)
+            function(err, results) {
+                if (err != null) {
+                    cb({ status: false, error: err });
+                } else {
+                    cb({ status: true, data: results });
                 }
             }
-        }, function (err, results) {
-            if (err != null) {
-                cb({ status: false, error: err });
-            } else {
-                cb({ status: true, data: results })
-            }
-        });
-
-
-
+        );
     },
     getById: (req, cb) => {
         const whereObj = {
@@ -317,9 +354,7 @@ exports.get = {
         };
 
         try {
-            Workstream.findOne(
-                { ...options, where: whereObj }
-            ).then((response) => {
+            Workstream.findOne({ ...options, where: whereObj }).then(response => {
                 const responseData = response.toJSON();
                 cb({
                     status: true,
@@ -327,94 +362,100 @@ exports.get = {
                 });
             });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     },
     getWorkstreamDetail: (req, cb) => {
-        let d = req.query
-        sequence.create().then((nextThen) => {
-            let workstream = global.initModel("workstream")
-            workstream.getData("workstream", { id: d.id }, {}, (c) => {
-                if (c.data.length > 0) {
-                    nextThen(c.data[0])
-                }
+        let d = req.query;
+        sequence
+            .create()
+            .then(nextThen => {
+                let workstream = global.initModel("workstream");
+                workstream.getData("workstream", { id: d.id }, {}, c => {
+                    if (c.data.length > 0) {
+                        nextThen(c.data[0]);
+                    }
+                });
             })
-        }).then((nextThen, data) => {
-            let members = global.initModel("members")
-            members.getData("members", { linkType: "workstream", linkId: data.id, usersType: "users", memberType: "responsible" }, {}, (e) => {
-                if (e.data.length > 0) {
-                    data.responsible = e.data[0].userTypeLinkId;
-                }
-                nextThen(data)
+            .then((nextThen, data) => {
+                let members = global.initModel("members");
+                members.getData("members", { linkType: "workstream", linkId: data.id, usersType: "users", memberType: "responsible" }, {}, e => {
+                    if (e.data.length > 0) {
+                        data.responsible = e.data[0].userTypeLinkId;
+                    }
+                    nextThen(data);
+                });
             })
-
-        }).then((nextThen, data) => {
-            let members = global.initModel("members")
-            let filter = (typeof d.filter != "undefined") ? d.filter : {};
-            members.getWorkstreamTaskMembers({ id: d.id }, (c) => {
-                if (c.status) {
-                    data.taskMemberList = c.data
-                    cb({ status: true, data: data })
-                } else {
-                    cb({ status: false, error: c.error })
-                }
-            })
-        })
+            .then((nextThen, data) => {
+                let members = global.initModel("members");
+                let filter = typeof d.filter != "undefined" ? d.filter : {};
+                members.getWorkstreamTaskMembers({ id: d.id }, c => {
+                    if (c.status) {
+                        data.taskMemberList = c.data;
+                        cb({ status: true, data: data });
+                    } else {
+                        cb({ status: false, error: c.error });
+                    }
+                });
+            });
     },
     status: (req, cb) => {
         const queryString = req.query;
 
         try {
-            async.parallel({
-                active: (parallelCallback) => {
-                    Workstream.count({
-                        distinct: true,
-                        col: 'id',
-                        where: {
-                            projectId: queryString.projectId,
-                            isActive: 1
-                        }
-                    }).then((response) => {
-                        parallelCallback(null, response)
-                    });
-                },
-                issues: (parallelCallback) => {
-                    Workstream.count({
-                        distinct: true,
-                        col: 'id',
-                        where: {
-                            projectId: queryString.projectId
-                        },
-                        include: [
-                            {
-                                model: Tasks,
-                                as: 'task',
-                                required: true,
-                                where: {
-                                    dueDate: {
-                                        [Sequelize.Op.lt]: queryString.date
-                                    },
-                                    status: {
-                                        [Sequelize.Op.or]: {
-                                            [Sequelize.Op.ne]: "Completed",
-                                            [Sequelize.Op.eq]: null
+            async.parallel(
+                {
+                    active: parallelCallback => {
+                        Workstream.count({
+                            distinct: true,
+                            col: "id",
+                            where: {
+                                projectId: queryString.projectId,
+                                isActive: 1
+                            }
+                        }).then(response => {
+                            parallelCallback(null, response);
+                        });
+                    },
+                    issues: parallelCallback => {
+                        Workstream.count({
+                            distinct: true,
+                            col: "id",
+                            where: {
+                                projectId: queryString.projectId
+                            },
+                            include: [
+                                {
+                                    model: Tasks,
+                                    as: "task",
+                                    required: true,
+                                    where: {
+                                        dueDate: {
+                                            [Sequelize.Op.lt]: queryString.date
+                                        },
+                                        status: {
+                                            [Sequelize.Op.or]: {
+                                                [Sequelize.Op.ne]: "Completed",
+                                                [Sequelize.Op.eq]: null
+                                            }
                                         }
                                     }
                                 }
-                            },
-                        ]
-                    }).then((response) => {
-                        parallelCallback(null, response)
-                    });
+                            ]
+                        }).then(response => {
+                            parallelCallback(null, response);
+                        });
+                    }
+                },
+                (err, result) => {
+                    cb({ status: true, data: result });
                 }
-            }, (err, result) => {
-                cb({ status: true, data: result });
-            })
+            );
         } catch (err) {
-            callback(err)
+            callback(err);
         }
     }
-}
+};
 
 exports.post = {
     index: (req, cb) => {
@@ -423,128 +464,149 @@ exports.post = {
             include: associationStack
         };
         try {
-            Workstream.create(body).then((response) => {
+            Workstream.create(body).then(response => {
                 const resultObj = response.toJSON();
                 const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
 
-                async.parallel({
-                    template: function (callback) {
-                        if (typeof body.workstreamTemplate != "undefined" && body.workstreamTemplate != "") {
-                            Workstream.findOne({
-                                where: {
-                                    id: body.workstreamTemplate
-                                },
-                                include: [
-                                    {
-                                        model: Tasks,
-                                        required: false,
-                                        as: 'task'
-                                    }
-                                ]
-                            }).then((workstreamResult) => {
+                async.parallel(
+                    {
+                        template: function(callback) {
+                            if (typeof body.workstreamTemplate != "undefined" && body.workstreamTemplate != "") {
+                                Workstream.findOne({
+                                    where: {
+                                        id: body.workstreamTemplate
+                                    },
+                                    include: [
+                                        {
+                                            model: Tasks,
+                                            required: false,
+                                            as: "task",
+                                            include: taskInclude
+                                        }
+                                    ]
+                                }).then(workstreamResult => {
+                                    const workstreamTaskNonPeriodic = workstreamResult.task
+                                        .filter(workstreamTasksObj => {
+                                            return workstreamTasksObj.periodTask == null;
+                                        })
+                                        .map(workstreamTasksObj => {
+                                            return {
+                                                ..._.omit(workstreamTasksObj.toJSON(), ["id", "dueDate", "startDate", "status"]),
+                                                projectId: body.projectId,
+                                                workstreamId: resultObj.id,
+                                                dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00")
+                                            };
+                                        });
+
+                                    const workstreamTaskPeriodicArray = workstreamResult.task.filter(workstreamTasksObj => {
+                                        return workstreamTasksObj.periodTask !== null;
+                                    });
+
+                                    const workstreamTaskPeriodic = _.values(
+                                        _.mapValues(_.groupBy(workstreamTaskPeriodicArray, "periodTask"), e => {
+                                            if (e.length > 0) {
+                                                return _.orderBy(e, ["dateAdded"], ["desc"])[0];
+                                            } else {
+                                                return e[0];
+                                            }
+                                        })
+                                    );
+
+                                    console.log(workstreamTaskPeriodic);
+
+                                    async.map(workstreamTaskArray, (e, mapCallback) => {
+                                        const taskObj = _.omit(e, ["checklist"]);
+                                        const taskObjChecklistArray = e.checklist;
+                                        Tasks.create({ ...taskObj }).then(taskReturn => {
+                                            const defaultUser = { linkType: "task", linkId: taskReturn.id, userTypeLinkId: 34, usersType: "users", memberType: "assignedTo" };
+                                            async.parallel(
+                                                {
+                                                    taskMembers: taskParallelCallback => {
+                                                        Members.create(defaultUser).then(() => {
+                                                            taskParallelCallback(null);
+                                                        });
+                                                    },
+                                                    taskChecklist: taskParallelCallback => {
+                                                        if (taskObjChecklistArray.length > 0) {
+                                                            const checklistArray = taskObjChecklistArray.map(taskChecklistObj => {
+                                                                return { ..._.omit(taskChecklistObj, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
+                                                            });
+                                                            TaskChecklist.bulkCreate(checklistArray).then(() => {
+                                                                taskParallelCallback(null);
+                                                            });
+                                                        } else {
+                                                            taskParallelCallback(null);
+                                                        }
+                                                    }
+                                                },
+                                                () => {
+                                                    mapCallback(null, taskReturn);
+                                                }
+                                            );
+                                        });
+                                    });
+                                });
+                            } else {
                                 callback(null, "");
-                                // const workstreamTasks = _(responseObj.task)
-                                //     .filter((workstreamTasksObj) => {
-                                //         return workstreamTasksObj.periodTask == null
-                                //     })
-                                //     .map((workstreamTasksObj) => {
-                                //         return {
-                                //             ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
-                                //             projectId: body.projectId,
-                                //             workstreamId: resultObj.id,
-                                //             ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
-                                //         }
-                                //     })
-                                //     .value();
-
-                                // Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
-                                //     return taskResponse.toJSON();
-                                // }).then((taskArray) => {
-                                //     const periodicTask = _(taskArray)
-                                //         .filter((taskObj) => {
-                                //             return taskObj.periodic == 1;
-                                //         })
-                                //         .map((taskObj) => {
-                                //             return _.times(taskObj.periodInstance - 1, (o) => {
-                                //                 const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                //                 return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
-                                //             })
-                                //         })
-                                //         .flatten()
-                                //         .value();
-
-                                //     Tasks.bulkCreate(periodicTask).map((taskResponse) => {
-                                //         return taskResponse.toJSON();
-                                //     }).then((periodicTaskArray) => {
-                                //         const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
-                                //             const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
-                                //             return {
-                                //                 usersId: body.userId,
-                                //                 linkType: "task",
-                                //                 linkId: activityObj.id,
-                                //                 actionType: "created",
-                                //                 new: JSON.stringify({ task: activityObj }),
-                                //                 title: activityObj.task
-                                //             }
-                                //         });
-
-                                //         ActivityLogs.bulkCreate(activityLogs).then((response) => {
-                                //             callback(null, "");
-                                //         });
-                                //     });
-                                // });
+                            }
+                        },
+                        members: function(callback) {
+                            Members.create(responsible).then(response => {
+                                callback(null, response);
                             });
-                        } else {
-                            callback(null, "");
                         }
                     },
-                    members: function (callback) {
-                        Members.create(responsible).then((response) => {
-                            callback(null, response);
-                        });
-                    }
-                }, function (err, results) {
-                    Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
-                        const resultObj = response.toJSON();
-                        const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                        const issuesTasks = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
-                        });
-                        const pendingTasks = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
-                        });
-                        const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
-                            const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment.utc();
-                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
-                        });
-                        const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                            return tagObj.document && tagObj.document.status == "new"
-                        });
-                        const members = [...resultObj.responsible,
-                        ..._(resultObj.task)
-                            .map((o) => { return o.task_members })
-                            .flatten()
-                            .uniqBy((e) => {
-                                return e.user.id;
-                            })
-                            .value()
-                        ];
-                        const forApproval = _.filter(resultObj.task, (taskObj) => {
-                            return taskObj.status == "For Approval"
-                        });
-                        const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
-                        Projects.update({ dateUpdated: body.dateUpdated },
-                            {
-                                where: { id: resultObj.projectId }
-                            })
-                            .then((res) => {
+                    function(err, results) {
+                        Workstream.findOne({ where: { id: resultObj.id }, ...options }).then(response => {
+                            const resultObj = response.toJSON();
+                            const completedTasks = _.filter(resultObj.task, taskObj => {
+                                return taskObj.status == "Completed";
+                            });
+                            const issuesTasks = _.filter(resultObj.task, taskObj => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment.utc();
+                                return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
+                            });
+                            const pendingTasks = _.filter(resultObj.task, taskObj => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment.utc();
+                                return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
+                            });
+                            const dueTodayTask = _.filter(resultObj.task, taskObj => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment.utc();
+                                return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
+                            });
+                            const newDoc = _.filter(resultObj.tag, tagObj => {
+                                return tagObj.document && tagObj.document.status == "new";
+                            });
+                            const members = [
+                                ...resultObj.responsible,
+                                ..._(resultObj.task)
+                                    .map(o => {
+                                        return o.task_members;
+                                    })
+                                    .flatten()
+                                    .uniqBy(e => {
+                                        return e.user.id;
+                                    })
+                                    .value()
+                            ];
+                            const forApproval = _.filter(resultObj.task, taskObj => {
+                                return taskObj.status == "For Approval";
+                            });
+                            const responsible = _.filter(members, member => {
+                                return member.memberType == "responsible";
+                            });
+                            Projects.update(
+                                { dateUpdated: body.dateUpdated },
+                                {
+                                    where: { id: resultObj.projectId }
+                                }
+                            ).then(res => {
                                 cb({
-                                    status: true, data: {
+                                    status: true,
+                                    data: {
                                         ...resultObj,
                                         pending: pendingTasks,
                                         completed: completedTasks,
@@ -552,42 +614,43 @@ exports.post = {
                                         issues: issuesTasks.length,
                                         dueToday: dueTodayTask.length,
                                         new_documents: newDoc.length,
-                                        numberOfTasks: (resultObj.task).length,
+                                        numberOfTasks: resultObj.task.length,
                                         completion_rate: {
                                             tasks_due_today: {
-                                                value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
+                                                value: dueTodayTask.length > 0 ? (dueTodayTask.length / resultObj.task.length) * 100 : 0,
                                                 color: "#f6dc64",
                                                 count: dueTodayTask.length
                                             },
                                             tasks_for_approval: {
-                                                value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
+                                                value: forApproval.length > 0 ? (forApproval.length / resultObj.task.length) * 100 : 0,
                                                 color: "#ff754a",
                                                 count: forApproval.length
                                             },
                                             delayed_task: {
-                                                value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
-                                                color: '#f9003b',
+                                                value: issuesTasks.length > 0 ? (issuesTasks.length / resultObj.task.length) * 100 : 0,
+                                                color: "#f9003b",
                                                 count: issuesTasks.length
                                             },
                                             completed: {
-                                                value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
-                                                color: '#00e589',
+                                                value: completedTasks.length > 0 ? (completedTasks.length / resultObj.task.length) * 100 : 0,
+                                                color: "#00e589",
                                                 count: completedTasks.length
                                             }
                                         },
                                         members,
-                                        responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
+                                        responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
                                     }
                                 });
                             });
-                    });
-                });
+                        });
+                    }
+                );
             });
         } catch (err) {
-            cb({ status: false, error: "Something went wrong. Please try again later." })
+            cb({ status: false, error: "Something went wrong. Please try again later." });
         }
     }
-}
+};
 
 exports.put = {
     index: (req, cb) => {
@@ -597,129 +660,144 @@ exports.put = {
             include: associationStack
         };
         try {
-            Workstream.update(_.omit(body, ["dateUpdated"]), { where: { id: workstreamId } }).then((response) => {
-                return Workstream.findOne({ where: { id: workstreamId }, ...options, })
-            }).then((response) => {
-                const resultObj = response.toJSON();
-                Members.update({ isDeleted: 1 }, {
-                    where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
-                }).then((response) => {
-                    const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
+            Workstream.update(_.omit(body, ["dateUpdated"]), { where: { id: workstreamId } })
+                .then(response => {
+                    return Workstream.findOne({ where: { id: workstreamId }, ...options });
+                })
+                .then(response => {
+                    const resultObj = response.toJSON();
+                    Members.update(
+                        { isDeleted: 1 },
+                        {
+                            where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
+                        }
+                    ).then(response => {
+                        const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
 
-                    Members.create(responsible).then((response) => {
-                        return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
-                            const resultObj = response.toJSON();
-                            const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                            const issuesTasks = _.filter(resultObj.task, (taskObj) => {
-                                const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment.utc();
-                                return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
-                            });
-                            const pendingTasks = _.filter(resultObj.task, (taskObj) => {
-                                const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment.utc();
-                                return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
-                            });
-                            const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
-                                const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment.utc();
-                                return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
-                            });
-                            const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                                return tagObj.document && tagObj.document.status == "new"
-                            });
-                            const members = [...resultObj.responsible,
-                            ..._(resultObj.task)
-                                .map((o) => { return o.task_members })
-                                .flatten()
-                                .uniqBy((e) => {
-                                    return e.user.id;
-                                })
-                                .value()
-                            ];
-                            const forApproval = _.filter(resultObj.task, (taskObj) => {
-                                return taskObj.status == "For Approval"
-                            });
-                            const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
-                            async.parallel({
-                                projects: (parallelCallback) => {
-                                    Projects.update({ dateUpdated: body.dateUpdated },
-                                        {
-                                            where: { id: resultObj.projectId }
-                                        })
-                                        .then((res) => {
-                                            parallelCallback(null);
-                                        });
-                                },
-                                workstream: (parallelCallback) => {
-                                    Workstream.update({ dateUpdated: body.dateUpdated },
-                                        {
-                                            where: { id: resultObj.id }
-                                        })
-                                        .then((res) => {
-                                            parallelCallback(null);
-                                        });
-                                }
-                            }, () => {
-                                cb({
-                                    status: true, data: {
-                                        ...resultObj,
-                                        pending: pendingTasks,
-                                        completed: completedTasks,
-                                        issues: issuesTasks.length,
-                                        dueToday: dueTodayTask.length,
-                                        for_approval: forApproval.length,
-                                        new_documents: newDoc.length,
-                                        numberOfTasks: (resultObj.task).length,
-                                        completion_rate: {
-                                            tasks_due_today: {
-                                                value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
-                                                color: "#f6dc64",
-                                                count: dueTodayTask.length
-                                            },
-                                            tasks_for_approval: {
-                                                value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
-                                                color: "#ff754a",
-                                                count: forApproval.length
-                                            },
-                                            delayed_task: {
-                                                value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
-                                                color: '#f9003b',
-                                                count: issuesTasks.length
-                                            },
-                                            completed: {
-                                                value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
-                                                color: '#00e589',
-                                                count: completedTasks.length
-                                            }
-                                        },
-                                        members,
-                                        responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
-                                    }
+                        Members.create(responsible).then(response => {
+                            return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then(response => {
+                                const resultObj = response.toJSON();
+                                const completedTasks = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "Completed";
                                 });
+                                const issuesTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
+                                });
+                                const pendingTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
+                                });
+                                const dueTodayTask = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
+                                });
+                                const newDoc = _.filter(resultObj.tag, tagObj => {
+                                    return tagObj.document && tagObj.document.status == "new";
+                                });
+                                const members = [
+                                    ...resultObj.responsible,
+                                    ..._(resultObj.task)
+                                        .map(o => {
+                                            return o.task_members;
+                                        })
+                                        .flatten()
+                                        .uniqBy(e => {
+                                            return e.user.id;
+                                        })
+                                        .value()
+                                ];
+                                const forApproval = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "For Approval";
+                                });
+                                const responsible = _.filter(members, member => {
+                                    return member.memberType == "responsible";
+                                });
+                                async.parallel(
+                                    {
+                                        projects: parallelCallback => {
+                                            Projects.update(
+                                                { dateUpdated: body.dateUpdated },
+                                                {
+                                                    where: { id: resultObj.projectId }
+                                                }
+                                            ).then(res => {
+                                                parallelCallback(null);
+                                            });
+                                        },
+                                        workstream: parallelCallback => {
+                                            Workstream.update(
+                                                { dateUpdated: body.dateUpdated },
+                                                {
+                                                    where: { id: resultObj.id }
+                                                }
+                                            ).then(res => {
+                                                parallelCallback(null);
+                                            });
+                                        }
+                                    },
+                                    () => {
+                                        cb({
+                                            status: true,
+                                            data: {
+                                                ...resultObj,
+                                                pending: pendingTasks,
+                                                completed: completedTasks,
+                                                issues: issuesTasks.length,
+                                                dueToday: dueTodayTask.length,
+                                                for_approval: forApproval.length,
+                                                new_documents: newDoc.length,
+                                                numberOfTasks: resultObj.task.length,
+                                                completion_rate: {
+                                                    tasks_due_today: {
+                                                        value: dueTodayTask.length > 0 ? (dueTodayTask.length / resultObj.task.length) * 100 : 0,
+                                                        color: "#f6dc64",
+                                                        count: dueTodayTask.length
+                                                    },
+                                                    tasks_for_approval: {
+                                                        value: forApproval.length > 0 ? (forApproval.length / resultObj.task.length) * 100 : 0,
+                                                        color: "#ff754a",
+                                                        count: forApproval.length
+                                                    },
+                                                    delayed_task: {
+                                                        value: issuesTasks.length > 0 ? (issuesTasks.length / resultObj.task.length) * 100 : 0,
+                                                        color: "#f9003b",
+                                                        count: issuesTasks.length
+                                                    },
+                                                    completed: {
+                                                        value: completedTasks.length > 0 ? (completedTasks.length / resultObj.task.length) * 100 : 0,
+                                                        color: "#00e589",
+                                                        count: completedTasks.length
+                                                    }
+                                                },
+                                                members,
+                                                responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                                            }
+                                        });
+                                    }
+                                );
                             });
                         });
                     });
                 });
-            });
-
         } catch (err) {
-            cb({ status: false, error: "Something went wrong. Please try again later." })
+            cb({ status: false, error: "Something went wrong. Please try again later." });
         }
     }
-}
+};
 
 exports.delete = {
     index: (req, cb) => {
         const id = req.params.id;
         try {
-            Workstream
-                .update({ isDeleted: 1 }, { where: { id: id } })
-                .then((res) => {
-                    cb({ status: true, data: res })
-                })
+            Workstream.update({ isDeleted: 1 }, { where: { id: id } }).then(res => {
+                cb({ status: true, data: res });
+            });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};

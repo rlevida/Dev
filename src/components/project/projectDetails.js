@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch } from "react-router-dom";
 import _ from "lodash";
 
-import { getData } from '../../globalFunction';
+import { getData } from "../../globalFunction";
 import ProjectInfo from "./projectInfo";
 import ProjectDashboard from "./projectDashboard";
 import Workstream from "../workstream";
@@ -11,19 +11,19 @@ import ProjectTaskCalendar from "./projectTaskCalendar";
 import Files from "../document";
 import Conversations from "../conversations";
 
-@connect((store) => {
+@connect(store => {
     return {
         project: store.project,
         task: store.task,
         loggedUser: store.loggedUser
-    }
+    };
 })
 export default class ProjectDetails extends React.Component {
     constructor(props) {
         super(props);
-        _.map([
-            "fetchProjectDetails"
-        ], (fn) => { this[fn] = this[fn].bind(this) });
+        _.map(["fetchProjectDetails"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
     componentDidUpdate(prevProps) {
         if (prevProps.match.params.projectId != this.props.match.params.projectId) {
@@ -37,7 +37,7 @@ export default class ProjectDetails extends React.Component {
         const { match, dispatch } = { ...this.props };
         const projectId = match.params.projectId;
 
-        getData(`/api/project/detail/${projectId}`, {}, (c) => {
+        getData(`/api/project/detail/${projectId}`, {}, c => {
             dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
         });
     }
@@ -53,6 +53,6 @@ export default class ProjectDetails extends React.Component {
                     <Route path={`${this.props.match.path}/messages`} component={Conversations} />
                 </Switch>
             </div>
-        )
+        );
     }
 }
