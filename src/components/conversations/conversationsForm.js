@@ -468,7 +468,7 @@ export default class ConversationForm extends React.Component {
                                     {_.map(conversationList, ({ comment, users, dateAdded, conversationDocuments }, index) => {
                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-
+                                        var includeFilterTitle = comment.includes(notes.Filter.title);
                                         return (
                                             <div className="thread" key={index} ref={ref => (this.newData = ref)}>
                                                 <div class="thumbnail-profile">
@@ -478,7 +478,7 @@ export default class ConversationForm extends React.Component {
                                                     <p class="note mb0">
                                                         <strong>{users.firstName + " " + users.lastName}</strong> {date}
                                                     </p>
-                                                    <div class="mb0" style={{ wordBreak: "break-word" }}>
+                                                    <div class={`${includeFilterTitle ? notes.Filter.title : ""}`} style={{ wordBreak: "break-word" }}>
                                                         <MentionConvert string={comment} />
                                                     </div>
                                                     {conversationDocuments.length > 0 &&
