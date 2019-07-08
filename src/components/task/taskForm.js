@@ -286,7 +286,7 @@ export default class TaskForm extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
     }
 
-    handleSubmit(e) {
+    handleSubmit() {
         const { task, dispatch, loggedUser, project, workstream } = this.props;
         let result = true;
 

@@ -53,14 +53,21 @@ export default class TaskListCategory extends React.Component {
         }
     }
 
-    completeTask({ id, status, periodic, periodTask, approvalRequired }) {
-        const { dispatch, loggedUser } = { ...this.props };
+    completeTask(selectedTask) {
+        const { id, status, periodic, periodTask, approvalRequired } = { ...selectedTask };
+        const { dispatch, loggedUser, task } = { ...this.props };
         const taskStatus = status == "Completed" && approvalRequired == 0 ? "In Progress" : status == "Completed" && approvalRequired == 1 ? "For Approval" : "Completed";
 
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD HH:mm:ss") }, c => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                 showToast("success", "Task successfully updated.");
+                if (taskStatus === "Completed") {
+                    dispatch({ type: "DELETE_TASK_TIMELINE", id: selectedTask.id });
+                } else if (taskStatus === "In Progress") {
+                    const taskTimeline = task.Timeline.concat([{ ...selectedTask, status: taskStatus }]);
+                    dispatch({ type: "SET_TASK_TIMELINE", list: _.orderBy(taskTimeline, ["dueDate"], ["asc"]) });
+                }
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
@@ -187,7 +194,8 @@ export default class TaskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId }) {
+    renderRow(taskData) {
+        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId } = { ...taskData };
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -217,7 +225,7 @@ export default class TaskListCategory extends React.Component {
                                 (loggedUser.data.userRole >= 4 && project.type.type == "Internal" && assigned.user.user_role[0].roleId == 4)) &&
                             approvalRequired == 0) ||
                             (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)) && (
-                            <a onClick={() => this.completeTask({ id, status, periodic, periodTask, approvalRequired })}>
+                            <a onClick={() => this.completeTask(taskData)}>
                                 <span class={`fa mr10 ${status != "Completed" ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete" />
                             </a>
                         )}

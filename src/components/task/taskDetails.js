@@ -132,13 +132,18 @@ export default class TaskDetails extends React.Component {
         const { Selected } = task;
         const { periodTask, periodic, id } = Selected;
         const taskStatus = status;
-
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, c => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                 dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: taskStatus } });
                 showToast("success", "Task successfully updated.");
+                if (taskStatus === "Completed") {
+                    dispatch({ type: "DELETE_TASK_TIMELINE", id: Selected.id });
+                } else if (taskStatus === "In Progress") {
+                    const taskTimeline = task.Timeline.concat([{ ...Selected, status: taskStatus }]);
+                    dispatch({ type: "SET_TASK_TIMELINE", list: _.orderBy(taskTimeline, ["dueDate"], ["asc"]) });
+                }
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
