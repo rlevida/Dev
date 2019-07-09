@@ -19,36 +19,37 @@ class ConfirmationModal extends React.Component {
         });
     }
 
-    handleSubmit() {}
+    handleSubmit() {
+        const { handleSubmit } = { ...this.props };
+        handleSubmit();
+        $(`#confirmationModal`).modal("hide");
+    }
 
     handleCancel() {
-        const { dispatch } = { ...this.props };
         $(`#confirmationModal`).modal("hide");
-        dispatch({ type: "SET_DOCUMENT_SELECTED_FIELDS", Selected: [] });
-        dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
-        dispatch({ type: "SET_DOCUMENT_FIELDS_DRAGGING", Fields: [] });
     }
 
     render() {
-        const { folder } = { ...this.props };
         return (
-            <div class="modal fade" id="confirmationModal">
+            <div class="modal fade delete-modal" id="confirmationModal">
                 <div class="modal-dialog modal-md" role="document">
                     <div class="modal-content">
                         <div class="modal-body">
                             <i class="fa fa-exclamation-circle" aria-hidden="true" />
-                            <p class="warning text-center">Move this documents to {folder.Selected.origin}?</p>
+                            <p class="text-center" style={{ wordBreak: "break-word" }}>
+                                Copying this workstream will assign the tasks included to a default user. Please don't forget to edit and re-assign the tasks to other project member.
+                            </p>
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
                                         <button class="btn btn-danger" type="button" onClick={this.handleSubmit}>
-                                            Yes move this documents!
+                                            Submit
                                         </button>
                                     </div>
                                 </div>
                                 <div class="flex-col">
                                     <button type="button" class="btn btn-secondary" onClick={this.handleCancel}>
-                                        No Don't!
+                                        Cancel
                                     </button>
                                 </div>
                             </div>

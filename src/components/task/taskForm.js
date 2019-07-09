@@ -286,6 +286,28 @@ export default class TaskForm extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
     }
 
+    isDefaultAssignee() {
+        const { users, task } = { ...this.props };
+        let assignedList = _.cloneDeep(users.SelectList);
+        let isDefault = false;
+
+        const userAssigned = _.find(task.Selected.task_members, ({ memberType }) => {
+            return memberType == "assignedTo";
+        });
+
+        if (typeof userAssigned != "undefined") {
+            assignedList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastName, image: userAssigned.user.avatar });
+        }
+
+        const assgined = _.find(assignedList, { id: task.Selected.assignedTo });
+
+        if (assgined && assgined.name.split(" ")[0] === "default") {
+            isDefault = true;
+        }
+
+        return isDefault;
+    }
+
     handleSubmit() {
         const { task, dispatch, loggedUser, project, workstream } = this.props;
         let result = true;
@@ -320,6 +342,12 @@ export default class TaskForm extends React.Component {
             };
 
             $("#task-form").validator("destroy");
+
+            if (this.isDefaultAssignee(submitData.task_members)) {
+                showToast("error", "Please assign to a new user.");
+                return;
+            }
+
             dispatch({ type: "SET_TASK_LOADING", Loading: "SUBMITTING" });
 
             if (typeof task.Selected.id != "undefined") {

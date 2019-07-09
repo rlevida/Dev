@@ -2,6 +2,7 @@ import React from "react";
 import { showToast, putData, postData, getData } from "../../globalFunction";
 import { DropDown, ColorPicker } from "../../globalComponents";
 import { connect } from "react-redux";
+import ConfirmationModal from "./modal/confirmation";
 import _ from "lodash";
 
 let keyTimer = "";
@@ -23,7 +24,7 @@ export default class WorkstreamForm extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map(["handleChange", "setDropDown", "setDropDownMultiple", "fetchMemberList", "setMemberList", "handleSubmit", "handleCheckbox", "handleColorSlider", "getWorkstreamTemplateList", "renderForm"], fn => {
+        _.map(["handleChange", "setDropDown", "setDropDownMultiple", "fetchMemberList", "setMemberList", "handleSubmit", "handleCheckbox", "handleColorSlider", "getWorkstreamTemplateList", "renderForm", "checkIsTemplate"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -140,6 +141,15 @@ export default class WorkstreamForm extends React.Component {
         return hasDefaultUser;
     }
 
+    checkIsTemplate() {
+        const { workstream } = { ...this.props };
+        if (workstream.Selected.workstreamTemplate) {
+            $(`#confirmationModal`).modal("show");
+        } else {
+            this.handleSubmit();
+        }
+    }
+
     handleSubmit() {
         const { workstream, dispatch, loggedUser, project } = this.props;
         const dataToBeSubmitted = {
@@ -156,7 +166,6 @@ export default class WorkstreamForm extends React.Component {
         };
 
         let result = true;
-        let hasTaskDefaultUser = this.checkTaskAssigned(workstream.Selected.task);
 
         $("#workstream-form *").validator("validate");
         $("#workstream-form .form-group").each(function() {
@@ -164,11 +173,6 @@ export default class WorkstreamForm extends React.Component {
                 result = false;
             }
         });
-
-        if (hasTaskDefaultUser) {
-            showToast("error", "One of the task is unassigned please assign a new user.");
-            return;
-        }
 
         if (!result) {
             showToast("error", "Form did not fullfill the required value.");
@@ -190,9 +194,6 @@ export default class WorkstreamForm extends React.Component {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
                     showToast("success", "Workstream successfully updated.");
-                    if (this.checkTaskAssigned(c.data.task)) {
-                        showToast("warning", "Unassigned task please assign a new user.");
-                    }
                 } else {
                     showToast("error", "Something went wrong please try again later.");
                 }
@@ -388,7 +389,7 @@ export default class WorkstreamForm extends React.Component {
                     </label>
                     <ColorPicker onSelect={this.handleColorSlider} color={typeof workstream.Selected.action != "undefined" ? "" : workstream.Selected.color} placeholder={"Select Workstream Color"} required={true} />
                 </div>
-                <a class="btn btn-violet" onClick={this.handleSubmit}>
+                <a class="btn btn-violet" onClick={this.checkIsTemplate}>
                     <span>{`${typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "" && typeof workstream.Selected.action == "undefined" ? "Edit" : "Add"} workstream`}</span>
                 </a>
             </form>
@@ -419,6 +420,7 @@ export default class WorkstreamForm extends React.Component {
                 ) : (
                     this.renderForm()
                 )}
+                <ConfirmationModal handleSubmit={this.handleSubmit} />
             </div>
         );
     }

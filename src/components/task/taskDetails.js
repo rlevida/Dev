@@ -675,99 +675,107 @@ export default class TaskDetails extends React.Component {
                                 </a>
                                 <div class="row mt20 content-row">
                                     <div class="col-md-6 modal-action">
-                                        <div>
-                                            {typeof checklist != "undefined" &&
-                                                (checklist.length == 0 ||
-                                                    _.filter(checklist, ({ isCompleted }) => {
-                                                        return isCompleted == 1;
-                                                    }).length == checklist.length) &&
-                                                Selected.status == "In Progress" &&
-                                                Selected.approvalRequired == 0 &&
-                                                (loggedUser.data.userRole < 4 ||
-                                                    typeof isAssignedToMe != "undefined" ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) && (
+                                        {assigned && assigned.user.username !== "default" && (
+                                            <div>
+                                                {typeof checklist != "undefined" &&
+                                                    (checklist.length == 0 ||
+                                                        _.filter(checklist, ({ isCompleted }) => {
+                                                            return isCompleted == 1;
+                                                        }).length == checklist.length) &&
+                                                    Selected.status == "In Progress" &&
+                                                    Selected.approvalRequired == 0 &&
+                                                    (loggedUser.data.userRole < 4 ||
+                                                        typeof isAssignedToMe != "undefined" ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) && (
+                                                        <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
+                                                            <span>
+                                                                <i class="fa mr10 fa-check" aria-hidden="true" />
+                                                                Complete
+                                                            </span>
+                                                        </a>
+                                                    )}
+                                                {((Selected.status == "In Progress" &&
+                                                    Selected.approvalRequired == 1 &&
+                                                    (typeof isAssignedToMe != "undefined" ||
+                                                        loggedUser.data.userRole < 4 ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4))) ||
+                                                    (Selected.status == "Rejected" && typeof isAssignedToMe != "undefined") ||
+                                                    (Selected.status == "Completed" && Selected.approvalRequired == 1 && Selected.approverId == loggedUser.data.id) ||
+                                                    (Selected.status == "In Progress" &&
+                                                        Selected.approvalRequired == 1 &&
+                                                        loggedUser.data.userRole >= 4 &&
+                                                        (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
+                                                        assigned.user.userType == "External")) && (
+                                                    <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-check" aria-hidden="true" />
+                                                            For Approval
+                                                        </span>
+                                                    </a>
+                                                )}
+                                                {loggedUser.data.userRole < 4 &&
+                                                    ((Selected.status == "Completed" && Selected.approvalRequired == 0) || (Selected.status == "For Approval" && Selected.approvalRequired == 1 && typeof isAssignedToMe != "undefined")) && (
+                                                        <a class="btn btn-default" onClick={() => this.completeTask("In Progress")} title="Undo">
+                                                            <span>
+                                                                <i class="fa mr10 fa-line-chart" aria-hidden="true" />
+                                                                Completed
+                                                            </span>
+                                                        </a>
+                                                    )}
+                                                {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
                                                     <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                         <span>
                                                             <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                            Complete
+                                                            Approve
                                                         </span>
                                                     </a>
                                                 )}
-                                            {((Selected.status == "In Progress" &&
-                                                Selected.approvalRequired == 1 &&
-                                                (typeof isAssignedToMe != "undefined" ||
-                                                    loggedUser.data.userRole < 4 ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4))) ||
-                                                (Selected.status == "Rejected" && typeof isAssignedToMe != "undefined") ||
-                                                (Selected.status == "Completed" && Selected.approvalRequired == 1 && Selected.approverId == loggedUser.data.id) ||
-                                                (Selected.status == "In Progress" &&
-                                                    Selected.approvalRequired == 1 &&
-                                                    loggedUser.data.userRole >= 4 &&
-                                                    (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
-                                                    assigned.user.userType == "External")) && (
-                                                <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                        For Approval
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {loggedUser.data.userRole < 4 &&
-                                                ((Selected.status == "Completed" && Selected.approvalRequired == 0) || (Selected.status == "For Approval" && Selected.approvalRequired == 1 && typeof isAssignedToMe != "undefined")) && (
-                                                    <a class="btn btn-default" onClick={() => this.completeTask("In Progress")} title="Undo">
+                                                {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
+                                                    <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
                                                         <span>
-                                                            <i class="fa mr10 fa-line-chart" aria-hidden="true" />
-                                                            Completed
+                                                            <i class="fa mr10 fa-ban" aria-hidden="true" />
+                                                            Reject
                                                         </span>
                                                     </a>
                                                 )}
-                                            {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
-                                                <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                        Approve
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
-                                                <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-ban" aria-hidden="true" />
-                                                        Reject
-                                                    </span>
-                                                </a>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div class="col-md-6">
                                         <div class="button-action">
-                                            <a
-                                                class="logo-action text-grey"
-                                                onClick={() => {
-                                                    $(`#task-time`).modal("show");
-                                                }}
-                                            >
-                                                <i title="LOG TIME" class="fa fa-clock-o" aria-hidden="true" />
-                                            </a>
-                                            <a class="logo-action text-grey" onClick={() => this.starredTask()}>
-                                                <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true" />
-                                            </a>
-                                            <a
-                                                class="logo-action text-grey"
-                                                onClick={() => {
-                                                    $(`#task-documents`).modal("show");
-                                                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ["document_type"]: "task_document" } });
-                                                }}
-                                            >
-                                                <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true" />
-                                            </a>
+                                            {assigned && assigned.user.username !== "default" && (
+                                                <div>
+                                                    <a
+                                                        class="logo-action text-grey"
+                                                        onClick={() => {
+                                                            $(`#task-time`).modal("show");
+                                                        }}
+                                                    >
+                                                        <i title="LOG TIME" class="fa fa-clock-o" aria-hidden="true" />
+                                                    </a>
+                                                    <a class="logo-action text-grey" onClick={() => this.starredTask()}>
+                                                        <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true" />
+                                                    </a>
+                                                    <a
+                                                        class="logo-action text-grey"
+                                                        onClick={() => {
+                                                            $(`#task-documents`).modal("show");
+                                                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ["document_type"]: "task_document" } });
+                                                        }}
+                                                    >
+                                                        <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true" />
+                                                    </a>
+                                                </div>
+                                            )}
                                             {status != "Completed" && (
                                                 <div>
-                                                    <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
-                                                        <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true" />
-                                                    </a>
+                                                    {assigned && assigned.user.username !== "default" && (
+                                                        <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
+                                                            <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true" />
+                                                        </a>
+                                                    )}
                                                     {(status != "Completed" || loggedUser.data.userRole < 6) && (
                                                         <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey">
                                                             <i title="EDIT" class="fa fa-pencil" aria-hidden="true" />
@@ -788,7 +796,7 @@ export default class TaskDetails extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal-body">
+                            <div class={`modal-body ${assigned && assigned.user.username === "default" ? "d-div" : ""}`}>
                                 <div class={Loading == "RETRIEVING" ? "linear-background" : ""}>
                                     {typeof id != "undefined" && (
                                         <div>
