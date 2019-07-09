@@ -730,7 +730,7 @@ export default class TaskForm extends React.Component {
                                                                     class="form-control"
                                                                     placeholder="Enter number instance"
                                                                     onChange={this.handleChange}
-                                                                    disabled={currentData.periodType}
+                                                                    // disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>
@@ -753,7 +753,7 @@ export default class TaskForm extends React.Component {
                                                                     })}
                                                                     selected={typeof task.Selected.periodType == "undefined" ? "" : task.Selected.periodType}
                                                                     onChange={e => this.setDropDown("periodType", e.value)}
-                                                                    disabled={currentData.periodType}
+                                                                    // disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>

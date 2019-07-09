@@ -2512,7 +2512,8 @@ exports.put = {
                                                       .add(latestTaskDate.periodType, latestTaskDate.periodInstance)
                                                       .format("YYYY-MM-DD HH:mm:ss")
                                               }
-                                            : {})
+                                            : {}),
+                                        status: "In Progress"
                                     };
 
                                     Tasks.create(newPeriodTask).then(response => {

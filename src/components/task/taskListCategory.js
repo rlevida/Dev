@@ -315,7 +315,7 @@ export default class TaskListCategory extends React.Component {
                     return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month"));
                     break;
                 case "Succeeding month":
-                    return given.isAfter(moment().endOf("month"));
+                    return given.isAfter(moment().endOf("month")) && given.isBefore(moment().endOf("year"));
                     break;
                 default:
                     return dueDate == null;

@@ -206,6 +206,7 @@ export default class WorkstreamList extends React.Component {
                                                         <a
                                                             class="btn btn-default"
                                                             onClick={() => {
+                                                                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
                                                                 dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" });
                                                             }}
                                                         >
