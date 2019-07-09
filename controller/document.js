@@ -817,7 +817,7 @@ exports.post = {
                                                                 return resTask
                                                                     .toJSON()
                                                                     .task_members.filter(r => {
-                                                                        return r.user.notification_setting.fileNewUpload === 1;
+                                                                        return r.user.notification_setting && r.user.notification_setting.fileNewUpload === 1;
                                                                     })
                                                                     .map(r => {
                                                                         return {
@@ -861,7 +861,7 @@ exports.post = {
                                                             .then(resMembers => {
                                                                 const resResult = resMembers
                                                                     .filter(r => {
-                                                                        return r.user.notification_setting.fileNewUpload === 1;
+                                                                        return r.user.notification_setting && r.user.notification_setting.fileNewUpload === 1;
                                                                     })
                                                                     .map(r => {
                                                                         return {
