@@ -2138,35 +2138,88 @@ exports.put = {
                                                 return Tasks.findOne({ ...options, where: { id: body.id } });
                                             })
                                             .then(response => {
-                                                const updatedResponse = response.toJSON();
-                                                const updatedTask = _(updatedResponse)
-                                                    .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
-                                                    .mapValues((objVal, objKey) => {
-                                                        if (objKey == "dueDate" || objKey == "startDate") {
-                                                            return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
-                                                        } else if (objKey == "workstream") {
-                                                            return updatedResponse.workstream.workstream;
-                                                        } else {
-                                                            return objVal;
-                                                        }
-                                                    })
-                                                    .value();
-                                                const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                const objectKeys = _.map(newObject, function(value, key) {
-                                                    return key;
-                                                });
+                                                const returnCallback = response => {
+                                                    const updatedResponse = response.toJSON();
+                                                    const updatedTask = _(updatedResponse)
+                                                        .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                                        .mapValues((objVal, objKey) => {
+                                                            if (objKey == "dueDate" || objKey == "startDate") {
+                                                                return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
+                                                            } else if (objKey == "workstream") {
+                                                                return updatedResponse.workstream.workstream;
+                                                            } else {
+                                                                return objVal;
+                                                            }
+                                                        })
+                                                        .value();
+                                                    const newObject = func.changedObjAttributes(updatedTask, currentTask);
+                                                    const objectKeys = _.map(newObject, function(value, key) {
+                                                        return key;
+                                                    });
 
-                                                parallelCallback(null, {
-                                                    data: updatedResponse,
-                                                    ...(_.isEmpty(newObject)
-                                                        ? {}
-                                                        : {
-                                                              logs: {
-                                                                  old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                  new: JSON.stringify({ task_details: newObject })
-                                                              }
-                                                          })
-                                                });
+                                                    parallelCallback(null, {
+                                                        data: updatedResponse,
+                                                        ...(_.isEmpty(newObject)
+                                                            ? {}
+                                                            : {
+                                                                  logs: {
+                                                                      old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                                      new: JSON.stringify({ task_details: newObject })
+                                                                  }
+                                                              })
+                                                    });
+                                                };
+                                                if (responseObj.periodic == 0 && body.periodic == 1) {
+                                                    const taskPromises = _.times(2, o => {
+                                                        return new Promise(resolve => {
+                                                            const nextDueDate = moment(body.dueDate)
+                                                                .add(body.periodType, body.periodInstance * (o + 1))
+                                                                .format("YYYY-MM-DD HH:mm:ss");
+                                                            const newPeriodTask = {
+                                                                ...body,
+                                                                dueDate: nextDueDate,
+                                                                ...(body.startDate != null && body.startDate != ""
+                                                                    ? {
+                                                                          startDate: moment(body.startDate)
+                                                                              .add(body.periodType, body.periodInstance * (o + 1))
+                                                                              .format("YYYY-MM-DD HH:mm:ss")
+                                                                      }
+                                                                    : {}),
+                                                                periodTask: responseObj.id
+                                                            };
+                                                            Tasks.create(_.omit(newPeriodTask, ["id", "task_dependency", "dependency_type", "assignedTo", "workstream", "checklist"])).then(response => {
+                                                                const createTaskObj = response.toJSON();
+                                                                ActivityLogs.create({
+                                                                    usersId: body.userId,
+                                                                    linkType: "task",
+                                                                    linkId: createTaskObj.id,
+                                                                    actionType: "created",
+                                                                    new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                                                    title: createTaskObj.task
+                                                                }).then(response => {
+                                                                    resolve(createTaskObj);
+                                                                });
+                                                            });
+                                                        });
+                                                    });
+                                                    Promise.all(taskPromises).then(values => {
+                                                        const members = [];
+                                                        _.map(values, taskObj => {
+                                                            if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                                            }
+
+                                                            if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                                            }
+                                                        });
+                                                        Members.bulkCreate(members).then(() => {
+                                                            returnCallback(response);
+                                                        });
+                                                    });
+                                                } else {
+                                                    returnCallback(response);
+                                                }
                                             });
                                     });
                                 }

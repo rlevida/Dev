@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import { Searchbar } from "../../globalComponents";
 import { parseQuery, workstreamActiveTab } from "../../globalFunction";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import WorkstreamDocument from "./workstreamDocument";
 
 import TaskFilters from "../task/taskFilter";
@@ -12,13 +12,13 @@ import WorkstreamMembers from "./workstreamMembers";
 import ConversationForm from "../conversations/conversationsForm";
 import ConversationList from "../conversations/conversationList";
 
-@connect((store) => {
+@connect(store => {
     return {
         loggedUser: store.loggedUser,
         workstream: store.workstream,
         task: store.task,
         notes: store.notes
-    }
+    };
 })
 export default class WorkstreamTabs extends React.Component {
     constructor(props) {
@@ -26,11 +26,10 @@ export default class WorkstreamTabs extends React.Component {
 
         this.state = {
             tab: 0
-        }
-        _.map([
-            "handleChange",
-            "handleTab"
-        ], (fn) => { this[fn] = this[fn].bind(this) })
+        };
+        _.map(["handleChange", "handleTab"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     handleChange(params) {
@@ -45,32 +44,32 @@ export default class WorkstreamTabs extends React.Component {
     handleTab(o) {
         const { history } = { ...this.props };
         const { taskAction = "", messageAction = "" } = { ...this.refs };
-        const taskActionClassList = (taskAction != "") ? taskAction.classList : "";
-        const messageActionClassList = (messageAction != "") ? messageAction.classList : "";
+        const taskActionClassList = taskAction != "" ? taskAction.classList : "";
+        const messageActionClassList = messageAction != "" ? messageAction.classList : "";
 
         if (history.location.search) {
-            history.push(history.location.pathname)
+            history.push(history.location.pathname);
         }
 
         this.setState({ tab: o });
 
         if (o != 0) {
-            (taskActionClassList).add('hide');
+            taskActionClassList.add("hide");
         } else {
-            (taskActionClassList).remove('hide');
+            taskActionClassList.remove("hide");
         }
 
         if (o != 2) {
-            (messageActionClassList).add('hide');
+            messageActionClassList.add("hide");
         } else {
-            (messageActionClassList).remove('hide');
+            messageActionClassList.remove("hide");
         }
     }
 
     render() {
         const { project_id, workstream_id, dispatch, notes, loggedUser, history, workstream } = { ...this.props };
         let tab = history.location.search ? workstreamActiveTab(parseQuery(history.location.search).tab) : this.state.tab;
-        const projectType = (typeof workstream.Selected.project != "undefined") ? workstream.Selected.project.type.type : "";
+        const projectType = typeof workstream.Selected.project != "undefined" ? workstream.Selected.project.type.type : "";
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -89,50 +88,41 @@ export default class WorkstreamTabs extends React.Component {
                                         }}
                                         name="task"
                                     />
-                                    {
-                                        (
-                                            loggedUser.data.userRole < 4 ||
-                                            (
-                                                loggedUser.data.userRole == 4 &&
-                                                projectType != "Client"
-                                            )
-                                        ) && <a class="btn btn-default"
-                                            onClick={(e) => {
+                                    {(loggedUser.data.userRole < 4 || (loggedUser.data.userRole == 4 && projectType != "Client")) && (
+                                        <a
+                                            class="btn btn-default"
+                                            onClick={e => {
                                                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
                                                 dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
                                             }}
                                         >
                                             <span>
-                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                <i class="fa fa-plus mr10" aria-hidden="true" />
                                                 Add New Task
-                                         </span>
+                                            </span>
                                         </a>
-                                    }
+                                    )}
                                 </div>
                                 <div class="button-action hide" ref="messageAction">
-                                    {
-                                        (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") &&
-                                        <a class="btn btn-default"
-                                            onClick={(e) => {
+                                    {typeof notes.Selected.id != "undefined" && notes.Selected.id != "" && (
+                                        <a
+                                            class="btn btn-default"
+                                            onClick={e => {
                                                 dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
                                                 dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
                                             }}
                                         >
                                             <span>
-                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                <i class="fa fa-plus mr10" aria-hidden="true" />
                                                 New Message
-                                         </span>
+                                            </span>
                                         </a>
-                                    }
+                                    )}
                                 </div>
                             </TabList>
                             <TabPanel>
                                 <div class="container-fluid mt20 mb20">
-                                    <TaskFilters
-                                        show_tab={false}
-                                        show_action={false}
-                                        projectId={project_id}
-                                    />
+                                    <TaskFilters show_tab={false} show_action={false} projectId={project_id} />
                                 </div>
                                 <div class="bt">
                                     <div class="mt20 mb20">
@@ -173,6 +163,6 @@ export default class WorkstreamTabs extends React.Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
