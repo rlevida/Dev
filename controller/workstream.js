@@ -512,39 +512,45 @@ exports.post = {
                                         })
                                     );
 
-                                    console.log(workstreamTaskPeriodic);
+                                    const workstreamTaskArray = workstreamTaskNonPeriodic.concat(workstreamTaskPeriodic);
 
-                                    async.map(workstreamTaskArray, (e, mapCallback) => {
-                                        const taskObj = _.omit(e, ["checklist"]);
-                                        const taskObjChecklistArray = e.checklist;
-                                        Tasks.create({ ...taskObj }).then(taskReturn => {
-                                            const defaultUser = { linkType: "task", linkId: taskReturn.id, userTypeLinkId: 34, usersType: "users", memberType: "assignedTo" };
-                                            async.parallel(
-                                                {
-                                                    taskMembers: taskParallelCallback => {
-                                                        Members.create(defaultUser).then(() => {
-                                                            taskParallelCallback(null);
-                                                        });
-                                                    },
-                                                    taskChecklist: taskParallelCallback => {
-                                                        if (taskObjChecklistArray.length > 0) {
-                                                            const checklistArray = taskObjChecklistArray.map(taskChecklistObj => {
-                                                                return { ..._.omit(taskChecklistObj, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
-                                                            });
-                                                            TaskChecklist.bulkCreate(checklistArray).then(() => {
+                                    async.map(
+                                        workstreamTaskArray,
+                                        (e, mapCallback) => {
+                                            const taskObj = _.omit(e, ["checklist"]);
+                                            const taskObjChecklistArray = e.checklist;
+                                            Tasks.create({ ...taskObj }).then(taskReturn => {
+                                                const defaultUser = { linkType: "task", linkId: taskReturn.id, userTypeLinkId: 34, usersType: "users", memberType: "assignedTo" };
+                                                async.parallel(
+                                                    {
+                                                        taskMembers: taskParallelCallback => {
+                                                            Members.create(defaultUser).then(() => {
                                                                 taskParallelCallback(null);
                                                             });
-                                                        } else {
-                                                            taskParallelCallback(null);
+                                                        },
+                                                        taskChecklist: taskParallelCallback => {
+                                                            if (taskObjChecklistArray.length > 0) {
+                                                                const checklistArray = taskObjChecklistArray.map(taskChecklistObj => {
+                                                                    return { ..._.omit(taskChecklistObj, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
+                                                                });
+                                                                TaskChecklist.bulkCreate(checklistArray).then(() => {
+                                                                    taskParallelCallback(null);
+                                                                });
+                                                            } else {
+                                                                taskParallelCallback(null);
+                                                            }
                                                         }
+                                                    },
+                                                    () => {
+                                                        mapCallback(null, taskReturn);
                                                     }
-                                                },
-                                                () => {
-                                                    mapCallback(null, taskReturn);
-                                                }
-                                            );
-                                        });
-                                    });
+                                                );
+                                            });
+                                        },
+                                        () => {
+                                            callback(null, "");
+                                        }
+                                    );
                                 });
                             } else {
                                 callback(null, "");
