@@ -406,7 +406,7 @@ export default class ConversationForm extends React.Component {
                             required
                             value={typeof notes.Selected.title == "undefined" ? "" : notes.Selected.title}
                             id="message-title"
-                            class="form-control underlined"
+                            class="form-control underlined h100"
                             placeholder="Type a title"
                             onChange={this.handleChange}
                             ref={input => {
