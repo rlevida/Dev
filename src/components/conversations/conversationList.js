@@ -100,7 +100,7 @@ export default class ConversationList extends React.Component {
             this.clearMessage();
         } else if (typeof e.key != "undefined" && e.key === "Enter" && e.target.value !== "" && Filter.title == e.target.value) {
             filterCount += 1;
-            this.highlight(Filter.title);
+            this.scrollView(Filter.title);
         }
     }
 
@@ -121,10 +121,7 @@ export default class ConversationList extends React.Component {
     }
 
     clearSearch() {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_NOTES_LIST", list: [] });
-        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
-        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
+        this.clearMessage();
     }
 
     starredTask({ id, isStarred }) {
@@ -194,8 +191,6 @@ export default class ConversationList extends React.Component {
     }
 
     highlight(text) {
-        const { dispatch, notes } = this.props;
-        const { Filter } = notes;
         const instance = new Mark(document.querySelector("#message-thread"));
         instance.mark(text, {
             accuracy: {
@@ -204,6 +199,11 @@ export default class ConversationList extends React.Component {
             },
             background: "orange"
         });
+    }
+
+    scrollView() {
+        const { dispatch, notes } = this.props;
+        const { Filter } = notes;
         const el = document.getElementsByClassName(Filter.title)[filterCount];
         if (el) {
             el.scrollIntoView({ behavior: "smooth" });
