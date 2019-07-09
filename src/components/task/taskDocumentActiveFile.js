@@ -74,42 +74,7 @@ class TaskActiveFile extends React.Component {
         }
 
         if (data.type !== "folder") {
-            // $(`#documentViewerModal`).modal("show");
-            // if (data.document_read.length === 0) {
-            //     const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
-            //     postData(`/api/document/read`, dataToSubmit, ret => {
-            //         if (pageModal) {
-            //             switch (pageModal) {
-            //                 case "project": {
-            //                     window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
-            //                     location.reload();
-            //                 }
-            //             }
-            //         } else {
-            //             getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, c => {
-            //                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...data, document_read: [ret.data], isRead: 1 } });
-            //                 dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
-            //                 dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
-            //                 dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
-            //             });
-            //         }
-            //     });
-            // } else {
-            //     if (pageModal) {
-            //         switch (pageModal) {
-            //             case "project": {
-            //                 window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
-            //                 location.reload();
-            //             }
-            //         }
-            //     } else {
-            //         getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, c => {
-            //             dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
-            //             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-            //             dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
-            //         });
-            //     }
-            // }
+            this.handleCheckbox(data.id, data.isChecked);
         } else {
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
             getData(`/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${project.Selected.id}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, c => {

@@ -173,8 +173,15 @@ export default class TaskDocument extends React.Component {
         dispatch({ type: "SET_DOCUMENT_FILES", Files: Files });
     }
     setDropDown(name, value) {
-        const { dispatch } = { ...this.props };
+        const { dispatch, document } = { ...this.props };
         dispatch({ type: "SET_DOCUMENT_UPLOAD_TYPE", uploadType: value });
+        if (value === "active" || value === "library") {
+            const documentList = document.List.map(e => {
+                return { ...e, isChecked: false };
+            });
+            dispatch({ type: "SET_DOCUMENT_LIST", list: documentList });
+            dispatch({ type: "SET_DOCUMENT_FILES", Files: [] });
+        }
     }
     handleSelectedDocument(selected) {
         this.setState({
@@ -227,9 +234,9 @@ export default class TaskDocument extends React.Component {
                                     </div>
                                 </div>
                             </Dropzone>
-                            {_.map(Files, ({ name, id }, index) => {
+                            {_.map(Files, ({ name }, index) => {
                                 return (
-                                    <div class="file-div" key={index}>
+                                    <div class="file-div mw100" key={index}>
                                         <p class="m0">
                                             <strong>
                                                 {name.substring(0, 30)}
@@ -271,16 +278,16 @@ export default class TaskDocument extends React.Component {
                     )}
                 </div>
                 <div class="text-center mt10">
-                    {(Files.length > 0 && Selected.document_type == "checklist_document" && checklistTagged.length > 0) ||
+                    {((Files.length > 0 && Selected.document_type == "checklist_document" && checklistTagged.length > 0) ||
                         (Files.length > 0 && Selected.document_type == "task_document") ||
-                        (document.uploadType === "library" && checkSelectedDocument.length > 0 && checklistTagged.length > 0) ||
-                        ((checklistTagged.length > 0 && document.uploadType === "active") ||
-                            ((document.uploadType === "active" && checkSelectedDocument.length > 0) ||
-                                (document.uploadType === "library" && checkSelectedDocument.length > 0 && (
-                                    <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
-                                        <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
-                                    </a>
-                                ))))}
+                        (document.uploadType === "active" && checkSelectedDocument.length > 0 && Selected.document_type == "task_document") ||
+                        (document.uploadType === "library" && checkSelectedDocument.length > 0 && Selected.document_type == "task_document") ||
+                        (Selected.document_type == "checklist_document" && document.uploadType === "library" && checkSelectedDocument.length > 0 && checklistTagged.length > 0) ||
+                        (Selected.document_type == "checklist_document" && document.uploadType === "active" && checkSelectedDocument.length > 0 && checklistTagged.length > 0)) && (
+                        <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
+                            <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
+                        </a>
+                    )}
                 </div>
             </form>
         );
