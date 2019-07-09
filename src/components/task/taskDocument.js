@@ -274,11 +274,13 @@ export default class TaskDocument extends React.Component {
                     {(Files.length > 0 && Selected.document_type == "checklist_document" && checklistTagged.length > 0) ||
                         (Files.length > 0 && Selected.document_type == "task_document") ||
                         (document.uploadType === "library" && checkSelectedDocument.length > 0 && checklistTagged.length > 0) ||
-                        (checklistTagged.length > 0 && document.uploadType === "active" && (
-                            <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
-                                <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
-                            </a>
-                        ))}
+                        ((checklistTagged.length > 0 && document.uploadType === "active") ||
+                            ((document.uploadType === "active" && checkSelectedDocument.length > 0) ||
+                                (document.uploadType === "library" && checkSelectedDocument.length > 0 && (
+                                    <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
+                                        <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
+                                    </a>
+                                ))))}
                 </div>
             </form>
         );

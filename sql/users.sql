@@ -37,6 +37,9 @@ UPDATE CURRENT_TIMESTAMP,
 /* password : volenday */
 INSERT INTO users
     (`username`,`firstName
+
+
+
 `,`lastName`,`password`,`emailAddress`,`salt`,`userType`,`avatar`,`dateAdded`)
 values
 ('admin','John Aldrin','Tapia','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','johnaldrin.tapia@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn',"Internal","https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png",NOW
@@ -47,8 +50,7 @@ values
     (1);
 
 INSERT INTO users
-    (`id`,`username
-`,`firstName`,`lastName`,`password`,`emailAddress`,`salt`,`userType`,`avatar`,`dateAdded`)
-values
-('0','default','default','default','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','default@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn',"Internal","https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png",NOW
+    (`username`,`firstName
+`,`lastName`,`password`,`emailAddress`,`salt`,`userType`,`avatar`,`dateAdded`) values
+('default','default','default','','default@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn',"Internal","https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png",NOW
 ());
