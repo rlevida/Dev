@@ -126,6 +126,20 @@ export default class WorkstreamForm extends React.Component {
         }, 1000);
     }
 
+    checkTaskAssigned(taskArray) {
+        let hasDefaultUser = false;
+        if (taskArray) {
+            taskArray.map(e => {
+                e.task_members.map(f => {
+                    if (f.user.firstName === "default" || f.user.lastName === "default" || id === 34) {
+                        hasDefaultUser = true;
+                    }
+                });
+            });
+        }
+        return hasDefaultUser;
+    }
+
     handleSubmit() {
         const { workstream, dispatch, loggedUser, project } = this.props;
         const dataToBeSubmitted = {
@@ -140,7 +154,9 @@ export default class WorkstreamForm extends React.Component {
             color: workstream.Selected.color,
             dateUpdated: moment().format("YYYY-MM-DD HH:mm:ss")
         };
+
         let result = true;
+        let hasTaskDefaultUser = this.checkTaskAssigned(workstream.Selected.task);
 
         $("#workstream-form *").validator("validate");
         $("#workstream-form .form-group").each(function() {
@@ -148,6 +164,11 @@ export default class WorkstreamForm extends React.Component {
                 result = false;
             }
         });
+
+        if (hasTaskDefaultUser) {
+            showToast("error", "One of the task is unassigned please assign a new user.");
+            return;
+        }
 
         if (!result) {
             showToast("error", "Form did not fullfill the required value.");
@@ -169,6 +190,9 @@ export default class WorkstreamForm extends React.Component {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
                     showToast("success", "Workstream successfully updated.");
+                    if (this.checkTaskAssigned(c.data.task)) {
+                        showToast("warning", "Unassigned task please assign a new user.");
+                    }
                 } else {
                     showToast("error", "Something went wrong please try again later.");
                 }
