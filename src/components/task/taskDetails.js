@@ -60,6 +60,15 @@ export default class TaskDetails extends React.Component {
             }
         );
     }
+    componentDidMount() {
+        const { dispatch } = { ...this.props };
+        $("#task-documents").on("hidden.bs.modal", () => {
+            dispatch({ type: "SET_DOCUMENT_LIST", list: [] });
+            dispatch({ type: "SET_DOCUMENT_UPLOAD_TYPE", uploadType: null });
+            dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
+            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+        });
+    }
 
     componentWillUnmount() {
         $(`#task-details`).modal("hide");
@@ -123,13 +132,18 @@ export default class TaskDetails extends React.Component {
         const { Selected } = task;
         const { periodTask, periodic, id } = Selected;
         const taskStatus = status;
-
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, c => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                 dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: taskStatus } });
                 showToast("success", "Task successfully updated.");
+                if (taskStatus === "Completed") {
+                    dispatch({ type: "DELETE_TASK_TIMELINE", id: Selected.id });
+                } else if (taskStatus === "In Progress") {
+                    const taskTimeline = task.Timeline.concat([{ ...Selected, status: taskStatus }]);
+                    dispatch({ type: "SET_TASK_TIMELINE", list: _.orderBy(taskTimeline, ["dueDate"], ["asc"]) });
+                }
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
@@ -597,12 +611,12 @@ export default class TaskDetails extends React.Component {
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
                         isRead: o.document.document_read,
-                        user: o.document.user
+                        user: o.document.user,
+                        documentNameCount: o.document.documentNameCount
                     };
                 });
             })
             .value();
-
         const taskDocuments = _(tag_task)
             .map(o => {
                 return {
@@ -612,7 +626,8 @@ export default class TaskDetails extends React.Component {
                     type: "Task Document",
                     dateAdded: o.document.dateAdded,
                     isRead: o.document.document_read,
-                    user: o.document.user
+                    user: o.document.user,
+                    documentNameCount: o.document.documentNameCount
                 };
             })
             .value();
@@ -660,99 +675,107 @@ export default class TaskDetails extends React.Component {
                                 </a>
                                 <div class="row mt20 content-row">
                                     <div class="col-md-6 modal-action">
-                                        <div>
-                                            {typeof checklist != "undefined" &&
-                                                (checklist.length == 0 ||
-                                                    _.filter(checklist, ({ isCompleted }) => {
-                                                        return isCompleted == 1;
-                                                    }).length == checklist.length) &&
-                                                Selected.status == "In Progress" &&
-                                                Selected.approvalRequired == 0 &&
-                                                (loggedUser.data.userRole < 4 ||
-                                                    typeof isAssignedToMe != "undefined" ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) && (
+                                        {assigned && assigned.user.username !== "default" && (
+                                            <div>
+                                                {typeof checklist != "undefined" &&
+                                                    (checklist.length == 0 ||
+                                                        _.filter(checklist, ({ isCompleted }) => {
+                                                            return isCompleted == 1;
+                                                        }).length == checklist.length) &&
+                                                    Selected.status == "In Progress" &&
+                                                    Selected.approvalRequired == 0 &&
+                                                    (loggedUser.data.userRole < 4 ||
+                                                        typeof isAssignedToMe != "undefined" ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) && (
+                                                        <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
+                                                            <span>
+                                                                <i class="fa mr10 fa-check" aria-hidden="true" />
+                                                                Complete
+                                                            </span>
+                                                        </a>
+                                                    )}
+                                                {((Selected.status == "In Progress" &&
+                                                    Selected.approvalRequired == 1 &&
+                                                    (typeof isAssignedToMe != "undefined" ||
+                                                        loggedUser.data.userRole < 4 ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4))) ||
+                                                    (Selected.status == "Rejected" && typeof isAssignedToMe != "undefined") ||
+                                                    (Selected.status == "Completed" && Selected.approvalRequired == 1 && Selected.approverId == loggedUser.data.id) ||
+                                                    (Selected.status == "In Progress" &&
+                                                        Selected.approvalRequired == 1 &&
+                                                        loggedUser.data.userRole >= 4 &&
+                                                        (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
+                                                        assigned.user.userType == "External")) && (
+                                                    <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-check" aria-hidden="true" />
+                                                            For Approval
+                                                        </span>
+                                                    </a>
+                                                )}
+                                                {loggedUser.data.userRole < 4 &&
+                                                    ((Selected.status == "Completed" && Selected.approvalRequired == 0) || (Selected.status == "For Approval" && Selected.approvalRequired == 1 && typeof isAssignedToMe != "undefined")) && (
+                                                        <a class="btn btn-default" onClick={() => this.completeTask("In Progress")} title="Undo">
+                                                            <span>
+                                                                <i class="fa mr10 fa-line-chart" aria-hidden="true" />
+                                                                Completed
+                                                            </span>
+                                                        </a>
+                                                    )}
+                                                {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
                                                     <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                         <span>
                                                             <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                            Complete
+                                                            Approve
                                                         </span>
                                                     </a>
                                                 )}
-                                            {((Selected.status == "In Progress" &&
-                                                Selected.approvalRequired == 1 &&
-                                                (typeof isAssignedToMe != "undefined" ||
-                                                    loggedUser.data.userRole < 4 ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
-                                                    (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4))) ||
-                                                (Selected.status == "Rejected" && typeof isAssignedToMe != "undefined") ||
-                                                (Selected.status == "Completed" && Selected.approvalRequired == 1 && Selected.approverId == loggedUser.data.id) ||
-                                                (Selected.status == "In Progress" &&
-                                                    Selected.approvalRequired == 1 &&
-                                                    loggedUser.data.userRole >= 4 &&
-                                                    (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
-                                                    assigned.user.userType == "External")) && (
-                                                <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                        For Approval
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {loggedUser.data.userRole < 4 &&
-                                                ((Selected.status == "Completed" && Selected.approvalRequired == 0) || (Selected.status == "For Approval" && Selected.approvalRequired == 1 && typeof isAssignedToMe != "undefined")) && (
-                                                    <a class="btn btn-default" onClick={() => this.completeTask("In Progress")} title="Undo">
+                                                {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
+                                                    <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
                                                         <span>
-                                                            <i class="fa mr10 fa-line-chart" aria-hidden="true" />
-                                                            Completed
+                                                            <i class="fa mr10 fa-ban" aria-hidden="true" />
+                                                            Reject
                                                         </span>
                                                     </a>
                                                 )}
-                                            {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
-                                                <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                        Approve
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {(Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) && Selected.status == "For Approval" && (
-                                                <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-ban" aria-hidden="true" />
-                                                        Reject
-                                                    </span>
-                                                </a>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div class="col-md-6">
                                         <div class="button-action">
-                                            <a
-                                                class="logo-action text-grey"
-                                                onClick={() => {
-                                                    $(`#task-time`).modal("show");
-                                                }}
-                                            >
-                                                <i title="LOG TIME" class="fa fa-clock-o" aria-hidden="true" />
-                                            </a>
-                                            <a class="logo-action text-grey" onClick={() => this.starredTask()}>
-                                                <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true" />
-                                            </a>
-                                            <a
-                                                class="logo-action text-grey"
-                                                onClick={() => {
-                                                    $(`#task-documents`).modal("show");
-                                                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ["document_type"]: "task_document" } });
-                                                }}
-                                            >
-                                                <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true" />
-                                            </a>
+                                            {assigned && assigned.user.username !== "default" && (
+                                                <div>
+                                                    <a
+                                                        class="logo-action text-grey"
+                                                        onClick={() => {
+                                                            $(`#task-time`).modal("show");
+                                                        }}
+                                                    >
+                                                        <i title="LOG TIME" class="fa fa-clock-o" aria-hidden="true" />
+                                                    </a>
+                                                    <a class="logo-action text-grey" onClick={() => this.starredTask()}>
+                                                        <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true" />
+                                                    </a>
+                                                    <a
+                                                        class="logo-action text-grey"
+                                                        onClick={() => {
+                                                            $(`#task-documents`).modal("show");
+                                                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ["document_type"]: "task_document" } });
+                                                        }}
+                                                    >
+                                                        <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true" />
+                                                    </a>
+                                                </div>
+                                            )}
                                             {status != "Completed" && (
                                                 <div>
-                                                    <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
-                                                        <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true" />
-                                                    </a>
+                                                    {assigned && assigned.user.username !== "default" && (
+                                                        <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
+                                                            <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true" />
+                                                        </a>
+                                                    )}
                                                     {(status != "Completed" || loggedUser.data.userRole < 6) && (
                                                         <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey">
                                                             <i title="EDIT" class="fa fa-pencil" aria-hidden="true" />
@@ -773,7 +796,7 @@ export default class TaskDetails extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal-body">
+                            <div class={`modal-body ${assigned && assigned.user.username === "default" ? "d-div" : ""}`}>
                                 <div class={Loading == "RETRIEVING" ? "linear-background" : ""}>
                                     {typeof id != "undefined" && (
                                         <div>
@@ -915,7 +938,8 @@ export default class TaskDetails extends React.Component {
                                                         <h3>Attachments</h3>
                                                         <div>
                                                             {_.map(documentList, (params, index) => {
-                                                                const { id, origin, name, child = [], isRead, user, dateAdded } = params;
+                                                                const { id, origin, name, child = [], isRead, user, dateAdded, documentNameCount } = params;
+                                                                const documentName = `${origin}${documentNameCount > 0 ? `(${documentNameCount})` : ``}`;
                                                                 const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                                 const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                                 const editFilename = typeof document.Selected.file_name != "undefined" ? document.Selected.file_name : "";
@@ -948,9 +972,9 @@ export default class TaskDetails extends React.Component {
                                                                             <div>
                                                                                 <div class={typeof document.Selected.action != "undefined" && document.Selected.action == "RENAME" && document.Selected.id == params.id ? "hide" : ""}>
                                                                                     <p class="m0">
-                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: origin, isRead: isRead.length, user })}>
-                                                                                            {origin.substring(0, 50)}
-                                                                                            {origin.length > 50 ? "..." : ""}
+                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: name, origin: documentName, isRead: isRead.length, user })}>
+                                                                                            {documentName.substring(0, 50)}
+                                                                                            {documentName.length > 50 ? "..." : ""}
                                                                                         </a>
                                                                                     </p>
                                                                                     <p class="note mb0">
@@ -1257,7 +1281,7 @@ export default class TaskDetails extends React.Component {
                 <DeleteModal id="delete-document" type={"task document"} type_value={documentValue} delete_function={this.confirmDeleteDocument} />
                 <DocumentViewerModal />
                 <div class="modal fade" id="task-documents" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-md">
+                    <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <a

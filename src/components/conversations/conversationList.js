@@ -7,6 +7,7 @@ import { Loading } from "../../globalComponents";
 import { showToast, getData, postData, getParameterByName } from "../../globalFunction";
 
 let keyTimer = "";
+let filterCount = 0;
 
 @connect(store => {
     return {
@@ -97,6 +98,9 @@ export default class ConversationList extends React.Component {
             }, 500);
         } else if (typeof e.key != "undefined" && e.key === "Enter" && e.target.value === "" && Filter.title != e.target.value) {
             this.clearMessage();
+        } else if (typeof e.key != "undefined" && e.key === "Enter" && e.target.value !== "" && Filter.title == e.target.value) {
+            filterCount += 1;
+            this.scrollView(Filter.title);
         }
     }
 
@@ -117,10 +121,7 @@ export default class ConversationList extends React.Component {
     }
 
     clearSearch() {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_NOTES_LIST", list: [] });
-        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
-        dispatch({ type: "SET_NOTES_FILTER", filter: { title: "", message: "" } });
+        this.clearMessage();
     }
 
     starredTask({ id, isStarred }) {
@@ -164,11 +165,7 @@ export default class ConversationList extends React.Component {
                 }
             });
 
-            let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
-
-            if (notes.Filter.message !== "") {
-                requestUrl += `&search=${notes.Filter.message}`;
-            }
+            let requestUrl = `/api/conversation/getConversationList?linkType=notes&linkId=${id}`;
 
             getData(requestUrl, {}, c => {
                 dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
@@ -194,7 +191,7 @@ export default class ConversationList extends React.Component {
     }
 
     highlight(text) {
-        var instance = new Mark(document.querySelector("#message-thread"));
+        const instance = new Mark(document.querySelector("#message-thread"));
         instance.mark(text, {
             accuracy: {
                 value: "partially",
@@ -202,6 +199,15 @@ export default class ConversationList extends React.Component {
             },
             background: "orange"
         });
+    }
+
+    scrollView() {
+        const { dispatch, notes } = this.props;
+        const { Filter } = notes;
+        const el = document.getElementsByClassName(Filter.title)[filterCount];
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+        }
     }
 
     render() {

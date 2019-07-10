@@ -90,7 +90,15 @@ exports.get = {
                           })
                       ]
                   }
-                : {})
+                : {}),
+            [Op.or]: [
+                {
+                    firstName: { [Op.ne]: "default" }
+                },
+                {
+                    lastName: { [Op.ne]: "default" }
+                }
+            ]
         };
 
         if (typeof queryString.project_type != "undefined" && (queryString.project_type == "Private" || queryString.project_type == "Internal")) {

@@ -1,44 +1,48 @@
 const moment = require("moment");
 const _ = require("lodash");
-const Sequelize = require('sequelize');
-const sequence = require('sequence').Sequence;
-const models = require('../modelORM');
+const Sequelize = require("sequelize");
+const sequence = require("sequence").Sequence;
+const models = require("../modelORM");
 const { ChecklistDocuments, Tag, Tasks, TaskChecklist, Users, Document, DocumentLink, ActivityLogs, Workstream } = models;
-const Op = Sequelize.Op
+const Op = Sequelize.Op;
 const func = global.initFunc();
 const documentAssociationStack = [
     {
         model: Tag,
         where: {
-            linkType: 'workstream', tagType: 'document'
+            linkType: "workstream",
+            tagType: "document"
         },
-        as: 'tagDocumentWorkstream',
+        as: "tagDocumentWorkstream",
         required: false,
         include: [
             {
                 model: Workstream,
-                as: 'tagWorkstream',
+                as: "tagWorkstream"
             }
         ]
     },
     {
         model: Tag,
         where: {
-            linkType: 'task', tagType: 'document'
+            linkType: "task",
+            tagType: "document"
         },
-        as: 'tagDocumentTask',
+        as: "tagDocumentTask",
         required: false,
-        include: [{
-            model: Tasks,
-            as: 'tagTask',
-        }],
+        include: [
+            {
+                model: Tasks,
+                as: "tagTask"
+            }
+        ]
     },
     {
         model: Users,
-        as: 'user',
-        attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
+        as: "user",
+        attributes: ["firstName", "lastName", "phoneNumber", "emailAddress"]
     }
-]
+];
 
 exports.get = {
     getCheckList: (req, cb) => {
@@ -47,52 +51,58 @@ exports.get = {
         const association = [
             {
                 model: Users,
-                as: 'user',
-                attributes: ['firstName', 'lastName']
+                as: "user",
+                attributes: ["firstName", "lastName"]
             },
             {
                 model: ChecklistDocuments,
-                as: 'tagDocuments',
-                include: [{
-                    model: Document,
-                    as: 'document',
-                    include: [{
-                        model: Users,
-                        as: 'user'
-                    }]
-                }]
+                as: "tagDocuments",
+                include: [
+                    {
+                        model: Document,
+                        as: "document",
+                        include: [
+                            {
+                                model: Users,
+                                as: "user"
+                            }
+                        ]
+                    }
+                ]
             }
-        ]
+        ];
         const whereObj = {
-            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {},
+            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "" ? { taskId: queryString.taskId } : {}),
             isDeleted: 0
-        }
+        };
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {})
             // ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
-        }
+        };
         try {
-            TaskChecklist.findAll(
-                {
-                    where: whereObj,
-                    include: association,
-                    options
-                    // ..._.omit(options, ["includes"]), where: whereObj
-                }
-            ).map((mapObject) => {
-                const objToReturn = {
-                    ...mapObject.dataValues,
-                    document: mapObject.dataValues.tagDocuments.map((e) => { return e.document })
-                }
-                return _.omit(objToReturn, "tagDocuments");
-            }).then((resultArray) => {
-                cb({ status: true, data: resultArray });
-            });
+            TaskChecklist.findAll({
+                where: whereObj,
+                include: association,
+                options
+                // ..._.omit(options, ["includes"]), where: whereObj
+            })
+                .map(mapObject => {
+                    const objToReturn = {
+                        ...mapObject.dataValues,
+                        document: mapObject.dataValues.tagDocuments.map(e => {
+                            return e.document;
+                        })
+                    };
+                    return _.omit(objToReturn, "tagDocuments");
+                })
+                .then(resultArray => {
+                    cb({ status: true, data: resultArray });
+                });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};
 
 exports.post = {
     index: (req, cb) => {
@@ -101,123 +111,144 @@ exports.post = {
             include: [
                 {
                     model: Users,
-                    as: 'user',
-                    attributes: ['firstName', 'lastName']
+                    as: "user",
+                    attributes: ["firstName", "lastName"]
                 },
                 {
                     model: ChecklistDocuments,
-                    as: 'tagDocuments',
-                    include: [{
-                        model: Document,
-                        as: 'document',
-                        include: [{
-                            model: Users,
-                            as: 'user'
-                        }]
-                    }]
+                    as: "tagDocuments",
+                    include: [
+                        {
+                            model: Document,
+                            as: "document",
+                            include: [
+                                {
+                                    model: Users,
+                                    as: "user"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
-        }
-
+        };
         try {
-            TaskChecklist.create(body).then((response) => {
-                TaskChecklist.findOne({ ...options, where: { id: response.dataValues.id } }).then((findRes) => {
-                    const insertResponse = { ...findRes.toJSON(), document: findRes.tagDocuments.length ? findRes.tagDocuments.map((e) => { return e.document }) : [] }
+            TaskChecklist.create(body).then(response => {
+                TaskChecklist.findOne({ ...options, where: { id: response.dataValues.id } }).then(findRes => {
+                    const insertResponse = {
+                        ...findRes.toJSON(),
+                        document: findRes.tagDocuments.length
+                            ? findRes.tagDocuments.map(e => {
+                                  return e.document;
+                              })
+                            : []
+                    };
 
-                    async.waterfall([
-                        function (callback) {
-                            const checklistActivityLog = _.map([insertResponse], (o) => {
-                                const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
-                                return { usersId: body.createdBy, linkType: "checklist", linkId: checklistObj.id, actionType: "added", new: JSON.stringify({ checklist: checklistObj }), title: o.description }
-                            });
+                    async.waterfall(
+                        [
+                            function(callback) {
+                                const checklistActivityLog = _.map([insertResponse], o => {
+                                    const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                    return { usersId: body.createdBy, linkType: "checklist", linkId: checklistObj.id, actionType: "added", new: JSON.stringify({ checklist: checklistObj }), title: o.description };
+                                });
 
-                            if (body.isPeriodicTask == 1) {
-                                const { periodTask, description, isDocument, isMandatory, taskDueDate, createdBy } = body;
+                                if (body.isPeriodicTask == 1) {
+                                    const { periodTask, description, isDocument, isMandatory, taskDueDate, createdBy } = body;
 
-                                Tasks.findAll(
-                                    {
+                                    Tasks.findAll({
                                         where: {
                                             periodTask: periodTask,
                                             dueDate: {
-                                                [Op.gt]: moment(taskDueDate).format('YYYY-MM-DD HH:mm:ss')
+                                                [Op.gt]: moment(taskDueDate).format("YYYY-MM-DD HH:mm:ss")
                                             }
                                         }
-                                    }
-                                ).map((mapObject) => {
-                                    return mapObject.toJSON();
-                                }).then((resultArray) => {
-                                    if (resultArray.length > 0) {
-                                        const newPeriodicChecklist = _.map(resultArray, (resultObj) => {
-                                            return {
-                                                description: description,
-                                                isDocument: isDocument,
-                                                isMandatory: isMandatory,
-                                                taskId: resultObj.id,
-                                                createdBy: createdBy,
-                                                periodChecklist: insertResponse.id
-                                            }
-                                        });
-
-                                        TaskChecklist.bulkCreate(newPeriodicChecklist).map((response) => {
-                                            return response.toJSON();
-                                        }).then((resultArray) => {
-                                            const checklistIds = _.map(resultArray, (o) => { return o.id });
-                                            TaskChecklist.findAll({ ...options, where: { id: checklistIds } }).map((response) => {
-                                                return response.toJSON();
-                                            }).then((result) => {
-                                                const updatedChecklistArray = _.map(result, (o) => {
-                                                    const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                    })
+                                        .map(mapObject => {
+                                            return mapObject.toJSON();
+                                        })
+                                        .then(resultArray => {
+                                            if (resultArray.length > 0) {
+                                                const newPeriodicChecklist = _.map(resultArray, resultObj => {
                                                     return {
-                                                        usersId: body.createdBy,
-                                                        linkType: "checklist",
-                                                        linkId: o.id,
-                                                        actionType: "created",
-                                                        new: JSON.stringify({ checklist: checklistObj }),
-                                                        title: o.description
-                                                    }
+                                                        description: description,
+                                                        isDocument: isDocument,
+                                                        isMandatory: isMandatory,
+                                                        taskId: resultObj.id,
+                                                        createdBy: createdBy,
+                                                        periodChecklist: insertResponse.id
+                                                    };
                                                 });
-                                                callback(null, [...checklistActivityLog, ...updatedChecklistArray])
-                                            });
 
+                                                TaskChecklist.bulkCreate(newPeriodicChecklist)
+                                                    .map(response => {
+                                                        return response.toJSON();
+                                                    })
+                                                    .then(resultArray => {
+                                                        const checklistIds = _.map(resultArray, o => {
+                                                            return o.id;
+                                                        });
+                                                        TaskChecklist.findAll({ ...options, where: { id: checklistIds } })
+                                                            .map(response => {
+                                                                return response.toJSON();
+                                                            })
+                                                            .then(result => {
+                                                                const updatedChecklistArray = _.map(result, o => {
+                                                                    const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                                                    return {
+                                                                        usersId: body.createdBy,
+                                                                        linkType: "checklist",
+                                                                        linkId: o.id,
+                                                                        actionType: "created",
+                                                                        new: JSON.stringify({ checklist: checklistObj }),
+                                                                        title: o.description
+                                                                    };
+                                                                });
+                                                                callback(null, [...checklistActivityLog, ...updatedChecklistArray]);
+                                                            });
+                                                    });
+                                            } else {
+                                                callback(null, checklistActivityLog);
+                                            }
                                         });
-                                    } else {
-                                        callback(null, checklistActivityLog);
-                                    }
-                                });
-                            } else {
-                                callback(null, checklistActivityLog);
+                                } else {
+                                    callback(null, checklistActivityLog);
+                                }
+                            },
+                            function(activityLogs, callback) {
+                                ActivityLogs.bulkCreate(activityLogs)
+                                    .map(response => {
+                                        return response.toJSON();
+                                    })
+                                    .then(resultArray => {
+                                        const responseObj = resultArray[0];
+                                        return ActivityLogs.findOne({
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: "user",
+                                                    attributes: ["firstName", "lastName"]
+                                                }
+                                            ],
+                                            where: { id: responseObj.id }
+                                        });
+                                    })
+                                    .then(response => {
+                                        const responseObj = response.toJSON();
+                                        callback(null, { checklist: insertResponse, activity_log: responseObj });
+                                    });
                             }
-                        },
-                        function (activityLogs, callback) {
-                            ActivityLogs.bulkCreate(activityLogs).map((response) => {
-                                return response.toJSON();
-                            }).then((resultArray) => {
-                                const responseObj = resultArray[0];
-                                return ActivityLogs.findOne({
-                                    include: [
-                                        {
-                                            model: Users,
-                                            as: 'user',
-                                            attributes: ['firstName', 'lastName']
-                                        }
-                                    ],
-                                    where: { id: responseObj.id }
-                                })
-                            }).then((response) => {
-                                const responseObj = response.toJSON();
-                                callback(null, { checklist: insertResponse, activity_log: responseObj });
-                            });
+                        ],
+                        function(err, result) {
+                            cb({ status: true, data: result });
                         }
-                    ], function (err, result) {
-                        cb({ status: true, data: result });
-                    });
+                    );
                 });
             });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};
 
 exports.put = {
     index: async (req, cb) => {
@@ -226,67 +257,81 @@ exports.put = {
             include: [
                 {
                     model: Users,
-                    as: 'user',
-                    attributes: ['firstName', 'lastName']
+                    as: "user",
+                    attributes: ["firstName", "lastName"]
                 },
                 {
                     model: ChecklistDocuments,
-                    as: 'tagDocuments',
-                    include: [{
-                        model: Document,
-                        as: 'document'
-                    }]
+                    as: "tagDocuments",
+                    include: [
+                        {
+                            model: Document,
+                            as: "document"
+                        }
+                    ]
                 }
             ]
-        }
+        };
         try {
-            let oldChecklist = await TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((response) => { return response.toJSON() });
-            let status = (oldChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+            let oldChecklist = await TaskChecklist.findOne({ ...options, where: { id: body.id } }).then(response => {
+                return response.toJSON();
+            });
+            let status = oldChecklist.isCompleted == 1 ? "Complete" : "Not Complete";
             oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
 
-            TaskChecklist.update({ isCompleted: body.isCompleted }, { where: { id: body.id } }).then((response) => {
-                return TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((o) => { return o.toJSON() });
-            }).then((response) => {
-                const updateResponse = _.omit({
-                    ...response,
-                    document: response.tagDocuments.map((e) => { return e.document })
-                }, "tagDocuments");
-                status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
-                const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                const objectKeys = _.map(newObject, function (value, key) { return key; });
-
-                if (_.isEmpty(newObject)) {
-                    cb({ status: true, data: { checklist: updateResponse } });
-                } else {
-                    ActivityLogs.create({
-                        usersId: body.userId,
-                        linkType: "checklist",
-                        linkId: updateResponse.id,
-                        actionType: (body.isCompleted) ? "completed" : "modified",
-                        old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                        new: JSON.stringify({ checklist: newObject }),
-                        title: oldTaskChecklist.description
-                    }).then((resultArray) => {
-                        const responseObj = resultArray.toJSON();
-                        return ActivityLogs.findOne({
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'user',
-                                    attributes: ['firstName', 'lastName']
-                                }
-                            ],
-                            where: { id: responseObj.id }
-                        })
-                    }).then((response) => {
-                        const responseObj = response.toJSON();
-                        cb({ status: true, data: { checklist: updateResponse, activity_log: responseObj } });
+            TaskChecklist.update({ isCompleted: body.isCompleted }, { where: { id: body.id } })
+                .then(response => {
+                    return TaskChecklist.findOne({ ...options, where: { id: body.id } }).then(o => {
+                        return o.toJSON();
+                    });
+                })
+                .then(response => {
+                    const updateResponse = _.omit(
+                        {
+                            ...response,
+                            document: response.tagDocuments.map(e => {
+                                return e.document;
+                            })
+                        },
+                        "tagDocuments"
+                    );
+                    status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
+                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
+                    const objectKeys = _.map(newObject, function(value, key) {
+                        return key;
                     });
 
-                }
-
-            });
-
+                    if (_.isEmpty(newObject)) {
+                        cb({ status: true, data: { checklist: updateResponse } });
+                    } else {
+                        ActivityLogs.create({
+                            usersId: body.userId,
+                            linkType: "checklist",
+                            linkId: updateResponse.id,
+                            actionType: body.isCompleted ? "completed" : "modified",
+                            old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                            new: JSON.stringify({ checklist: newObject }),
+                            title: oldTaskChecklist.description
+                        })
+                            .then(resultArray => {
+                                const responseObj = resultArray.toJSON();
+                                return ActivityLogs.findOne({
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            attributes: ["firstName", "lastName"]
+                                        }
+                                    ],
+                                    where: { id: responseObj.id }
+                                });
+                            })
+                            .then(response => {
+                                const responseObj = response.toJSON();
+                                cb({ status: true, data: { checklist: updateResponse, activity_log: responseObj } });
+                            });
+                    }
+                });
         } catch (err) {
             cb({ status: false, error: err });
         }
@@ -299,191 +344,212 @@ exports.put = {
         const documents = data.documents;
         const userId = req.query.userId;
 
-        sequence.create().then((nextThen) => {
-            async.map(documents, (e, mapCallback) => {
+        sequence
+            .create()
+            .then(nextThen => {
+                async.map(
+                    documents,
+                    (e, mapCallback) => {
+                        try {
+                            Document.findAll({
+                                where: {
+                                    origin: e.origin
+                                },
+                                order: Sequelize.literal("documentNameCount DESC"),
+                                raw: true
+                            }).then(res => {
+                                if (res.length > 0) {
+                                    e.documentNameCount = res[0].documentNameCount + 1;
+                                    mapCallback(null, e);
+                                } else {
+                                    e.projectNameCount = 0;
+                                    mapCallback(null, e);
+                                }
+                            });
+                        } catch (err) {
+                            mapCallback(err);
+                        }
+                    },
+                    (err, result) => {
+                        if (err != null) {
+                            cb({ status: false, error: err });
+                        } else {
+                            nextThen(result);
+                        }
+                    }
+                );
+            })
+            .then((nextThen, result) => {
+                async.map(
+                    result,
+                    (e, mapCallback) => {
+                        let tags = e.tags;
+                        delete e.tags;
+                        Document.create(e).then(res => {
+                            async.parallel(
+                                {
+                                    documentLink: parallelCallback => {
+                                        let linkData = {
+                                            documentId: res.dataValues.id,
+                                            linkType: "project",
+                                            linkId: projectId
+                                        };
+                                        try {
+                                            DocumentLink.create(linkData).then(c => {
+                                                parallelCallback(null, c.dataValues);
+                                            });
+                                        } catch (err) {
+                                            parallelCallback(err);
+                                        }
+                                    },
+                                    documentTag: parallelCallback => {
+                                        if (typeof tags != "undefined") {
+                                            async.map(
+                                                JSON.parse(tags),
+                                                (t, tagMapCallback) => {
+                                                    let tagData = {
+                                                        linkType: t.value.split("-")[0],
+                                                        linkId: t.value.split("-")[1],
+                                                        tagType: "document",
+                                                        tagTypeId: res.dataValues.id,
+                                                        projectId: projectId
+                                                    };
+                                                    try {
+                                                        Tag.create(tagData).then(c => {
+                                                            tagMapCallback(null, c.data);
+                                                        });
+                                                    } catch (err) {
+                                                        parallelCallback(err);
+                                                    }
+                                                },
+                                                (err, tagMapCallbackResult) => {
+                                                    parallelCallback(null, "");
+                                                }
+                                            );
+                                        } else {
+                                            parallelCallback(null, "");
+                                        }
+                                    },
+                                    checklistDocuments: parallelCallback => {
+                                        ChecklistDocuments.create({ checklistId: id, documentId: res.dataValues.id, taskId: taskId }).then(c => {
+                                            parallelCallback(null, c.dataValues);
+                                        });
+                                    }
+                                },
+                                (err, parallelCallbackResult) => {
+                                    if (err != null) {
+                                        mapCallback(err);
+                                    } else {
+                                        mapCallback(null, parallelCallbackResult.documentLink.documentId);
+                                    }
+                                }
+                            );
+                        });
+                    },
+                    (err, mapCallbackResult) => {
+                        nextThen(mapCallbackResult);
+                    }
+                );
+            })
+            .then((nextThen, result) => {
                 try {
-                    Document
-                        .findAll({
-                            where: {
-                                origin: e.origin
-                            },
-                            order: Sequelize.literal('documentNameCount DESC'),
-                            raw: true,
+                    DocumentLink.findAll({
+                        where: { documentId: result },
+                        include: [
+                            {
+                                model: Document,
+                                as: "document",
+                                include: documentAssociationStack
+                            }
+                        ]
+                    })
+                        .map(res => {
+                            let resToReturn = {
+                                ...res.dataValues.document.toJSON(),
+                                tags: res.dataValues.document.tagDocumentWorkstream
+                                    .map(e => {
+                                        return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream };
+                                    })
+                                    .concat(
+                                        res.dataValues.document.tagDocumentTask.map(e => {
+                                            return { value: `task-${e.tagTask.id}`, label: e.tagTask.task };
+                                        })
+                                    )
+                            };
+                            return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask");
                         })
                         .then(res => {
-                            if (res.length > 0) {
-                                e.documentNameCount = res[0].documentNameCount + 1
-                                mapCallback(null, e)
-                            } else {
-                                e.projectNameCount = 0;
-                                mapCallback(null, e)
-                            }
-                        })
+                            nextThen(res);
+                        });
                 } catch (err) {
-                    mapCallback(err)
-                }
-            }, (err, result) => {
-                if (err != null) {
-                    cb({ status: false, error: err })
-                } else {
-                    nextThen(result)
+                    cb({ status: false, error: err });
                 }
             })
-
-        }).then((nextThen, result) => {
-            async.map(result, (e, mapCallback) => {
-                let tags = e.tags
-                delete e.tags
-                Document
-                    .create(e)
-                    .then((res) => {
-                        async.parallel({
-                            documentLink: (parallelCallback) => {
-                                let linkData = {
-                                    documentId: res.dataValues.id,
-                                    linkType: "project",
-                                    linkId: projectId
-                                }
-                                try {
-                                    DocumentLink
-                                        .create(linkData)
-                                        .then(c => {
-                                            parallelCallback(null, c.dataValues)
-                                        })
-                                } catch (err) {
-                                    parallelCallback(err)
-                                }
-                            },
-                            documentTag: (parallelCallback) => {
-                                if (typeof tags != "undefined") {
-                                    async.map(JSON.parse(tags), (t, tagMapCallback) => {
-                                        let tagData = {
-                                            linkType: t.value.split("-")[0],
-                                            linkId: t.value.split("-")[1],
-                                            tagType: "document",
-                                            tagTypeId: res.dataValues.id,
-                                            projectId: projectId
-                                        }
-                                        try {
-                                            Tag.create(tagData)
-                                                .then(c => {
-                                                    tagMapCallback(null, c.data)
-                                                })
-                                        } catch (err) {
-                                            parallelCallback(err)
-                                        }
-                                    }, (err, tagMapCallbackResult) => {
-                                        parallelCallback(null, "")
-                                    })
-                                } else {
-                                    parallelCallback(null, "")
-                                }
-                            },
-                            checklistDocuments: (parallelCallback) => {
-                                ChecklistDocuments
-                                    .create({ checklistId: id, documentId: res.dataValues.id, taskId: taskId })
-                                    .then((c) => {
-                                        parallelCallback(null, c.dataValues)
-                                    })
-                            }
-                        }, (err, parallelCallbackResult) => {
-                            if (err != null) {
-                                mapCallback(err)
-                            } else {
-                                mapCallback(null, parallelCallbackResult.documentLink.documentId)
-                            }
-                        })
-                    })
-            }, (err, mapCallbackResult) => {
-                nextThen(mapCallbackResult)
-            })
-        }).then((nextThen, result) => {
-            try {
-                DocumentLink
-                    .findAll({
-                        where: { documentId: result },
-                        include: [{
-                            model: Document,
-                            as: 'document',
-                            include: documentAssociationStack
-                        }],
-                    })
-                    .map((res) => {
-                        let resToReturn = {
-                            ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                        }
-                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
-                    })
-                    .then((res) => {
-                        nextThen(res)
-                    })
-
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        }).then((nextThen, result) => {
-            try {
-                TaskChecklist
-                    .update({ isCompleted: 1 }, { where: { id: id } })
-                    .then((res) => {
-                        TaskChecklist
-                            .findOne({
-                                where: { id: id },
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: 'user',
-                                        attributes: ['firstName', 'lastName']
-                                    },
-                                    {
-                                        model: ChecklistDocuments,
-                                        as: 'tagDocuments',
-                                        include: [{
+            .then((nextThen, result) => {
+                try {
+                    TaskChecklist.update({ isCompleted: 1 }, { where: { id: id } }).then(res => {
+                        TaskChecklist.findOne({
+                            where: { id: id },
+                            include: [
+                                {
+                                    model: Users,
+                                    as: "user",
+                                    attributes: ["firstName", "lastName"]
+                                },
+                                {
+                                    model: ChecklistDocuments,
+                                    as: "tagDocuments",
+                                    include: [
+                                        {
                                             model: Document,
-                                            as: 'document',
-                                            include: [{
-                                                model: Users,
-                                                as: 'user'
-                                            }]
-                                        }]
-                                    }
-                                ]
-                            })
-                            .then((findRes) => {
-                                const taskChecklistObj = findRes.toJSON();
-                                const activityLogsStack = [
-                                    {
-                                        usersId: userId,
-                                        linkType: "checklist",
-                                        linkId: id,
-                                        actionType: "modified",
-                                        old: JSON.stringify({ checklist: { status: "Not Complete" } }),
-                                        new: JSON.stringify({ checklist: { status: "Complete" } }),
-                                        title: taskChecklistObj.description
-                                    },
-                                    ..._.map(result, (resultObj) => {
-                                        return {
-                                            usersId: userId,
-                                            linkType: "document",
-                                            linkId: resultObj.id,
-                                            actionType: "added",
-                                            new: JSON.stringify({ checklist_document: resultObj }),
-                                            title: resultObj.origin
+                                            as: "document",
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: "user"
+                                                }
+                                            ]
                                         }
-                                    })
-                                ];
-                                ActivityLogs.bulkCreate(activityLogsStack).map((response) => {
+                                    ]
+                                }
+                            ]
+                        }).then(findRes => {
+                            const taskChecklistObj = findRes.toJSON();
+                            const activityLogsStack = [
+                                {
+                                    usersId: userId,
+                                    linkType: "checklist",
+                                    linkId: id,
+                                    actionType: "modified",
+                                    old: JSON.stringify({ checklist: { status: "Not Complete" } }),
+                                    new: JSON.stringify({ checklist: { status: "Complete" } }),
+                                    title: taskChecklistObj.description
+                                },
+                                ..._.map(result, resultObj => {
+                                    return {
+                                        usersId: userId,
+                                        linkType: "document",
+                                        linkId: resultObj.id,
+                                        actionType: "added",
+                                        new: JSON.stringify({ checklist_document: resultObj }),
+                                        title: resultObj.origin
+                                    };
+                                })
+                            ];
+                            ActivityLogs.bulkCreate(activityLogsStack)
+                                .map(response => {
                                     return response.toJSON();
-                                }).then((resultArray) => {
-                                    const responseObj = _.map(resultArray, (o) => { return o.id });
+                                })
+                                .then(resultArray => {
+                                    const responseObj = _.map(resultArray, o => {
+                                        return o.id;
+                                    });
                                     return ActivityLogs.findAll({
                                         include: [
                                             {
                                                 model: Users,
-                                                as: 'user',
-                                                attributes: ['firstName', 'lastName']
+                                                as: "user",
+                                                attributes: ["firstName", "lastName"]
                                             }
                                         ],
                                         where: {
@@ -491,23 +557,27 @@ exports.put = {
                                                 [Op.in]: responseObj
                                             }
                                         }
-                                    })
-                                }).map((response) => {
+                                    });
+                                })
+                                .map(response => {
                                     const responseObj = response.toJSON();
                                     return responseObj;
-                                }).then((resultArray) => {
+                                })
+                                .then(resultArray => {
                                     const resToReturn = {
                                         ...findRes.dataValues,
-                                        document: findRes.dataValues.tagDocuments.map((e) => { return e.document })
+                                        document: findRes.dataValues.tagDocuments.map(e => {
+                                            return e.document;
+                                        })
                                     };
-                                    cb({ status: true, data: { checklist: _.omit(resToReturn, "tagDocuments"), document: result, activity_log: resultArray } })
-                                })
-                            })
-                    })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        });
+                                    cb({ status: true, data: { checklist: _.omit(resToReturn, "tagDocuments"), document: result, activity_log: resultArray } });
+                                });
+                        });
+                    });
+                } catch (err) {
+                    cb({ status: false, error: err });
+                }
+            });
     },
     tagDocument: async (req, cb) => {
         const data = req.body;
@@ -516,156 +586,197 @@ exports.put = {
             include: [
                 {
                     model: TaskChecklist,
-                    as: 'tagChecklist',
+                    as: "tagChecklist",
                     required: true,
-                    where: { isDeleted: 0 },
+                    where: { isDeleted: 0 }
                 }
             ],
             where: { documentId: id, isDeleted: 0 }
-        }).map((o) => { return o.toJSON() });
+        }).map(o => {
+            return o.toJSON();
+        });
 
         const oldChecklist = _.filter(currentChecklistDocument, ({ checklistId }) => {
-            return _.findIndex(data.checklistIds, ({ id }) => { return id == checklistId }) < 0;
+            return (
+                _.findIndex(data.checklistIds, ({ id }) => {
+                    return id == checklistId;
+                }) < 0
+            );
         });
         const newChecklist = _.filter(data.checklistIds, ({ id }) => {
-            return _.findIndex(currentChecklistDocument, ({ checklistId }) => { return id == checklistId }) < 0;
+            return (
+                _.findIndex(currentChecklistDocument, ({ checklistId }) => {
+                    return id == checklistId;
+                }) < 0
+            );
         });
 
-        async.parallel({
-            oldChecklist: (parallelCallback) => {
-                ChecklistDocuments.destroy(
-                    {
+        async.parallel(
+            {
+                oldChecklist: parallelCallback => {
+                    ChecklistDocuments.destroy({
                         where: {
                             id: {
-                                [Op.in]: _.map(oldChecklist, ({ id }) => { return id })
+                                [Op.in]: _.map(oldChecklist, ({ id }) => {
+                                    return id;
+                                })
                             }
                         }
                     }).then(() => {
                         parallelCallback(null);
-                    })
-            },
-            newChecklist: (parallelCallback) => {
-                ChecklistDocuments.bulkCreate(_.map(newChecklist, ({ taskId, id: checklistId }) => { return { taskId, documentId: id, checklistId } })).then(() => {
-                    parallelCallback(null);
-                });
-            }
-        }, async (err, result) => {
-            const checkLists = await TaskChecklist.findAll({
-                include: [
-                    {
-                        model: ChecklistDocuments,
-                        as: 'tagDocuments',
-                        required: false,
-                        where: { isDeleted: 0 },
-                    }
-                ],
-                where: {
-                    id: {
-                        [Op.in]: _.uniq([..._.map(currentChecklistDocument, ({ checklistId }) => { return checklistId }), ..._.map(data.checklistIds, ({ id }) => { return id })])
-                    }
-                }
-            }).map((o) => { return o.toJSON() });
-            const checklistPromiseMap = _(checkLists)
-                .filter(({ isCompleted, tagDocuments }) => { return (isCompleted == 1 && tagDocuments.length == 0) || (isCompleted == 0 && tagDocuments.length > 0) })
-                .value();
-
-            const updateChecklistPromise = _.map(checklistPromiseMap, ({ isCompleted, tagDocuments, id, description }) => {
-                return new Promise((resolve, reject) => {
-                    TaskChecklist.update({ isCompleted: (isCompleted == 0 && tagDocuments.length > 0) ? 1 : 0 }, { where: { id: id } }).then((o) => {
-                        return TaskChecklist.find
-                            ({
-                                where: { id: id },
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: 'user',
-                                        attributes: ['firstName', 'lastName']
-                                    },
-                                    {
-                                        model: ChecklistDocuments,
-                                        as: 'tagDocuments',
-                                        include: [{
-                                            model: Document,
-                                            as: 'document',
-                                            include: [{
-                                                model: Users,
-                                                as: 'user'
-                                            }]
-                                        }]
-                                    }
-                                ]
-                            }).then((o) => { return o.toJSON() });
-                    }).then((response) => {
-                        resolve(response)
                     });
-                });
-            });
-
-            Promise.all(updateChecklistPromise).then(async (result) => {
-                if (result.length > 0) {
-                    const activityLogs = _.map(result, ({ id, isCompleted, description }) => {
-                        return {
-                            usersId: data.usersId,
-                            linkType: "checklist",
-                            linkId: id,
-                            actionType: (isCompleted == 0) ? "modified" : "completed",
-                            old: JSON.stringify({ checklist: { status: (isCompleted == 0) ? "Complete" : "Not Complete" } }),
-                            new: JSON.stringify({ checklist: { status: (isCompleted == 0) ? "Not Complete" : "Complete" } }),
-                            title: description
-                        }
-                    });
-                    await ActivityLogs
-                        .bulkCreate(activityLogs)
-                        .map(({ id }) => {
-                            return id;
+                },
+                newChecklist: parallelCallback => {
+                    ChecklistDocuments.bulkCreate(
+                        _.map(newChecklist, ({ taskId, id: checklistId }) => {
+                            return { taskId, documentId: id, checklistId };
                         })
-                        .then((activityResponse) => {
-                            return ActivityLogs.findAll({
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: 'user',
-                                        attributes: ['firstName', 'lastName']
-                                    }
-                                ],
-                                where: { id: activityResponse }
+                    ).then(() => {
+                        parallelCallback(null);
+                    });
+                }
+            },
+            async (err, result) => {
+                const checkLists = await TaskChecklist.findAll({
+                    include: [
+                        {
+                            model: ChecklistDocuments,
+                            as: "tagDocuments",
+                            required: false,
+                            where: { isDeleted: 0 }
+                        }
+                    ],
+                    where: {
+                        id: {
+                            [Op.in]: _.uniq([
+                                ..._.map(currentChecklistDocument, ({ checklistId }) => {
+                                    return checklistId;
+                                }),
+                                ..._.map(data.checklistIds, ({ id }) => {
+                                    return id;
+                                })
+                            ])
+                        }
+                    }
+                }).map(o => {
+                    return o.toJSON();
+                });
+                const checklistPromiseMap = _(checkLists)
+                    .filter(({ isCompleted, tagDocuments }) => {
+                        return (isCompleted == 1 && tagDocuments.length == 0) || (isCompleted == 0 && tagDocuments.length > 0);
+                    })
+                    .value();
+
+                const updateChecklistPromise = _.map(checklistPromiseMap, ({ isCompleted, tagDocuments, id, description }) => {
+                    return new Promise((resolve, reject) => {
+                        TaskChecklist.update({ isCompleted: isCompleted == 0 && tagDocuments.length > 0 ? 1 : 0 }, { where: { id: id } })
+                            .then(o => {
+                                return TaskChecklist.find({
+                                    where: { id: id },
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            attributes: ["firstName", "lastName"]
+                                        },
+                                        {
+                                            model: ChecklistDocuments,
+                                            as: "tagDocuments",
+                                            include: [
+                                                {
+                                                    model: Document,
+                                                    as: "document",
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: "user"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }).then(o => {
+                                    return o.toJSON();
+                                });
                             })
-                        }).map((response) => {
-                            return response.toJSON();
-                        }).then((response) => {
-                            cb({ status: true, data: { id: id, activity_logs: response, checklist: result } });
+                            .then(response => {
+                                resolve(response);
+                            });
+                    });
+                });
+
+                Promise.all(updateChecklistPromise).then(async result => {
+                    if (result.length > 0) {
+                        const activityLogs = _.map(result, ({ id, isCompleted, description }) => {
+                            return {
+                                usersId: data.usersId,
+                                linkType: "checklist",
+                                linkId: id,
+                                actionType: isCompleted == 0 ? "modified" : "completed",
+                                old: JSON.stringify({ checklist: { status: isCompleted == 0 ? "Complete" : "Not Complete" } }),
+                                new: JSON.stringify({ checklist: { status: isCompleted == 0 ? "Not Complete" : "Complete" } }),
+                                title: description
+                            };
                         });
-                } else {
-                    const updatedChecklist = await TaskChecklist.findAll
-                        ({
+                        await ActivityLogs.bulkCreate(activityLogs)
+                            .map(({ id }) => {
+                                return id;
+                            })
+                            .then(activityResponse => {
+                                return ActivityLogs.findAll({
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            attributes: ["firstName", "lastName"]
+                                        }
+                                    ],
+                                    where: { id: activityResponse }
+                                });
+                            })
+                            .map(response => {
+                                return response.toJSON();
+                            })
+                            .then(response => {
+                                cb({ status: true, data: { id: id, activity_logs: response, checklist: result } });
+                            });
+                    } else {
+                        const updatedChecklist = await TaskChecklist.findAll({
                             where: { taskId: data.taskId },
                             include: [
                                 {
                                     model: Users,
-                                    as: 'user',
-                                    attributes: ['firstName', 'lastName']
+                                    as: "user",
+                                    attributes: ["firstName", "lastName"]
                                 },
                                 {
                                     model: ChecklistDocuments,
-                                    as: 'tagDocuments',
-                                    include: [{
-                                        model: Document,
-                                        as: 'document',
-                                        include: [{
-                                            model: Users,
-                                            as: 'user'
-                                        }]
-                                    }]
+                                    as: "tagDocuments",
+                                    include: [
+                                        {
+                                            model: Document,
+                                            as: "document",
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: "user"
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
                             ]
-                        }).map((o) => { return o.toJSON() });
-                    cb({ status: true, data: { id: id, activity_logs: [], checklist: updatedChecklist } });
-                }
-            });
-
-        });
+                        }).map(o => {
+                            return o.toJSON();
+                        });
+                        cb({ status: true, data: { id: id, activity_logs: [], checklist: updatedChecklist } });
+                    }
+                });
+            }
+        );
     }
-}
+};
 
 exports.delete = {
     index: (req, cb) => {
@@ -675,73 +786,75 @@ exports.delete = {
             include: [
                 {
                     model: Users,
-                    as: 'user',
-                    attributes: ['firstName', 'lastName']
+                    as: "user",
+                    attributes: ["firstName", "lastName"]
                 }
             ]
-        }
+        };
 
         try {
-            TaskChecklist.findOne(
-                { ...options, where: { id: id } }
-            ).then((response) => {
+            TaskChecklist.findOne({ ...options, where: { id: id } }).then(response => {
                 const taskChecklistResponse = response.toJSON();
-                const periodChecklist = (taskChecklistResponse.periodChecklist != null) ? taskChecklistResponse.periodChecklist : id;
+                const periodChecklist = taskChecklistResponse.periodChecklist != null ? taskChecklistResponse.periodChecklist : id;
                 const checklistTaskId = queryString.taskId;
 
-                TaskChecklist.findAll(
-                    {
-                        ...options,
-                        where: {
-                            periodChecklist,
-                            taskId: {
-                                [Op.gt]: checklistTaskId
-                            }
+                TaskChecklist.findAll({
+                    ...options,
+                    where: {
+                        periodChecklist,
+                        taskId: {
+                            [Op.gt]: checklistTaskId
                         }
                     }
-                ).map((mapObject) => {
-                    return mapObject.toJSON();
-                }).then((resultArray) => {
-                    const toBeDeletedArray = resultArray;
-                    const deletedActivity = _.map([...toBeDeletedArray, taskChecklistResponse], (o) => {
-                        const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
-                        return {
-                            usersId: queryString.userId,
-                            linkType: "checklist",
-                            linkId: o.id,
-                            actionType: "deleted",
-                            old: JSON.stringify({ checklist: checklistObj }),
-                            title: o.description
-                        }
-                    });
-
-                    ActivityLogs.bulkCreate(deletedActivity).map((response) => {
-                        return response.toJSON();
-                    }).then((resultArray) => {
-                        const responseObj = resultArray[0];
-                        return ActivityLogs.findOne({
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'user',
-                                    attributes: ['firstName', 'lastName']
-                                }
-                            ],
-                            where: { id: responseObj.id }
-                        })
-                    }).then((response) => {
-                        const responseObj = response.toJSON();
-                        const toBeDeletedChecklist = _.map(toBeDeletedArray, (resultObj) => { return resultObj.id });
-                        toBeDeletedChecklist.push(id);
-                        TaskChecklist.update({ isDeleted: 1 }, { where: { id: toBeDeletedChecklist } }).then((response) => {
-                            cb({ status: true, data: { id, activity_log: responseObj } })
+                })
+                    .map(mapObject => {
+                        return mapObject.toJSON();
+                    })
+                    .then(resultArray => {
+                        const toBeDeletedArray = resultArray;
+                        const deletedActivity = _.map([...toBeDeletedArray, taskChecklistResponse], o => {
+                            const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                            return {
+                                usersId: queryString.userId,
+                                linkType: "checklist",
+                                linkId: o.id,
+                                actionType: "deleted",
+                                old: JSON.stringify({ checklist: checklistObj }),
+                                title: o.description
+                            };
                         });
-                    });
-                });
 
+                        ActivityLogs.bulkCreate(deletedActivity)
+                            .map(response => {
+                                return response.toJSON();
+                            })
+                            .then(resultArray => {
+                                const responseObj = resultArray[0];
+                                return ActivityLogs.findOne({
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            attributes: ["firstName", "lastName"]
+                                        }
+                                    ],
+                                    where: { id: responseObj.id }
+                                });
+                            })
+                            .then(response => {
+                                const responseObj = response.toJSON();
+                                const toBeDeletedChecklist = _.map(toBeDeletedArray, resultObj => {
+                                    return resultObj.id;
+                                });
+                                toBeDeletedChecklist.push(id);
+                                TaskChecklist.update({ isDeleted: 1 }, { where: { id: toBeDeletedChecklist } }).then(response => {
+                                    cb({ status: true, data: { id, activity_log: responseObj } });
+                                });
+                            });
+                    });
             });
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     }
-}
+};

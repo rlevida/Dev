@@ -1,30 +1,24 @@
 import React from "react";
 import _ from "lodash";
 
-import { getData, putData, showToast } from '../../../globalFunction';
+import { getData, putData, showToast } from "../../../globalFunction";
 import { OnOffSwitch, Loading, DeleteModal } from "../../../globalComponents";
 
-import { connect } from "react-redux"
-@connect((store) => {
+import { connect } from "react-redux";
+@connect(store => {
     return {
         users: store.users,
         teams: store.teams,
         loggedUser: store.loggedUser
-    }
+    };
 })
 export default class UserList extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map([
-            'deleteData',
-            'confirmDelete',
-            'updateActiveStatus',
-            'renderArrayTd',
-            'getNext'
-        ], (fn) => {
+        _.map(["deleteData", "confirmDelete", "updateActiveStatus", "renderArrayTd", "getNext"], fn => {
             this[fn] = this[fn].bind(this);
-        })
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -45,7 +39,7 @@ export default class UserList extends React.Component {
 
     deleteData(value) {
         const { dispatch } = { ...this.props };
-        dispatch({ type: 'SET_USER_SELECTED', Selected: value });
+        dispatch({ type: "SET_USER_SELECTED", Selected: value });
         $(`#delete-user`).modal("show");
     }
 
@@ -53,15 +47,15 @@ export default class UserList extends React.Component {
         const { dispatch, users } = this.props;
         const userId = users.Selected.id;
 
-        putData(`/api/user/deleteUser/${userId}`, { isDeleted: 1 }, (c) => {
+        putData(`/api/user/deleteUser/${userId}`, { isDeleted: 1 }, c => {
             $(`#delete-user`).modal("hide");
-            dispatch({ type: 'SET_USER_SELECTED', Selected: "" });
+            dispatch({ type: "SET_USER_SELECTED", Selected: "" });
 
             if (c.status == 200) {
-                dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: userId });
-                showToast('success', 'Successfully Deleted.');
+                dispatch({ type: "REMOVE_DELETED_USER_LIST", Id: userId });
+                showToast("success", "Successfully Deleted.");
             } else {
-                showToast('error', c.data.message, 360000)
+                showToast("error", c.data.message, 360000);
             }
         });
     }
@@ -70,7 +64,7 @@ export default class UserList extends React.Component {
         const { users, dispatch } = this.props;
         dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
 
-        this.fetchData(users.Count.current_page + 1)
+        this.fetchData(users.Count.current_page + 1);
     }
 
     fetchData(page) {
@@ -81,50 +75,50 @@ export default class UserList extends React.Component {
             fetchUrl += `&name=${users.Filter.name}`;
         }
 
-        getData(fetchUrl, {}, (c) => {
-            const userList = (page == 1) ? c.data.result : users.List.concat(c.data.result);
-            dispatch({ type: 'SET_USER_LIST', list: userList, Count: c.data.count });
-            dispatch({ type: 'SET_USER_LOADING', Loading: '' });
-            showToast("success", "Users successfully retrieved.");
+        getData(fetchUrl, {}, c => {
+            const userList = page == 1 ? c.data.result : users.List.concat(c.data.result);
+            dispatch({ type: "SET_USER_LIST", list: userList, Count: c.data.count });
+            dispatch({ type: "SET_USER_LOADING", Loading: "" });
         });
     }
 
     renderArrayTd(arr) {
-        return (
-            arr.join("\r\n")
-        );
+        return arr.join("\r\n");
     }
 
     updateActiveStatus(id, active) {
         const { dispatch } = this.props;
-        putData(`/api/user/${id}`, { id: id, isActive: (active == 1) ? 0 : 1 }, (c) => {
-            dispatch({ type: 'UPDATE_DATA_USER_LIST', UpdatedData: c.data })
-            showToast('success', 'Successfully Updated.');
-        })
+        putData(`/api/user/${id}`, { id: id, isActive: active == 1 ? 0 : 1 }, c => {
+            dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: c.data });
+            showToast("success", "Successfully Updated.");
+        });
     }
 
     handleEdit(data) {
         const { dispatch } = this.props;
         dispatch({
-            type: 'SET_USER_SELECTED', Selected: {
-                ...data, team: data.team.map((e) => {
+            type: "SET_USER_SELECTED",
+            Selected: {
+                ...data,
+                team: data.team.map(e => {
                     return {
                         value: e.id,
                         label: e.team,
                         teamLeader: e.teamLeader
-                    }
+                    };
                 })
             }
         });
         dispatch({
-            type: 'SET_CURRENT_DATA_SELECTED', Selected: {
-                ...data, team: data.team.map((e) => {
-
+            type: "SET_CURRENT_DATA_SELECTED",
+            Selected: {
+                ...data,
+                team: data.team.map(e => {
                     return {
                         value: e.id,
                         label: e.team,
                         teamLeader: e.teamLeader
-                    }
+                    };
                 })
             }
         });
@@ -133,87 +127,95 @@ export default class UserList extends React.Component {
 
     render() {
         const { users, loggedUser } = this.props;
-        const currentPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.current_page : 1;
-        const lastPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.last_page : 1;
-        const typeValue = (typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false) ? users.Selected.firstName + " " + users.Selected.lastName : "";
+        const currentPage = typeof users.Count != "undefined" && _.isEmpty(users.Count) == false ? users.Count.current_page : 1;
+        const lastPage = typeof users.Count != "undefined" && _.isEmpty(users.Count) == false ? users.Count.last_page : 1;
+        const typeValue = typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false ? users.Selected.firstName + " " + users.Selected.lastName : "";
         const userList = users.List;
         return (
             <div>
-                {
-                    ((userList).length > 0) &&
+                {userList.length > 0 && (
                     <table id="user-list">
                         <thead>
                             <tr>
-                                <th scope="col" class="td-left">Username</th>
+                                <th scope="col" class="td-left">
+                                    Username
+                                </th>
                                 <th scope="col">First Name</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">Email Address</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Roles</th>
-                                <th scope="col" class={(loggedUser.data.userRole > 4) ? "hide" : ""}>Actions</th>
+                                <th scope="col" class={loggedUser.data.userRole > 4 ? "hide" : ""}>
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {
-                                _.map(userList, (user, index) => {
-                                    return (
-                                        <tr key={index}>
-                                            <td data-label="Username" class="td-left">
-                                                <div class="profile-div">
-                                                    <div class="thumbnail-profile">
-                                                        <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                    </div>
-                                                    <p class="m0">{user.username}</p>
+                            {_.map(userList, (user, index) => {
+                                return (
+                                    <tr key={index}>
+                                        <td data-label="Username" class="td-left">
+                                            <div class="profile-div">
+                                                <div class="thumbnail-profile">
+                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
                                                 </div>
-                                            </td>
-                                            <td data-label="First Name">{user.firstName}</td>
-                                            <td data-label="Last Name">{user.lastName}</td>
-                                            <td data-label="Email Address">{user.emailAddress}</td>
-                                            <td data-label="Type">{user.userType}</td>
-                                            <td data-label="Roles">
-                                                {
-                                                    this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))
-                                                }
-                                            </td>
-                                            <td data-label="Actions" class={(loggedUser.data.userRole > 4) ? "hide" : "actions"}>
-                                                <div class={(
-                                                    (loggedUser.data.userRole > user.user_role[0].role.id) ||
+                                                <p class="m0">{user.username}</p>
+                                            </div>
+                                        </td>
+                                        <td data-label="First Name">{user.firstName}</td>
+                                        <td data-label="Last Name">{user.lastName}</td>
+                                        <td data-label="Email Address">{user.emailAddress}</td>
+                                        <td data-label="Type">{user.userType}</td>
+                                        <td data-label="Roles">
+                                            {this.renderArrayTd(
+                                                _.map(user.user_role, el => {
+                                                    return el.role.role;
+                                                })
+                                            )}
+                                        </td>
+                                        <td data-label="Actions" class={loggedUser.data.userRole > 4 ? "hide" : "actions"}>
+                                            <div
+                                                class={
+                                                    loggedUser.data.userRole > user.user_role[0].role.id ||
                                                     (user.user_role[0].role.id == 4 && user.id != loggedUser.data.id && loggedUser.data.userRole == 4) ||
                                                     (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4) ||
                                                     (loggedUser.data.userRole == user.user_role[0].role.id && loggedUser.data.userRole > 1)
-                                                ) ? "hide" : "actions"}>
-                                                    <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
-                                                    <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a onClick={() => this.handleEdit(user)}>Edit</a></li>
-                                                        {/* <li><a onClick={() => this.deleteData(user)}>Delete</a></li> */}
-                                                    </ul>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })
-                            }
+                                                        ? "hide"
+                                                        : "actions"
+                                                }
+                                            >
+                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
+                                                <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown">
+                                                    <span class="fa fa-ellipsis-v" title="MORE" />
+                                                </a>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a onClick={() => this.handleEdit(user)}>Edit</a>
+                                                    </li>
+                                                    {/* <li><a onClick={() => this.deleteData(user)}>Delete</a></li> */}
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
-                }
-                {
-                    (userList.length == 0 && users.Loading != "RETRIEVING") && <p class="mb0 mt10 text-center"><strong>No Records Found</strong></p>
-                }
-                {
-                    (users.Loading == "RETRIEVING" && (userList).length > 0) && <Loading />
-                }
-                {
-                    (_.isEmpty(users) == false && (currentPage != lastPage) && users.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Users</a></p>
-                }
+                )}
+                {userList.length == 0 && users.Loading != "RETRIEVING" && (
+                    <p class="mb0 mt10 text-center">
+                        <strong>No Records Found</strong>
+                    </p>
+                )}
+                {users.Loading == "RETRIEVING" && userList.length > 0 && <Loading />}
+                {_.isEmpty(users) == false && currentPage != lastPage && users.Loading != "RETRIEVING" && (
+                    <p class="mb0 text-center">
+                        <a onClick={() => this.getNext()}>Load More Users</a>
+                    </p>
+                )}
                 {/* Modals */}
-                <DeleteModal
-                    id="delete-user"
-                    type={'user'}
-                    type_value={typeValue}
-                    delete_function={this.confirmDelete}
-                />
+                <DeleteModal id="delete-user" type={"user"} type_value={typeValue} delete_function={this.confirmDelete} />
             </div>
-        )
+        );
     }
 }

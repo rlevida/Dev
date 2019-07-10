@@ -74,7 +74,7 @@ export const DropDown = React.createClass({
         };
         return (
             <div class="select-wrapper">
-                <p class="note m0">Type to search item.</p>
+                <p class="note m0">{typeof this.props.label != "undefined" ? this.props.label : "Type to search item."}</p>
                 <Select
                     multi={this.props.multiple}
                     disabled={this.state.disabled}
@@ -92,7 +92,7 @@ export const DropDown = React.createClass({
                     onSelectResetsInput={false}
                     onBlurResetsInput={true}
                     autoBlur
-                    placeholder={"Search"}
+                    placeholder={typeof this.props.placeholder ? this.props.placeholder : "Search"}
                 />
             </div>
         );
