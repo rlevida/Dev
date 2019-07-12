@@ -202,6 +202,7 @@ exports.get = {
                 usersId: queryString.starredUser
             };
         }
+
         async.parallel(
             {
                 count: function(parallelCallback) {

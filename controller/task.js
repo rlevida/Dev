@@ -922,7 +922,8 @@ exports.get = {
                                         folderId: null,
                                         type: "document",
                                         isDeleted: 0,
-                                        isArchived: 0
+                                        isArchived: 0,
+                                        isActive:1
                                     }
                                 }
                             ]
