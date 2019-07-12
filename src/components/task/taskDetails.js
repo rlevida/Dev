@@ -759,7 +759,7 @@ export default class TaskDetails extends React.Component {
                                                         <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true" />
                                                     </a>
                                                     <a
-                                                        class="logo-action text-grey"
+                                                        class="logo-action text-grey mr10"
                                                         onClick={() => {
                                                             $(`#task-documents`).modal("show");
                                                             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, ["document_type"]: "task_document" } });

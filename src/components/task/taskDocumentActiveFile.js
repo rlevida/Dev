@@ -36,18 +36,20 @@ class TaskActiveFile extends React.Component {
     }
 
     fetchData(page) {
-        const { loggedUser, project, task, dispatch, document, uploadType } = this.props;
+        const { loggedUser, task, dispatch, document } = this.props;
         let requestUrl = "";
         if (document.uploadType === "active") {
-            requestUrl = `/api/document/getFiles?&isArchived=0&isDeleted=0&projectId=${project.Selected.id}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+            requestUrl = `/api/document/getFiles?&isArchived=0&isDeleted=0&projectId=${task.Selected.projectId}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
                 loggedUser.data.id
             }&isActive=1&t&&tagType=document&folderId=null&type=document`;
         } else {
-            requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&folderId=null&type=folder&isActive=1&isDeleted=0`;
+            requestUrl = `/api/document?isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+                loggedUser.data.id
+            }&folderId=null&type=folder&isActive=1&isDeleted=0`;
         }
 
         getData(requestUrl, {}, c => {
-            const { count, result } = { ...c.data };
+            const { result } = { ...c.data };
             dispatch({ type: "SET_DOCUMENT_LIST", list: result });
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
         });
@@ -66,8 +68,7 @@ class TaskActiveFile extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match, pageModal, document, project } = { ...this.props };
-        const projectId = match.params.projectId;
+        const { dispatch, loggedUser, folder, document, task } = { ...this.props };
 
         if (document.ActiveTab === "trash" || document.ActiveTab === "archived") {
             return;
@@ -77,24 +78,27 @@ class TaskActiveFile extends React.Component {
             this.handleCheckbox(data.id, data.isChecked);
         } else {
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
-            getData(`/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${project.Selected.id}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, c => {
-                const { result, count } = { ...c.data };
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
-                    dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "NewDocumentLoading" });
-                    dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
-                    dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
-                    this.fetchFolderSelectList(data.id);
+            getData(
+                `/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`,
+                {},
+                c => {
+                    const { result, count } = { ...c.data };
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
+                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "NewDocumentLoading" });
+                        dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
+                        dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
+                        this.fetchFolderSelectList(data.id);
+                    }
                 }
-            });
+            );
         }
     }
 
     fetchFolderSelectList(folderId) {
-        const { dispatch, loggedUser, match } = { ...this.props };
-        const projectId = match.params.projectId;
+        const { dispatch, loggedUser, match, task } = { ...this.props };
 
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
             loggedUser.data.id
         }&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
 
@@ -118,8 +122,7 @@ class TaskActiveFile extends React.Component {
     }
 
     async getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder, match } = this.props;
-        const projectId = match.params.projectId;
+        const { dispatch, loggedUser, folder, task } = this.props;
         let folderList = folder.SelectedFolderName;
 
         if (data === "") {
@@ -129,7 +132,7 @@ class TaskActiveFile extends React.Component {
             await this.fetchData(1);
         } else if (folder.Selected.id !== data.id) {
             getData(
-                `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
+                `/api/document?isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
                     loggedUser.data.id
                 }`,
                 {},
