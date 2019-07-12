@@ -75,30 +75,45 @@ exports.get = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.name != "undefined" && queryString.name != ""
                 ? {
-                      [Op.or]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                          }),
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                          }),
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                          }),
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.emailAddress")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                          })
+                      [Op.and]: [
+                          {
+                              [Op.or]: [
+                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
+                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                  }),
+                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
+                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                  }),
+                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
+                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                  }),
+                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.emailAddress")), {
+                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                  })
+                              ]
+                          },
+                          {
+                              [Op.or]: [
+                                  {
+                                      firstName: { [Op.ne]: "default" }
+                                  },
+                                  {
+                                      lastName: { [Op.ne]: "default" }
+                                  }
+                              ]
+                          }
                       ]
                   }
-                : {}),
-            [Op.or]: [
-                {
-                    firstName: { [Op.ne]: "default" }
-                },
-                {
-                    lastName: { [Op.ne]: "default" }
-                }
-            ]
+                : {
+                      [Op.or]: [
+                          {
+                              firstName: { [Op.ne]: "default" }
+                          },
+                          {
+                              lastName: { [Op.ne]: "default" }
+                          }
+                      ]
+                  })
         };
 
         if (typeof queryString.project_type != "undefined" && (queryString.project_type == "Private" || queryString.project_type == "Internal")) {
