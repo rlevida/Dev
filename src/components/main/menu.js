@@ -102,10 +102,17 @@ class Component extends React.Component {
         }
     }
 
-    handleProjectCategory({ category, page, typeId }) {
+    handleProjectCategory({ category, page }) {
         const { loggedUser, dispatch, project } = { ...this.props };
         const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false&userRole=${loggedUser.data.userRole}`;
-
+        let typeId = 0;
+        if (category === "Client") {
+            typeId = 1;
+        } else if (category === "Internal") {
+            typeId = 2;
+        } else if (category === "Private") {
+            typeId = 3;
+        }
         dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
 
         getData(`${requestUrl}&typeId=${typeId}&page=${page}`, {}, c => {
@@ -151,7 +158,7 @@ class Component extends React.Component {
                                                                     {_.map(project.Category[o].list, (e, i) => {
                                                                         return (
                                                                             <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
-                                                                                <a href="javascript:void(0)" onClick={() => this.onClick(e, "Client")} class="ml50">
+                                                                                <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50">
                                                                                     <span>
                                                                                         <i class="fa fa-square mr10" style={{ color: e.color }} />
                                                                                     </span>
@@ -167,9 +174,8 @@ class Component extends React.Component {
                                                                                 class="ml50 pdl5 notes"
                                                                                 onClick={e => {
                                                                                     this.handleProjectCategory({
-                                                                                        category: "Client",
-                                                                                        page: currentPage + 1,
-                                                                                        typeId: 1
+                                                                                        category: o,
+                                                                                        page: currentPage + 1
                                                                                     });
                                                                                     e.stopPropagation();
                                                                                 }}
