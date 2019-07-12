@@ -3,20 +3,17 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast, putData, deleteData } from "../../globalFunction";
 
-@connect((store) => {
+@connect(store => {
     return {
         project: store.project,
         loggedUser: store.loggedUser
-    }
+    };
 })
 export default class ArchiveModal extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map([
-            "deleteProject",
-            "archiveProject"
-        ], (fn)=>{
+        _.map(["deleteProject", "archiveProject", "handleRemove"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -24,28 +21,42 @@ export default class ArchiveModal extends React.Component {
     deleteProject() {
         let { project, dispatch } = this.props;
 
-        deleteData(`/api/project/${project.Selected.id}`, { id: project.Selected.id }, (c) => {
+        deleteData(`/api/project/${project.Selected.id}`, { id: project.Selected.id }, c => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DELETED_PROJECT_LIST", id: c.data })
+                dispatch({ type: "REMOVE_DELETED_PROJECT_LIST", id: c.data });
+                this.handleRemove();
                 showToast("success", "Successfully Deleted.");
             }
             $(`#archiveModal`).modal("hide");
-        })
+        });
     }
 
     archiveProject() {
         let { dispatch, project } = this.props;
-        let dataToSubmit = { isDeleted: 1 }
+        let dataToSubmit = { isDeleted: 1 };
 
-        putData(`/api/project/archive/${project.Selected.id}`, dataToSubmit, (c) => {
+        putData(`/api/project/archive/${project.Selected.id}`, dataToSubmit, c => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_PROJECT_LIST", UpdatedData: { ...project.Selected, isDeleted: 1 } });
+                this.handleRemove();
                 showToast("success", "Successfully Archived.");
             }
             $(`#archiveModal`).modal("hide");
-        })
+        });
     }
 
+    handleRemove() {
+        const { project, dispatch } = { ...this.props };
+        const { type, id } = { ...project.Selected };
+        const newList = project.Category[type.type].list.filter(e => {
+            return e.id !== id;
+        });
+        dispatch({
+            type: "SET_PROJECT_CATEGORY",
+            data: { list: newList, count: project.Category[type.type].count },
+            category: type.type
+        });
+    }
     render() {
         const { project } = { ...this.props };
         const { Selected } = project;
@@ -55,30 +66,38 @@ export default class ArchiveModal extends React.Component {
                 <div class="modal-dialog modal-md" role="document">
                     <div class="modal-content">
                         <div class="modal-body">
-                            <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                            <i class="fa fa-exclamation-circle" aria-hidden="true" />
                             <p class="warning text-center">Delete or Archive this project?</p>
-                            <p class="warning text-center"><strong>{Selected.project}</strong></p>
+                            <p class="warning text-center">
+                                <strong>{Selected.project}</strong>
+                            </p>
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
                                         <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
                                             Yes Delete / Archive project!
-                                            <span class="caret ml10"></span>
+                                            <span class="caret ml10" />
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a onClick={this.deleteProject}>Delete the project permanently</a></li>
-                                            <li><a onClick={this.archiveProject}>Archive the project for 1 year</a></li>
+                                            <li>
+                                                <a onClick={this.deleteProject}>Delete the project permanently</a>
+                                            </li>
+                                            <li>
+                                                <a onClick={this.archiveProject}>Archive the project for 1 year</a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
                                 <div class="flex-col">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No Don't!</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                        No Don't!
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
