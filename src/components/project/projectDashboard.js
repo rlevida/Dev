@@ -124,7 +124,6 @@ export default class ProjectDashboard extends React.Component {
 
     showCountList(type) {
         statusType = type;
-        const { dispatch } = { ...this.props };
         switch (type) {
             case "Tasks Due Today":
                 this.taskList(type);
@@ -144,8 +143,9 @@ export default class ProjectDashboard extends React.Component {
     fileList() {
         const { dispatch, loggedUser, match } = this.props;
         const projectId = match.params.projectId;
-        const requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document&folderId=null`;
-
+        const requestUrl = `/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+            loggedUser.data.id
+        }&type=document&folderId=null`;
         getData(requestUrl, {}, c => {
             const { count, result } = { ...c.data };
             dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });

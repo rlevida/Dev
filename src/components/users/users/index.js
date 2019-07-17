@@ -1,29 +1,29 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { getData, showToast } from '../../../globalFunction';
+import { getData, showToast } from "../../../globalFunction";
 import { Searchbar } from "../../../globalComponents";
 
 import UserList from "./userList";
 import UserForm from "./userForm";
 
-@connect((store) => {
+@connect(store => {
     return {
         users: store.users,
         loggedUser: store.loggedUser
-    }
+    };
 })
 export default class Component extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map(["handleChange"], (fn) => { this[fn] = this[fn].bind(this) });
-
+        _.map(["handleChange"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     handleChange(params) {
         const { dispatch, users } = this.props;
-
         if (users.Filter.name != params.name) {
             dispatch({ type: "SET_USER_LIST", list: [] });
             dispatch({ type: "SET_USER_FILTER", filter: params });
@@ -35,8 +35,8 @@ export default class Component extends React.Component {
         const { users, dispatch, loggedUser } = this.props;
         return (
             <div>
-                {
-                    (users.FormActive == "List") && <div class="row">
+                {users.FormActive == "List" && (
+                    <div class="row">
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="mb20 bb">
@@ -45,7 +45,7 @@ export default class Component extends React.Component {
                                             <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                                                 <div class="flex-row tab-row mb0">
                                                     <div class="flex-col">
-                                                        <a class={`btn btn-default ${(users.FormActive == "List") ? "btn-active" : ""}`}>Users</a>
+                                                        <a class={`btn btn-default ${users.FormActive == "List" ? "btn-active" : ""}`}>Users</a>
                                                     </div>
                                                     <div class="flex-col">
                                                         <a
@@ -54,7 +54,7 @@ export default class Component extends React.Component {
                                                                 dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "" });
                                                                 dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
                                                                 dispatch({ type: "SET_TEAM_LOADING", Loading: "RETRIEVING" });
-                                                                dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
+                                                                dispatch({ type: "SET_TEAM_LIST", list: [], Count: {} });
                                                             }}
                                                         >
                                                             Teams
@@ -71,30 +71,34 @@ export default class Component extends React.Component {
                                                         }}
                                                         name="name"
                                                     />
-                                                    {
-                                                        (loggedUser.data.userRole < 4) && <a class="btn btn-default" onClick={() => {
-                                                            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
-                                                            dispatch({ type: "SET_USER_SELECTED", Selected: "" })
-                                                        }
-                                                        }>
-                                                            <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                    {loggedUser.data.userRole < 4 && (
+                                                        <a
+                                                            class="btn btn-default"
+                                                            onClick={() => {
+                                                                dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
+                                                                dispatch({ type: "SET_USER_SELECTED", Selected: "" });
+                                                            }}
+                                                        >
+                                                            <span>
+                                                                <i class="fa fa-plus mr10" aria-hidden="true" />
+                                                            </span>
                                                             Add New User
                                                         </a>
-                                                    }
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class={(users.Loading == "RETRIEVING" && (users.List).length == 0) ? "linear-background" : ""}>
+                                <div class={users.Loading == "RETRIEVING" && users.List.length == 0 ? "linear-background" : ""}>
                                     <UserList />
                                 </div>
                             </div>
                         </div>
                     </div>
-                }
-                {
-                    users.FormActive == "Form" && <div class="card form-card">
+                )}
+                {users.FormActive == "Form" && (
+                    <div class="card form-card">
                         <div class="card-header">
                             <h4>
                                 <a
@@ -103,18 +107,17 @@ export default class Component extends React.Component {
                                         dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
                                     }}
                                 >
-                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                    <i class="fa fa-chevron-left" aria-hidden="true" />
                                 </a>
-                                {(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? "Edit User" : "Add New User"}
-
+                                {typeof users.Selected.id != "undefined" && users.Selected.id != "" ? "Edit User" : "Add New User"}
                             </h4>
                         </div>
                         <div class="card-body">
-                            <UserForm profileEdit={(typeof users.Selected.id != "undefined" && users.Selected.id == loggedUser.data.id) ? true : false} />
+                            <UserForm profileEdit={typeof users.Selected.id != "undefined" && users.Selected.id == loggedUser.data.id ? true : false} />
                         </div>
                     </div>
-                }
+                )}
             </div>
-        )
+        );
     }
 }

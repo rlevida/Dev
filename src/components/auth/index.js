@@ -1,42 +1,42 @@
-import React from "react"
-import { showToast, getData, postData } from '../../globalFunction'
+import React from "react";
+import { showToast, getData, postData } from "../../globalFunction";
 import ForgotPassword from "../forgotPassword";
-import Captcha from 'react-captcha';
+import Captcha from "react-captcha";
 
-import { connect } from "react-redux"
-@connect((store) => {
+import { connect } from "react-redux";
+@connect(store => {
     return {
         socket: store.socket.container,
         Login: store.login
-    }
+    };
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             captchaPayload: "",
             yourIp: ""
-        }
-        this.checkRememberMe = this.checkRememberMe.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
-        this.handleCaptcha = this.handleCaptcha.bind(this)
+        };
+        this.checkRememberMe = this.checkRememberMe.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleCaptcha = this.handleCaptcha.bind(this);
     }
 
     componentDidMount() {
-        $.getJSON('https://api.ipify.org?format=json', (data) => {
-            this.setState({ yourIp: data.ip })
+        $.getJSON("https://api.ipify.org?format=json", data => {
+            this.setState({ yourIp: data.ip });
         });
-        this.checkRememberMe()
+        this.checkRememberMe();
     }
 
     checkRememberMe() {
-        let { dispatch } = this.props
-        var rememberMe = localStorage.getItem('rememberMe')
+        let { dispatch } = this.props;
+        var rememberMe = localStorage.getItem("rememberMe");
         if (rememberMe == "true") {
-            var username = localStorage.getItem('username')
-            dispatch({ type: "SET_LOGIN_DATA", name: "username", value: username })
-            dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: true })
-            dispatch({ type: "SET_LOGIN_DATA", name: "disabled", value: false })
+            var username = localStorage.getItem("username");
+            dispatch({ type: "SET_LOGIN_DATA", name: "username", value: username });
+            dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: true });
+            dispatch({ type: "SET_LOGIN_DATA", name: "disabled", value: false });
         }
     }
 
@@ -44,29 +44,33 @@ export default class Component extends React.Component {
         let { Login } = this.props;
         e.preventDefault();
         if (Login.username == "" || Login.password == "") {
-            showToast("error", "Username and password is required.", 360000)
+            showToast("error", "Username and password is required.", 360000);
+            return;
+        }
+
+        if (Login.username == "default" && Login.password == "default") {
+            showToast("error", "User does not exist.", 360000);
             return;
         }
         if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
-            showToast("error", "Please confirm your not a robot.", 360000)
+            showToast("error", "Please confirm your not a robot.", 360000);
             return;
         }
-        showToast("success", "Logging in, please wait ...", 360000)
-        localStorage.setItem('username', Login.username)
-        localStorage.setItem('rememberMe', Login.rememberMe)
+        showToast("success", "Logging in, please wait ...", 360000);
+        localStorage.setItem("username", Login.username);
+        localStorage.setItem("rememberMe", Login.rememberMe);
 
-        postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, (c) => {
+        postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, c => {
             if (c.data.status) {
-                if ((c.data.userDetails.projectId).length > 1 || c.data.userDetails.userRole <= 4) {
-                    window.location.replace('/');
+                if (c.data.userDetails.projectId.length > 1 || c.data.userDetails.userRole <= 4) {
+                    window.location.replace("/");
                 } else {
                     window.location.replace(`/account#/projects/${c.data.userDetails.projectId[0]}`);
                 }
             } else {
-                showToast('error', c.data.message, 360000)
+                showToast("error", c.data.message, 360000);
             }
-        })
-
+        });
     }
 
     handleCaptcha(value) {
@@ -81,14 +85,7 @@ export default class Component extends React.Component {
         let { Login, dispatch } = this.props;
         let captchaUI = null;
         if (process.env.NODE_ENV != "development") {
-            captchaUI = <Captcha
-                sitekey='6LcZ95kUAAAAAN2oDsWH8TVbTNTrROSzFVaI7a5g'
-                lang='en'
-                theme='light'
-                type='image'
-                callback={this.handleCaptcha}
-                size={'invisible'}
-            />
+            captchaUI = <Captcha sitekey="6LcZ95kUAAAAAN2oDsWH8TVbTNTrROSzFVaI7a5g" lang="en" theme="light" type="image" callback={this.handleCaptcha} size={"invisible"} />;
         }
         return (
             <div id="login">
@@ -99,28 +96,26 @@ export default class Component extends React.Component {
                     <form class="login-form">
                         <div class="form-group">
                             <label for="project-type">Username</label>
-                            <input type="text" placeholder="Enter username" name="UserName" value={Login.username} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "username", value: e.target.value })} class="form-control top" />
+                            <input type="text" placeholder="Enter username" name="UserName" value={Login.username} onChange={e => dispatch({ type: "SET_LOGIN_DATA", name: "username", value: e.target.value })} class="form-control top" />
                         </div>
                         <div class="form-group mb20">
                             <label for="project-type">Password</label>
-                            <input type="password" placeholder="Enter password" name="Password" value={Login.password} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "password", value: e.target.value })} class="form-control bottom" />
+                            <input type="password" placeholder="Enter password" name="Password" value={Login.password} onChange={e => dispatch({ type: "SET_LOGIN_DATA", name: "password", value: e.target.value })} class="form-control bottom" />
                         </div>
                         {captchaUI}
-                        <a disabled={Login.disabled} class="btn btn-lg btn-violet btn-block mt20" onClick={this.handleSubmit}>Login</a>
+                        <a disabled={Login.disabled} class="btn btn-lg btn-violet btn-block mt20" onClick={this.handleSubmit}>
+                            Login
+                        </a>
                         <div class="row mt20">
                             <div class="col-md-6">
                                 <label class="custom-checkbox">
                                     Remember Me
-                                    <input
-                                        type="checkbox"
-                                        checked={Login.rememberMe}
-                                        onChange={() => dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: (Login.rememberMe) ? false : true })}
-                                    />
-                                    <span class="checkmark"></span>
+                                    <input type="checkbox" checked={Login.rememberMe} onChange={() => dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: Login.rememberMe ? false : true })} />
+                                    <span class="checkmark" />
                                 </label>
                             </div>
                             <div class="col-md-6">
-                                <a href="#" style={{ float: 'right' }} type="button" data-toggle="modal" data-target="#modal">
+                                <a href="#" style={{ float: "right" }} type="button" data-toggle="modal" data-target="#modal">
                                     Forgot Password?
                                 </a>
                             </div>
@@ -129,6 +124,6 @@ export default class Component extends React.Component {
                 </div>
                 <ForgotPassword type={"client"} />
             </div>
-        )
+        );
     }
 }
