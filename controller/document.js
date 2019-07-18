@@ -244,6 +244,16 @@ exports.get = {
                         })
                             .map(res => {
                                 const tagDocumentObj = res.document.toJSON();
+                                const tagTaskArray = tagDocumentObj.tagDocumentTask
+                                    .map(e => {
+                                        if (e.tagTask) {
+                                            return { value: e.tagTask.id, label: e.tagTask.task };
+                                        }
+                                        return;
+                                    })
+                                    .filter(e => {
+                                        return e;
+                                    });
                                 let resToReturn = {
                                     ...tagDocumentObj,
                                     tagWorkstream: tagDocumentObj.tagDocumentWorkstream
@@ -253,9 +263,8 @@ exports.get = {
                                         .map(e => {
                                             return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
                                         }),
-                                    tagTask: tagDocumentObj.tagDocumentTask.map(e => {
-                                        return { value: e.tagTask.id, label: e.tagTask.task };
-                                    }),
+
+                                    tagTask: tagTaskArray.length ? tagTaskArray : [],
                                     tagNote: tagDocumentObj.tagDocumentNotes.map(e => {
                                         return { value: e.TagNotes.id, label: e.TagNotes.note };
                                     }),
@@ -466,14 +475,22 @@ exports.get = {
                                     ...options
                                 })
                                     .map(res => {
+                                        const tagTaskArray = res.tagDocumentTask
+                                            .map(e => {
+                                                if (e.tagTask) {
+                                                    return { value: e.tagTask.id, label: e.tagTask.task };
+                                                }
+                                                return;
+                                            })
+                                            .filter(e => {
+                                                return e;
+                                            });
                                         let resToReturn = {
                                             ...res.toJSON(),
                                             tagWorkstream: res.tagDocumentWorkstream.map(e => {
                                                 return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
                                             }),
-                                            tagTask: res.tagDocumentTask.map(e => {
-                                                return { value: e.tagTask.id, label: e.tagTask.task };
-                                            }),
+                                            tagTask: tagTaskArray.length ? tagTaskArray : [],
                                             tagNote: res.tagDocumentNotes.map(e => {
                                                 return { value: e.TagNotes.id, label: e.TagNotes.note };
                                             }),
@@ -597,14 +614,22 @@ exports.get = {
                                     ...options
                                 })
                                     .map(res => {
+                                        const tagTaskArray = res.tagDocumentTask
+                                            .map(e => {
+                                                if (e.tagTask) {
+                                                    return { value: e.tagTask.id, label: e.tagTask.task };
+                                                }
+                                                return;
+                                            })
+                                            .filter(e => {
+                                                return e;
+                                            });
                                         let resToReturn = {
                                             ...res.toJSON(),
                                             tagWorkstream: res.tagDocumentWorkstream.map(e => {
                                                 return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
                                             }),
-                                            tagTask: res.tagDocumentTask.map(e => {
-                                                return { value: e.tagTask.id, label: e.tagTask.task };
-                                            }),
+                                            tagTask: tagTaskArray.length ? tagTaskArray : [],
                                             tagNote: res.tagDocumentNotes.map(e => {
                                                 return { value: e.TagNotes.id, label: e.TagNotes.note };
                                             }),
