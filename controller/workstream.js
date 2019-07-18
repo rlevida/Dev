@@ -463,6 +463,7 @@ exports.post = {
         const options = {
             include: associationStack
         };
+
         try {
             Workstream.create(body).then(response => {
                 const resultObj = response.toJSON();
@@ -519,10 +520,10 @@ exports.post = {
                                         return {
                                             ..._.omit(o, ["periodTask", "id", "dateAdded", "dateUpdated"]),
                                             dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00"),
-                                            workstreamId: resultObj.id
+                                            workstreamId: resultObj.id,
+                                            projectId: body.projectId
                                         };
                                     });
-
                                     const workstreamTaskArray = workstreamTaskNonPeriodic.concat(newPeriodicTask);
 
                                     Users.findOne({ where: { username: "default" } }).then(userReturn => {
@@ -543,7 +544,8 @@ exports.post = {
                                                             return {
                                                                 ..._.omit(taskReturn, ["dateAdded", "dateUpdated", "id"]),
                                                                 dueDate: nextDueDate,
-                                                                periodTask: taskReturn.id
+                                                                periodTask: taskReturn.id,
+                                                                projectId: body.projectId
                                                             };
                                                         });
                                                         Tasks.bulkCreate(newPeriodicTask)

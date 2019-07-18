@@ -209,6 +209,10 @@ export default class TaskListCategory extends React.Component {
             return o.memberType == "assignedTo";
         });
 
+        const isDefaultAssigned = task_members.filter(e => {
+            return e.user.username === "default";
+        });
+
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
@@ -224,11 +228,12 @@ export default class TaskListCategory extends React.Component {
                                 (loggedUser.data.userRole >= 4 && project.type.type == "Client" && assigned.user.userType == "External") ||
                                 (loggedUser.data.userRole >= 4 && project.type.type == "Internal" && assigned.user.user_role[0].roleId == 4)) &&
                             approvalRequired == 0) ||
-                            (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)) && (
-                            <a onClick={() => this.completeTask(taskData)}>
-                                <span class={`fa mr10 ${status != "Completed" ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete" />
-                            </a>
-                        )}
+                            (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)) &&
+                            isDefaultAssigned.length === 0 && (
+                                <a onClick={() => this.completeTask(taskData)}>
+                                    <span class={`fa mr10 ${status != "Completed" ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete" />
+                                </a>
+                            )}
                         <a
                             onClick={() => this.openTaskDetails(id)}
                             style={{
