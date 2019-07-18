@@ -923,7 +923,7 @@ exports.get = {
                                         type: "document",
                                         isDeleted: 0,
                                         isArchived: 0,
-                                        isActive:1
+                                        isActive: 1
                                     }
                                 }
                             ]

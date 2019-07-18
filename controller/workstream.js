@@ -487,7 +487,7 @@ exports.post = {
                                 }).then(workstreamResult => {
                                     const workstreamTaskNonPeriodic = workstreamResult.task
                                         .filter(workstreamTasksObj => {
-                                            return workstreamTasksObj.periodTask == null;
+                                            return workstreamTasksObj.periodTask == null && workstreamTasksObj.periodic == 0;
                                         })
                                         .map(workstreamTasksObj => {
                                             return {
@@ -498,9 +498,13 @@ exports.post = {
                                             };
                                         });
 
-                                    const workstreamTaskPeriodicArray = workstreamResult.task.filter(workstreamTasksObj => {
-                                        return workstreamTasksObj.periodTask !== null;
-                                    });
+                                    const workstreamTaskPeriodicArray = workstreamResult.task
+                                        .filter(workstreamTasksObj => {
+                                            return workstreamTasksObj.periodTask !== null;
+                                        })
+                                        .map(o => {
+                                            return o.toJSON();
+                                        });
 
                                     const workstreamTaskPeriodic = _.values(
                                         _.mapValues(_.groupBy(workstreamTaskPeriodicArray, "periodTask"), e => {
@@ -511,8 +515,16 @@ exports.post = {
                                             }
                                         })
                                     );
+                                    const newPeriodicTask = _.map(workstreamTaskPeriodic, o => {
+                                        return {
+                                            ..._.omit(o, ["periodTask", "id", "dateAdded", "dateUpdated"]),
+                                            dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00"),
+                                            workstreamId: resultObj.id
+                                        };
+                                    });
 
-                                    const workstreamTaskArray = workstreamTaskNonPeriodic.concat(workstreamTaskPeriodic);
+                                    const workstreamTaskArray = workstreamTaskNonPeriodic.concat(newPeriodicTask);
+
                                     Users.findOne({ where: { username: "default" } }).then(userReturn => {
                                         const defaultTaskAssigned = userReturn.toJSON().id;
                                         async.map(
@@ -520,36 +532,69 @@ exports.post = {
                                             (e, mapCallback) => {
                                                 const taskObj = _.omit(e, ["checklist"]);
                                                 const taskObjChecklistArray = e.checklist;
-                                                Tasks.create({ ...taskObj }).then(taskReturn => {
-                                                    const defaultUser = { linkType: "task", linkId: taskReturn.id, userTypeLinkId: defaultTaskAssigned, usersType: "users", memberType: "assignedTo" };
-                                                    async.parallel(
-                                                        {
-                                                            taskMembers: taskParallelCallback => {
-                                                                Members.create(defaultUser).then(() => {
-                                                                    taskParallelCallback(null);
+
+                                                Tasks.create({ ...taskObj }).then(o => {
+                                                    const taskReturn = o.toJSON();
+                                                    if (taskReturn.periodic === 1) {
+                                                        const newPeriodicTask = _.times(2, t => {
+                                                            const nextDueDate = moment(taskReturn.dueDate)
+                                                                .add(taskReturn.periodType, taskReturn.periodInstance * (t + 1))
+                                                                .format("YYYY-MM-DD HH:mm:ss");
+                                                            return {
+                                                                ..._.omit(taskReturn, ["dateAdded", "dateUpdated", "id"]),
+                                                                dueDate: nextDueDate,
+                                                                periodTask: taskReturn.id
+                                                            };
+                                                        });
+                                                        Tasks.bulkCreate(newPeriodicTask)
+                                                            .map(newPeriodicTaskReturn => {
+                                                                return newPeriodicTaskReturn.toJSON().id;
+                                                            })
+                                                            .then(newPeriodicTaskReturn => {
+                                                                const newPeriodicTaskId = newPeriodicTaskReturn.concat([taskReturn.id]);
+                                                                const newPeriodicTaskMembers = newPeriodicTaskId.map(o => {
+                                                                    return { linkType: "task", linkId: o, userTypeLinkId: defaultTaskAssigned, usersType: "users", memberType: "assignedTo" };
                                                                 });
-                                                            },
-                                                            taskChecklist: taskParallelCallback => {
-                                                                if (taskObjChecklistArray.length > 0) {
-                                                                    const checklistArray = taskObjChecklistArray.map(taskChecklistObj => {
-                                                                        return { ..._.omit(taskChecklistObj, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
+                                                                const newPeriodicTaskChecklist = newPeriodicTaskId.map(o => {
+                                                                    return taskObjChecklistArray.map(c => {
+                                                                        return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: o };
                                                                     });
-                                                                    TaskChecklist.bulkCreate(checklistArray).then(() => {
-                                                                        taskParallelCallback(null);
-                                                                    });
-                                                                } else {
-                                                                    taskParallelCallback(null);
-                                                                }
-                                                            }
-                                                        },
-                                                        () => {
-                                                            mapCallback(null, taskReturn);
-                                                        }
-                                                    );
+                                                                });
+                                                                mapCallback(null, { members: newPeriodicTaskMembers, checklist: _.flatten(newPeriodicTaskChecklist) });
+                                                            });
+                                                    } else {
+                                                        const newTaskMembers = [{ linkType: "task", linkId: taskReturn.id, userTypeLinkId: defaultTaskAssigned, usersType: "users", memberType: "assignedTo" }];
+                                                        const newTaskchecklist = taskObjChecklistArray.map(c => {
+                                                            return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
+                                                        });
+                                                        mapCallback(null, { members: newTaskMembers, checklist: newTaskchecklist });
+                                                    }
                                                 });
                                             },
-                                            () => {
-                                                callback(null, "");
+                                            (err, result) => {
+                                                const newTaskMember = result.map(o => {
+                                                    return o.members;
+                                                });
+                                                const newTaskChecklist = result.map(o => {
+                                                    return o.checklist;
+                                                });
+                                                async.parallel(
+                                                    {
+                                                        members: parallelCallback => {
+                                                            Members.bulkCreate(_.flatten(newTaskMember)).then(() => {
+                                                                parallelCallback(null);
+                                                            });
+                                                        },
+                                                        checklist: parallelCallback => {
+                                                            TaskChecklist.bulkCreate(_.flatten(newTaskChecklist)).then(() => {
+                                                                parallelCallback(null);
+                                                            });
+                                                        }
+                                                    },
+                                                    () => {
+                                                        callback(null);
+                                                    }
+                                                );
                                             }
                                         );
                                     });
