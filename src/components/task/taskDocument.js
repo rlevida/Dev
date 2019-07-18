@@ -135,6 +135,27 @@ export default class TaskDocument extends React.Component {
 
         postData(`/api/task/documentActiveFile?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, { data: { task: JSON.stringify(tagTask), workstream: JSON.stringify(tagWorkstream), checklist: JSON.stringify(checklist) } }, c => {
             if (c.data.type == "checklist") {
+                const updatedChecklist = _.map(c.data.result, o => {
+                    return { ...o, isCompleted: 1 };
+                });
+                dispatch({
+                    type: "SET_TASK_SELECTED",
+                    Selected: {
+                        ...task.Selected,
+                        checklist: _(task.Selected.checklist)
+                            .differenceBy(updatedChecklist, "id")
+                            .concat(updatedChecklist)
+                            .sortBy("dateAdded")
+                            .reverse()
+                            .value()
+                    }
+                });
+                dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
+                if (c.data.activity_logs.length > 0) {
+                    _.map(c.data.activity_logs, o => {
+                        dispatch({ type: "ADD_ACTIVITYLOG", activity_log: o });
+                    });
+                }
             } else {
                 const currentDocumentlist = task.Selected.tag_task;
                 dispatch({
