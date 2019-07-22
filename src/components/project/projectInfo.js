@@ -20,9 +20,11 @@ export default class ProjectInfo extends React.Component {
             this[fn] = this[fn].bind(this);
         });
     }
+
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
     }
 
     componentDidMount() {

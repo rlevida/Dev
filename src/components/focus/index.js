@@ -10,18 +10,13 @@ let keyTimer = "";
     return {
         loggedUser,
         starred
-    }
+    };
 })
 export default class Component extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map([
-            "fetchData",
-            "renderList",
-            "removeStarred",
-            "getNextResult"
-        ], (fn) => {
+        _.map(["fetchData", "renderList", "removeStarred", "getNextResult"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -49,7 +44,7 @@ export default class Component extends React.Component {
         const reqUrl = `/api/starred?page=${page}&userId=${loggedUser.data.id}&isActive=1&type=${type}&projectId=${projectId}`;
 
         dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
-        getData(reqUrl, {}, (c) => {
+        getData(reqUrl, {}, c => {
             if (c.status == 200) {
                 const { result, count } = c.data;
                 dispatch({ type: "UPDATE_DATA_STARRED_LIST", List: result, count: { ...Count, [type]: count } });
@@ -64,9 +59,11 @@ export default class Component extends React.Component {
         const { starred, dispatch } = { ...this.props };
         const { List } = starred;
 
-        postData(`/api/starred/`, { id }, (c) => {
+        postData(`/api/starred/`, { id }, c => {
             if (c.status == 200) {
-                const updatedList = _.remove(List, (listObj) => { return listObj.id != id });
+                const updatedList = _.remove(List, listObj => {
+                    return listObj.id != id;
+                });
                 dispatch({ type: "SET_STARRED_LIST", list: updatedList });
                 showToast("success", `Item successfully removed.`);
             } else {
@@ -81,61 +78,60 @@ export default class Component extends React.Component {
                 <div class="action-link">
                     <a class="mr10" onClick={() => this.removeStarred(id)}>
                         <span>
-                            <i title="FAVORITE" class="fa fa-star text-yellow" aria-hidden="true"></i>
+                            <i title="FAVORITE" class="fa fa-star text-yellow" aria-hidden="true" />
                         </span>
                     </a>
                     <div>
                         <a href="javascript:void(0)" class="mb0 title" onClick={() => this.renderStarred(obj)}>
-                            {title.substring(0, 30)}{(title.length > 30) ? "..." : ""}
+                            {title.substring(0, 30)}
+                            {title.length > 30 ? "..." : ""}
                         </a>
-                        {
-                            (workstream != "") && <p class="m0 note">{workstream}</p>
-                        }
+                        {workstream != "" && <p class="m0 note">{workstream}</p>}
                     </div>
                 </div>
             </div>
-        )
+        );
     }
     renderStarred(obj) {
         switch (obj.linkType) {
-            case 'task':
+            case "task":
                 this.openTaskDetails(obj.linkId);
                 break;
-            case 'document':
+            case "document":
                 this.openFileViewer(obj);
-                break
-            case 'notes':
+                break;
+            case "notes":
                 this.openNotes(obj);
-                break
+                break;
         }
     }
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
 
-        getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, (c) => {
+        getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, c => {
             if (c.status == 200) {
                 const { data } = c;
                 dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
             }
         });
 
-        getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${id}`, {}, (c) => {
+        getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${id}`, {}, c => {
             if (c.status == 200) {
                 const { data } = c;
                 dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
             }
         });
 
-        getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, c => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                $(`#task-details`).modal('show');
+                $(`#task-details`).modal("show");
             }
         });
 
-        getData(`/api/taskTimeLogs?taskId=${id}&page=1`, {}, (c) => {
+        getData(`/api/taskTimeLogs?taskId=${id}&page=1`, {}, c => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASKTIMELOG_LIST", list: c.data.result, count: c.data.count });
                 dispatch({ type: "SET_TOTAL_HOURS", total: c.data.total_hours });
@@ -144,16 +140,16 @@ export default class Component extends React.Component {
     }
     openFileViewer({ document, linkId }) {
         const { dispatch } = { ...this.props };
-        $(`#documentViewerModal`).modal('show');
-        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, (c) => {
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...document, isStarred: 1 } });
-            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
-        })
+        $(`#documentViewerModal`).modal("show");
+        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, c => {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document, isStarred: 1 } });
+            dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+        });
     }
     openNotes(obj) {
         const { history, project_id } = { ...this.props };
-        history.push(`/projects/${project_id}/messages?note-id=${obj.linkId}`)
+        history.push(`/projects/${project_id}/messages?note-id=${obj.linkId}`);
     }
     getNextResult() {
         const { starred, type = "", project_id } = { ...this.props };
@@ -161,32 +157,24 @@ export default class Component extends React.Component {
     }
     render() {
         const { starred, type = "", label = "" } = { ...this.props };
-        const starredList = _.filter(starred.List, (o) => { return o.type == type });
-        const currentPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].current_page : 1;
-        const lastPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].last_page : 1;
+        const starredList = _.filter(starred.List, o => {
+            return o.type == type;
+        });
+        const currentPage = typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false ? starred.Count[type].current_page : 1;
+        const lastPage = typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false ? starred.Count[type].last_page : 1;
         return (
             <div>
-                <h5 class="mt0"><strong>{`${label}`}</strong></h5>
-                <div class={((starred.Loading[type] == "RETRIEVING" || _.isEmpty(starred.Loading)) && starredList.length == 0) ? "linear-background" : ""}>
-                    {
-                        _.map(starredList, (o, index) => {
-                            return (
-                                <div key={index}>
-                                    {
-                                        this.renderList(o)
-                                    }
-                                </div>
-                            )
-                        })
-                    }
+                <h5 class="mt0">
+                    <strong>{`${label}`}</strong>
+                </h5>
+                <div class={(starred.Loading[type] == "RETRIEVING" || _.isEmpty(starred.Loading)) && starredList.length == 0 ? "linear-background" : ""}>
+                    {_.map(starredList, (o, index) => {
+                        return <div key={index}>{this.renderList(o)}</div>;
+                    })}
                 </div>
-                {
-                    (currentPage != lastPage && starred.Loading[type] != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More</a>
-                }
-                {
-                    (starredList.length == 0 && starred.Loading[type] != "RETRIEVING") && <p>No Records Found</p>
-                }
+                {currentPage != lastPage && starred.Loading[type] != "RETRIEVING" && <a onClick={() => this.getNextResult()}>Load More</a>}
+                {starredList.length == 0 && starred.Loading[type] != "RETRIEVING" && <p>No Records Found</p>}
             </div>
-        )
+        );
     }
 }
