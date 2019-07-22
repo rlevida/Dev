@@ -672,7 +672,7 @@ export default class TaskForm extends React.Component {
                                         </div>
                                     </div>
                                     <div class="col-lg-4 md-12 col-sm-12">
-                                        <div>
+                                        <div class={loggedUser.data.userType === "External" ? "pointer-none" : ""}>
                                             <label class="custom-checkbox">
                                                 Needs Approval
                                                 <input
@@ -725,7 +725,7 @@ export default class TaskForm extends React.Component {
                                                 </div>
                                             </div>
                                         )}
-                                        <div class={typeof task.Selected.id != "undefined" && task.Selected.id != "" ? "pointer-none" : ""}>
+                                        <div class={(typeof task.Selected.id != "undefined" && task.Selected.id != "") || loggedUser.data.userType === "External" ? "pointer-none" : ""}>
                                             <label class="custom-checkbox">
                                                 Recurring Task
                                                 <input
@@ -739,7 +739,7 @@ export default class TaskForm extends React.Component {
                                                 <span class="checkmark" />
                                             </label>
                                         </div>
-                                        <div>
+                                        <div class={loggedUser.data.userType === "External" ? "pointer-none" : ""}>
                                             {typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "" && (
                                                 <div>
                                                     <div class="row">
@@ -766,7 +766,7 @@ export default class TaskForm extends React.Component {
                                                 </div>
                                             )}
                                             {typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "" && (
-                                                <div>
+                                                <div class={loggedUser.data.userType === "External" ? "pointer-none" : ""}>
                                                     <div class="row">
                                                         <div class="col-lg-8 md-8 col-sm-8">
                                                             <div class="form-group">
