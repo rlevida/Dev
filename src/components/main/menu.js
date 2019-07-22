@@ -16,11 +16,10 @@ class Component extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map(["handleLogout", "handleProjectCategory"], fn => {
+        _.map(["handleLogout", "handleFetchProjectCategory"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
-
     handleLogout() {
         const { loggedUser } = this.props;
         deleteData(`/api/login/${loggedUser.data.id}`, {}, c => {
@@ -30,7 +29,6 @@ class Component extends React.Component {
             showToast("success", "Successfully logout.");
         });
     }
-
     componentDidUpdate() {
         const { dispatch, project } = { ...this.props };
         if (typeof project.Selected.id && project.Category.Active === "") {
@@ -62,37 +60,13 @@ class Component extends React.Component {
             }
         }
     }
-
     componentDidMount() {
         $(document).on("click", ".dropdown-menu-wrapper", function(e) {
             if ($(this).hasClass("keep-open-on-click")) {
                 e.stopPropagation();
             }
         });
-        _.map(
-            [
-                {
-                    category: "Client",
-                    page: 1,
-                    typeId: 1
-                },
-                {
-                    category: "Internal",
-                    page: 1,
-                    typeId: 2
-                },
-                {
-                    category: "Private",
-                    page: 1,
-                    typeId: 3
-                }
-            ],
-            o => {
-                this.handleProjectCategory(o);
-            }
-        );
     }
-
     onClick(e, category) {
         const { dispatch, history } = { ...this.props };
 
@@ -101,23 +75,24 @@ class Component extends React.Component {
             dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category });
         }
     }
-
-    handleProjectCategory({ category, page }) {
+    handleFetchProjectCategory({ category, page, initialLoad }) {
         const { loggedUser, dispatch, project } = { ...this.props };
-        const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false&userRole=${loggedUser.data.userRole}`;
-        let typeId = 0;
-        if (category === "Client") {
-            typeId = 1;
-        } else if (category === "Internal") {
-            typeId = 2;
-        } else if (category === "Private") {
-            typeId = 3;
-        }
-        dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
 
-        getData(`${requestUrl}&typeId=${typeId}&page=${page}`, {}, c => {
-            dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
-        });
+        if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
+            const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false&userRole=${loggedUser.data.userRole}`;
+            let typeId = 0;
+            if (category === "Client") {
+                typeId = 1;
+            } else if (category === "Internal") {
+                typeId = 2;
+            } else if (category === "Private") {
+                typeId = 3;
+            }
+            dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
+            getData(`${requestUrl}&typeId=${typeId}&page=${page}`, {}, c => {
+                dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
+            });
+        }
     }
     render() {
         const { pages, current_page = "", project, loggedUser } = { ...this.props };
@@ -142,57 +117,56 @@ class Component extends React.Component {
                                         {_.map(["Client", "Internal", "Private"], (o, index) => {
                                             const currentPage = typeof project.Category[o].count.current_page != "undefined" ? project.Category[o].count.current_page : 1;
                                             const lastPage = typeof project.Category[o].count.last_page != "undefined" ? project.Category[o].count.last_page : 1;
-
                                             return (
                                                 <div key={index}>
-                                                    {project.Category[o].list.length > 0 && (
-                                                        <div class="dropdown project-menu-category">
-                                                            <ul class="dropdown-menu-wrapper keep-open-on-click">
-                                                                <li class="dropdown-toggle" type="button" data-toggle="dropdown">
-                                                                    <a href="javascript:void(0)">
-                                                                        <i class="fa fa-caret-right mr20" />
-                                                                        {o}
-                                                                    </a>
-                                                                </li>
-                                                                <ul class="dropdown-menu ml20 mb0">
-                                                                    {_.map(project.Category[o].list, (e, i) => {
-                                                                        return (
-                                                                            <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
-                                                                                <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50">
-                                                                                    <span>
-                                                                                        <i class="fa fa-square mr10" style={{ color: e.color }} />
-                                                                                    </span>
-                                                                                    {e.project}
-                                                                                </a>
-                                                                            </li>
-                                                                        );
-                                                                    })}
-                                                                    {currentPage != lastPage && project.Category[o].loading == "" && (
-                                                                        <li>
-                                                                            <a
-                                                                                href="javascript:void(0)"
-                                                                                class="ml50 pdl5 notes"
-                                                                                onClick={e => {
-                                                                                    this.handleProjectCategory({
-                                                                                        category: o,
-                                                                                        page: currentPage + 1
-                                                                                    });
-                                                                                    e.stopPropagation();
-                                                                                }}
-                                                                            >
-                                                                                Load More
+                                                    <div class="dropdown project-menu-category">
+                                                        <ul class="dropdown-menu-wrapper keep-open-on-click">
+                                                            <li class="dropdown-toggle" type="button" data-toggle="dropdown">
+                                                                <a href="javascript:void(0)" onClick={() => this.handleFetchProjectCategory({ category: o, page: 1, initialLoad: true })}>
+                                                                    <i class="fa fa-caret-right mr20" />
+                                                                    {o}
+                                                                </a>
+                                                            </li>
+                                                            <ul class="dropdown-menu ml20 mb0">
+                                                                {_.map(project.Category[o].list, (e, i) => {
+                                                                    return (
+                                                                        <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
+                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50">
+                                                                                <span>
+                                                                                    <i class="fa fa-square mr10" style={{ color: e.color }} />
+                                                                                </span>
+                                                                                {e.project}
                                                                             </a>
                                                                         </li>
-                                                                    )}
-                                                                    {project.Category[o].loading == "RETRIEVING" && (
-                                                                        <p class="text-center m0 text-white">
-                                                                            <i class="fa fa-circle-o-notch fa-spin fa-fw" />
-                                                                        </p>
-                                                                    )}
-                                                                </ul>
+                                                                    );
+                                                                })}
+                                                                {currentPage != lastPage && project.Category[o].loading == "" && (
+                                                                    <li>
+                                                                        <a
+                                                                            href="javascript:void(0)"
+                                                                            class="ml50 pdl5 notes"
+                                                                            onClick={e => {
+                                                                                this.handleFetchProjectCategory({
+                                                                                    category: o,
+                                                                                    page: currentPage + 1,
+                                                                                    initialLoad: false
+                                                                                });
+                                                                                e.stopPropagation();
+                                                                            }}
+                                                                        >
+                                                                            Load More
+                                                                        </a>
+                                                                    </li>
+                                                                )}
+                                                                {project.Category[o].loading == "RETRIEVING" && (
+                                                                    <p class="text-center m0 text-white">
+                                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw" />
+                                                                    </p>
+                                                                )}
                                                             </ul>
-                                                        </div>
-                                                    )}
+                                                        </ul>
+                                                    </div>
+                                                    {/* )} */}
                                                 </div>
                                             );
                                         })}
