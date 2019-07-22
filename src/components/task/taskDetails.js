@@ -781,15 +781,17 @@ export default class TaskDetails extends React.Component {
                                                             <i title="EDIT" class="fa fa-pencil" aria-hidden="true" />
                                                         </a>
                                                     )}
-                                                    <a
-                                                        data-dismiss="modal"
-                                                        onClick={() => {
-                                                            $(`#delete-task`).modal("show");
-                                                        }}
-                                                        class="logo-action text-grey"
-                                                    >
-                                                        <i title="DELETE" class="fa fa-trash-o" aria-hidden="true" />
-                                                    </a>
+                                                    {loggedUser.data.userType !== "External" && (
+                                                        <a
+                                                            data-dismiss="modal"
+                                                            onClick={() => {
+                                                                $(`#delete-task`).modal("show");
+                                                            }}
+                                                            class="logo-action text-grey"
+                                                        >
+                                                            <i title="DELETE" class="fa fa-trash-o" aria-hidden="true" />
+                                                        </a>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
