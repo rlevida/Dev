@@ -89,7 +89,7 @@ class Component extends React.Component {
                 typeId = 3;
             }
             dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
-            getData(`${requestUrl}&typeId=${typeId}&page=${page}`, {}, c => {
+            getData(`${requestUrl}&typeId=${typeId}&page=${page}&projectStatus=Active`, {}, c => {
                 dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
             });
         }
