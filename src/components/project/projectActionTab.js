@@ -29,9 +29,9 @@ export default class ProjectActionTab extends React.Component {
 
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
-
+            console.log(projectStatus);
             if (projectStatus == "In Active") {
-                fetchUrl += `&isActive=0`;
+                fetchUrl += `&projectStatus=${projectStatus}`;
             } else if (projectStatus != "Archived") {
                 fetchUrl += `&projectStatus=${projectStatus}&isActive=1&isActive=0`;
             } else if (projectStatus == "Archived") {

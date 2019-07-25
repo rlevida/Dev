@@ -138,7 +138,6 @@ exports.get = {
             ...(typeof queryString.id != "undefined" && queryString.id != "" ? { id: queryString.id.split(",") } : {}),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : { isActive: 1 }),
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: queryString.typeId } : {}),
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.project != "undefined" && queryString.project != ""
@@ -215,6 +214,9 @@ exports.get = {
                     break;
                 case "Active":
                     whereObj["isActive"] = 1;
+                    break;
+                case "In Active":
+                    whereObj["isActive"] = 0;
                     break;
                 case "On Time":
                     whereObj["id"] = {
