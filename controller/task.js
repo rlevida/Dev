@@ -98,6 +98,18 @@ const associationStack = [
         ]
     },
     {
+        model: TaskDependency,
+        as: "task_preceding",
+        required: false,
+        where: { isDeleted: 0 },
+        include: [
+            {
+                model: Tasks,
+                as: "pre_task"
+            }
+        ]
+    },
+    {
         model: Starred,
         as: "task_starred",
         where: { linkType: "task", isActive: 1 },

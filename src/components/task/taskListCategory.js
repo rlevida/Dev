@@ -57,10 +57,34 @@ export default class TaskListCategory extends React.Component {
         const { id, status, periodic, periodTask, approvalRequired } = { ...selectedTask };
         const { dispatch, loggedUser, task } = { ...this.props };
         const taskStatus = status == "Completed" && approvalRequired == 0 ? "In Progress" : status == "Completed" && approvalRequired == 1 ? "For Approval" : "Completed";
-
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD HH:mm:ss") }, c => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                const list = task.List.map(e => {
+                    if (e.task_dependency.length > 0 && e.id !== c.data.task[0].id) {
+                        const taskDependency = e.task_dependency.map(f => {
+                            if (f.task.id === c.data.task[0].id) {
+                                return { ...f, task: c.data.task[0] };
+                            } else {
+                                return f;
+                            }
+                        });
+                        return { ...e, task_dependency: taskDependency };
+                    } else if (e.task_preceding.length > 0 && e.id !== c.data.task[0].id) {
+                        const taskPreceding = e.task_preceding.map(f => {
+                            if (f.pre_task.id === c.data.task[0].id) {
+                                return { ...f, pre_task: c.data.task[0] };
+                            } else {
+                                return f;
+                            }
+                        });
+                        return { ...e, task_preceding: taskPreceding };
+                    } else if (e.id === c.data.task[0].id) {
+                        return { ...c.data.task[0] };
+                    } else {
+                        return e;
+                    }
+                });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: list });
                 showToast("success", "Task successfully updated.");
                 if (taskStatus === "Completed") {
                     dispatch({ type: "DELETE_TASK_TIMELINE", id: selectedTask.id });
@@ -195,7 +219,7 @@ export default class TaskListCategory extends React.Component {
     }
 
     renderRow(taskData) {
-        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId } = { ...taskData };
+        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -211,6 +235,22 @@ export default class TaskListCategory extends React.Component {
 
         const isDefaultAssigned = task_members.filter(e => {
             return e.user.username === "default";
+        });
+
+        const succeedingList = task_dependency.filter(e => {
+            return e.dependencyType === "Succeeding";
+        });
+
+        const succeedingCompleted = task_dependency.filter(e => {
+            return e.dependencyType === "Succeeding" && e.task.status === "Completed";
+        });
+
+        const precedingList = task_preceding.filter(e => {
+            return e.dependencyType === "Preceded by";
+        });
+
+        const precedingCompleted = task_preceding.filter(e => {
+            return e.dependencyType === "Preceded by" && e.pre_task.status === "Completed";
         });
 
         return (
@@ -229,7 +269,9 @@ export default class TaskListCategory extends React.Component {
                                 (loggedUser.data.userRole >= 4 && project.type.type == "Internal" && assigned.user.user_role[0].roleId == 4)) &&
                             approvalRequired == 0) ||
                             (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)) &&
-                            isDefaultAssigned.length === 0 && (
+                            isDefaultAssigned.length === 0 &&
+                            succeedingList.length === succeedingCompleted.length &&
+                            precedingList.length === precedingCompleted.length && (
                                 <a onClick={() => this.completeTask(taskData)}>
                                     <span class={`fa mr10 ${status != "Completed" ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete" />
                                 </a>
