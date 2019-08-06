@@ -216,14 +216,14 @@ export default class ProjectForm extends React.Component {
         const { Selected } = project;
         let data = new FormData();
 
-        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: "Loading" });
+        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
         _.map(document.Files, file => {
             data.append("file", file);
             data.append("project_id", project.Selected.id);
         });
 
         postData(`/api/project/upload`, data, c => {
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "Loading" });
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
             dispatch({ type: "SET_DOCUMENT_FILES", Files: "" });
             dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...Selected, picture: c.data } });
             showToast("success", "Project picture successfully uploaded.");

@@ -18,6 +18,9 @@ import _ from "lodash";
 class DocumentList extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            loading: false
+        };
         this.fetchData = this.fetchData.bind(this);
     }
 
@@ -25,7 +28,7 @@ class DocumentList extends React.Component {
         const { dispatch, fetchWorkstreamDocument, match, document } = { ...this.props };
         const projectId = match.params.projectId;
 
-        if (match.url === `/projects/${projectId}/files` || match.url === `/projects/${projectId}`) {
+        if (match.url === `/projects/${projectId}/files` || (match.url === `/projects/${projectId}` && !getParameterByName("folder-id"))) {
             if (document.List.length === 0) {
                 this.fetchData(1);
             }
@@ -42,6 +45,15 @@ class DocumentList extends React.Component {
                     dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: documentObj });
                     $(`#documentViewerModal`).modal("show");
                 });
+            });
+        }
+
+        if (getParameterByName("folder-id")) {
+            const folderId = getParameterByName("folder-id");
+            getData(`/api/document/detail/${folderId}`, {}, ret => {
+                const documentObj = { ...ret.data };
+                dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", active: "library" });
+                this.viewDocument(documentObj);
             });
         }
     }
@@ -93,9 +105,9 @@ class DocumentList extends React.Component {
 
         if (data === "") {
             dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-            await dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
-            await dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
-            await this.fetchData(1);
+            dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
+            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            this.fetchData(1);
         } else if (folder.Selected.id !== data.id) {
             getData(
                 `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
@@ -235,7 +247,7 @@ class DocumentList extends React.Component {
                     const { result, count } = { ...c.data };
                     if (c.status == 200) {
                         dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
-                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "NewDocumentLoading" });
+                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
                         dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
                         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
                         this.fetchFolderSelectList(data.id);
@@ -299,11 +311,6 @@ class DocumentList extends React.Component {
                 }
             }
         );
-    }
-
-    createFolder() {
-        const { dispatch, folder } = { ...this.props };
-        dispatch({ type: "SET_SELECTED_FOLDER", Selected: { folderId: folder.Selected.id } });
     }
 
     downloadDocument(data) {
@@ -639,11 +646,6 @@ class DocumentList extends React.Component {
                                         </p>
                                     )}
                                     {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
-                                    {document.List.length === 0 && document.Loading != "RETRIEVING" && (
-                                        <p class="mb0 text-center">
-                                            <strong>No Records Found</strong>
-                                        </p>
-                                    )}
                                 </div>
                             </div>
                         </div>

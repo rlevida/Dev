@@ -42,7 +42,7 @@ export default class List extends React.Component {
             {},
             c => {
                 dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: "List", Count: c.data.count, CountType: "Count" });
-                dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "Loading" });
+                dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
             }
         );
     }

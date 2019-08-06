@@ -312,7 +312,7 @@ export default class ProjectDashboard extends React.Component {
                                         <Focus type={"notes"} label={"Messages"} project_id={projectId} history={history} />
                                     </div>
                                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                        <Focus type={"document"} label={"Documents"} project_id={projectId} />
+                                        <Focus type={"document"} label={"Documents"} project_id={projectId} history={history} />
                                     </div>
                                 </div>
                             </div>

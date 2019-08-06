@@ -85,7 +85,7 @@ class TaskActiveFile extends React.Component {
                     const { result, count } = { ...c.data };
                     if (c.status == 200) {
                         dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
-                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: "NewDocumentLoading" });
+                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
                         dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
                         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
                         this.fetchFolderSelectList(data.id);
