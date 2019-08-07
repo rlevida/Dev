@@ -193,6 +193,35 @@ exports.get = {
                 as: "type",
                 required: false,
                 attributes: ["type"]
+            },
+            {
+                model: Workstream,
+                as: "workstream",
+                include: [
+                    {
+                        model: Tasks,
+                        as: "taskDueToday",
+                        where: {
+                            dueDate: moment.utc().format("YYYY-MM-DD"),
+                            status: "In Progress",
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    },
+                    {
+                        model: Tasks,
+                        as: "taskOverDue",
+                        where: {
+                            dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
+                            status: "In Progress",
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
             }
         ];
         const queryString = req.query;
