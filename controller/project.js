@@ -25,9 +25,11 @@ const associationFindAllStack = [
                     folderId: null,
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Type,
@@ -38,7 +40,8 @@ const associationFindAllStack = [
     {
         model: Users,
         as: "creator",
-        required: true
+        required: true,
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -51,9 +54,11 @@ const associationFindAllStack = [
             {
                 model: Users,
                 as: "user",
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -63,7 +68,8 @@ const associationFindAllStack = [
             linkType: "project",
             isDeleted: 0
         },
-        required: false
+        required: false,
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -90,11 +96,14 @@ const associationFindAllStack = [
                                 as: "user",
                                 required: false
                             }
-                        ]
+                        ],
+                        attributes: ["id"]
                     }
-                ]
+                ],
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Workstream,
@@ -108,7 +117,8 @@ const associationFindAllStack = [
                     status: "In Progress",
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             },
             {
                 model: Tasks,
@@ -118,15 +128,73 @@ const associationFindAllStack = [
                     status: "In Progress",
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     }
 ];
 
 exports.get = {
     index: async (req, cb) => {
-        const associationArray = _.cloneDeep(associationFindAllStack);
+        const associationArray = [
+            {
+                model: DocumentLink,
+                as: "document_link",
+                where: {
+                    linkType: "project"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Document,
+                        as: "document",
+                        where: {
+                            folderId: null,
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            },
+            {
+                model: Members,
+                as: "members",
+                where: {
+                    usersType: "users",
+                    linkType: "project",
+                    isDeleted: 0
+                },
+                required: false,
+                attributes: ["userTypeLinkId"]
+            },
+            {
+                model: Members,
+                as: "projectManager",
+                where: {
+                    memberType: "project manager"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            },
+            {
+                model: Type,
+                as: "type",
+                required: false,
+                attributes: ["type"]
+            }
+        ];
         const queryString = req.query;
         const limit = 5;
         const options = {
