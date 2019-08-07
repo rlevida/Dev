@@ -79,7 +79,7 @@ class Component extends React.Component {
         const { loggedUser, dispatch, project } = { ...this.props };
 
         if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
-            const requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false&userRole=${loggedUser.data.userRole}`;
+            const requestUrl = `/api/project/getByType?userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
             let typeId = 0;
             if (category === "Client") {
                 typeId = 1;
@@ -89,7 +89,7 @@ class Component extends React.Component {
                 typeId = 3;
             }
             dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
-            getData(`${requestUrl}&typeId=${typeId}&page=${page}&projectStatus=Active`, {}, c => {
+            getData(`${requestUrl}&typeId=${typeId}&page=${page}&isActive=1`, {}, c => {
                 dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
             });
         }
@@ -140,6 +140,13 @@ class Component extends React.Component {
                                                                         </li>
                                                                     );
                                                                 })}
+                                                                {project.Category[o].list.length === 0 && project.Category[o].loading == "" && (
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" class="ml50">
+                                                                            No Records Found
+                                                                        </a>
+                                                                    </li>
+                                                                )}
                                                                 {currentPage != lastPage && project.Category[o].loading == "" && (
                                                                     <li>
                                                                         <a

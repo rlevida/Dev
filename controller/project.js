@@ -592,6 +592,107 @@ exports.get = {
             cb({ status: false, error: err });
         }
     },
+    getByType: async (req, cb) => {
+        const queryString = req.query;
+        const limit = 5;
+        const options = {
+            include: [
+                {
+                    model: Type,
+                    as: "type",
+                    required: false,
+                    attributes: ["type"]
+                }
+            ],
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {})
+        };
+        const whereObj = {
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
+        };
+        const userTeam = await UsersTeam.findAll({
+            where: {
+                usersId: queryString.userId
+            }
+        }).map(res => {
+            return res.toJSON();
+        });
+        const projectMembers = await Members.findAll({
+            where: {
+                [Op.or]: [
+                    {
+                        usersType: "users",
+                        userTypeLinkId: queryString.userId,
+                        linkType: "project"
+                    },
+                    {
+                        usersType: "team",
+                        userTypeLinkId: _.map(userTeam, o => {
+                            return o.teamId;
+                        }),
+                        linkType: "project"
+                    }
+                ]
+            }
+        }).map(res => {
+            return res.toJSON();
+        });
+
+        if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
+            whereObj["typeId"] = 1;
+        }
+
+        whereObj[Sequelize.Op.or] = [
+            {
+                id: _(projectMembers)
+                    .uniqBy("linkId")
+                    .map(o => {
+                        return o.linkId;
+                    })
+                    .value()
+            },
+            {
+                createdBy: queryString.userId
+            }
+        ];
+
+        async.parallel(
+            {
+                count: function(callback) {
+                    try {
+                        Projects.findAndCountAll({ where: whereObj }).then(response => {
+                            const pageData = {
+                                total_count: response.count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? parseInt(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
+                            };
+                            callback(null, pageData);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                },
+                result: function(callback) {
+                    try {
+                        Projects.findAll({
+                            ...options,
+                            where: whereObj
+                        }).then(res => {
+                            callback(null, res);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                }
+            },
+            (err, results) => {
+                if (err) {
+                    cb({ status: false, message: "Something went wrong." });
+                } else {
+                    cb({ status: true, data: { ...results } });
+                }
+            }
+        );
+    },
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;
 
