@@ -725,7 +725,7 @@ export default class TaskForm extends React.Component {
                                                 </div>
                                             </div>
                                         )}
-                                        <div class={(typeof task.Selected.id != "undefined" && task.Selected.id != "") || loggedUser.data.userType === "External" ? "pointer-none" : ""}>
+                                        <div class={loggedUser.data.userType === "External" ? "pointer-none" : ""}>
                                             <label class="custom-checkbox">
                                                 Recurring Task
                                                 <input

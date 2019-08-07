@@ -59,32 +59,36 @@ export default class TaskListCategory extends React.Component {
         const taskStatus = status == "Completed" && approvalRequired == 0 ? "In Progress" : status == "Completed" && approvalRequired == 1 ? "For Approval" : "Completed";
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD HH:mm:ss") }, c => {
             if (c.status == 200) {
-                const list = task.List.map(e => {
-                    if (e.task_dependency.length > 0 && e.id !== c.data.task[0].id) {
-                        const taskDependency = e.task_dependency.map(f => {
-                            if (f.task.id === c.data.task[0].id) {
-                                return { ...f, task: c.data.task[0] };
-                            } else {
-                                return f;
-                            }
-                        });
-                        return { ...e, task_dependency: taskDependency };
-                    } else if (e.task_preceding.length > 0 && e.id !== c.data.task[0].id) {
-                        const taskPreceding = e.task_preceding.map(f => {
-                            if (f.pre_task.id === c.data.task[0].id) {
-                                return { ...f, pre_task: c.data.task[0] };
-                            } else {
-                                return f;
-                            }
-                        });
-                        return { ...e, task_preceding: taskPreceding };
-                    } else if (e.id === c.data.task[0].id) {
-                        return { ...c.data.task[0] };
-                    } else {
-                        return e;
-                    }
-                });
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: list });
+                if (periodic) {
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                } else {
+                    const list = task.List.map(e => {
+                        if (e.task_dependency.length > 0 && e.id !== c.data.task[0].id) {
+                            const taskDependency = e.task_dependency.map(f => {
+                                if (f.task.id === c.data.task[0].id) {
+                                    return { ...f, task: c.data.task[0] };
+                                } else {
+                                    return f;
+                                }
+                            });
+                            return { ...e, task_dependency: taskDependency };
+                        } else if (e.task_preceding.length > 0 && e.id !== c.data.task[0].id) {
+                            const taskPreceding = e.task_preceding.map(f => {
+                                if (f.pre_task.id === c.data.task[0].id) {
+                                    return { ...f, pre_task: c.data.task[0] };
+                                } else {
+                                    return f;
+                                }
+                            });
+                            return { ...e, task_preceding: taskPreceding };
+                        } else if (e.id === c.data.task[0].id) {
+                            return { ...c.data.task[0] };
+                        } else {
+                            return e;
+                        }
+                    });
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: list });
+                }
                 showToast("success", "Task successfully updated.");
                 if (taskStatus === "Completed") {
                     dispatch({ type: "DELETE_TASK_TIMELINE", id: selectedTask.id });
