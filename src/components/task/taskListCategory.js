@@ -242,19 +242,19 @@ export default class TaskListCategory extends React.Component {
         });
 
         const succeedingList = task_dependency.filter(e => {
-            return e.dependencyType === "Succeeding";
-        });
-
-        const succeedingCompleted = task_dependency.filter(e => {
-            return e.dependencyType === "Succeeding" && e.task.status === "Completed";
-        });
-
-        const precedingList = task_preceding.filter(e => {
             return e.dependencyType === "Preceded by";
         });
 
+        const succeedingCompleted = task_dependency.filter(e => {
+            return e.dependencyType === "Preceded by" && e.task.status === "Completed";
+        });
+
+        const precedingList = task_preceding.filter(e => {
+            return e.dependencyType === "Succeeding";
+        });
+
         const precedingCompleted = task_preceding.filter(e => {
-            return e.dependencyType === "Preceded by" && e.pre_task.status === "Completed";
+            return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
         });
 
         return (
