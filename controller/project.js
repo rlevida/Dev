@@ -25,9 +25,11 @@ const associationFindAllStack = [
                     folderId: null,
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Type,
@@ -38,7 +40,8 @@ const associationFindAllStack = [
     {
         model: Users,
         as: "creator",
-        required: true
+        required: true,
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -51,9 +54,11 @@ const associationFindAllStack = [
             {
                 model: Users,
                 as: "user",
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -63,7 +68,8 @@ const associationFindAllStack = [
             linkType: "project",
             isDeleted: 0
         },
-        required: false
+        required: false,
+        attributes: ["id"]
     },
     {
         model: Members,
@@ -90,11 +96,14 @@ const associationFindAllStack = [
                                 as: "user",
                                 required: false
                             }
-                        ]
+                        ],
+                        attributes: ["id"]
                     }
-                ]
+                ],
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     },
     {
         model: Workstream,
@@ -108,7 +117,8 @@ const associationFindAllStack = [
                     status: "In Progress",
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             },
             {
                 model: Tasks,
@@ -118,15 +128,102 @@ const associationFindAllStack = [
                     status: "In Progress",
                     isDeleted: 0
                 },
-                required: false
+                required: false,
+                attributes: ["id"]
             }
-        ]
+        ],
+        attributes: ["id"]
     }
 ];
 
 exports.get = {
     index: async (req, cb) => {
-        const associationArray = _.cloneDeep(associationFindAllStack);
+        const associationArray = [
+            {
+                model: DocumentLink,
+                as: "document_link",
+                where: {
+                    linkType: "project"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Document,
+                        as: "document",
+                        where: {
+                            folderId: null,
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            },
+            {
+                model: Members,
+                as: "members",
+                where: {
+                    usersType: "users",
+                    linkType: "project",
+                    isDeleted: 0
+                },
+                required: false,
+                attributes: ["userTypeLinkId"]
+            },
+            {
+                model: Members,
+                as: "projectManager",
+                where: {
+                    memberType: "project manager"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            },
+            {
+                model: Type,
+                as: "type",
+                required: false,
+                attributes: ["type"]
+            },
+            {
+                model: Workstream,
+                as: "workstream",
+                include: [
+                    {
+                        model: Tasks,
+                        as: "taskDueToday",
+                        where: {
+                            dueDate: moment.utc().format("YYYY-MM-DD"),
+                            status: "In Progress",
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    },
+                    {
+                        model: Tasks,
+                        as: "taskOverDue",
+                        where: {
+                            dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
+                            status: "In Progress",
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            }
+        ];
         const queryString = req.query;
         const limit = 5;
         const options = {
@@ -591,6 +688,110 @@ exports.get = {
         } catch (err) {
             cb({ status: false, error: err });
         }
+    },
+    getByType: async (req, cb) => {
+        const queryString = req.query;
+        const limit = 5;
+        const options = {
+            include: [
+                {
+                    model: Type,
+                    as: "type",
+                    required: false,
+                    attributes: ["type"]
+                }
+            ],
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {})
+        };
+        const whereObj = {
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
+        };
+
+        if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
+            const userTeam = await UsersTeam.findAll({
+                where: {
+                    usersId: queryString.userId
+                }
+            }).map(res => {
+                return res.toJSON();
+            });
+            const projectMembers = await Members.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            usersType: "users",
+                            userTypeLinkId: queryString.userId,
+                            linkType: "project"
+                        },
+                        {
+                            usersType: "team",
+                            userTypeLinkId: _.map(userTeam, o => {
+                                return o.teamId;
+                            }),
+                            linkType: "project"
+                        }
+                    ]
+                }
+            }).map(res => {
+                return res.toJSON();
+            });
+
+            if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
+                whereObj["typeId"] = 1;
+            }
+
+            whereObj[Sequelize.Op.or] = [
+                {
+                    id: _(projectMembers)
+                        .uniqBy("linkId")
+                        .map(o => {
+                            return o.linkId;
+                        })
+                        .value()
+                },
+                {
+                    createdBy: queryString.userId
+                }
+            ];
+        }
+
+        async.parallel(
+            {
+                count: function(callback) {
+                    try {
+                        Projects.findAndCountAll({ where: whereObj }).then(response => {
+                            const pageData = {
+                                total_count: response.count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? parseInt(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
+                            };
+                            callback(null, pageData);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                },
+                result: function(callback) {
+                    try {
+                        Projects.findAll({
+                            ...options,
+                            where: whereObj
+                        }).then(res => {
+                            callback(null, res);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                }
+            },
+            (err, results) => {
+                if (err) {
+                    cb({ status: false, message: "Something went wrong." });
+                } else {
+                    cb({ status: true, data: { ...results } });
+                }
+            }
+        );
     },
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;

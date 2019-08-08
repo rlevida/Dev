@@ -44,11 +44,9 @@ export default class List extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { dispatch, project } = { ...this.props };
-
         if (_.isEqual(prevProps.project.Filter, project.Filter) == false) {
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
-
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
                 this.fetchProject(1);
