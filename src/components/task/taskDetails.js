@@ -776,7 +776,7 @@ export default class TaskDetails extends React.Component {
                                                             <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true" />
                                                         </a>
                                                     )}
-                                                    {(status != "Completed" || loggedUser.data.userRole < 6) && (
+                                                    {(status != "Completed" || loggedUser.data.userRole < 6) && loggedUser.data.userType !== "External" && (
                                                         <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey">
                                                             <i title="EDIT" class="fa fa-pencil" aria-hidden="true" />
                                                         </a>
@@ -1140,7 +1140,7 @@ export default class TaskDetails extends React.Component {
                                                                                     </div>
                                                                                 )}
                                                                             </label>
-                                                                            {status != "Completed" && (
+                                                                            {status != "Completed" && loggedUser.data.userType !== "External" && (
                                                                                 <a href="javascript:void(0);" onClick={e => this.deleteSubtask(id)} class="btn btn-action flex-right">
                                                                                     <span class="fa fa-trash" />
                                                                                 </a>
