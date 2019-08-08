@@ -707,51 +707,54 @@ exports.get = {
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
         };
-        const userTeam = await UsersTeam.findAll({
-            where: {
-                usersId: queryString.userId
-            }
-        }).map(res => {
-            return res.toJSON();
-        });
-        const projectMembers = await Members.findAll({
-            where: {
-                [Op.or]: [
-                    {
-                        usersType: "users",
-                        userTypeLinkId: queryString.userId,
-                        linkType: "project"
-                    },
-                    {
-                        usersType: "team",
-                        userTypeLinkId: _.map(userTeam, o => {
-                            return o.teamId;
-                        }),
-                        linkType: "project"
-                    }
-                ]
-            }
-        }).map(res => {
-            return res.toJSON();
-        });
 
-        if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
-            whereObj["typeId"] = 1;
+        if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
+            const userTeam = await UsersTeam.findAll({
+                where: {
+                    usersId: queryString.userId
+                }
+            }).map(res => {
+                return res.toJSON();
+            });
+            const projectMembers = await Members.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            usersType: "users",
+                            userTypeLinkId: queryString.userId,
+                            linkType: "project"
+                        },
+                        {
+                            usersType: "team",
+                            userTypeLinkId: _.map(userTeam, o => {
+                                return o.teamId;
+                            }),
+                            linkType: "project"
+                        }
+                    ]
+                }
+            }).map(res => {
+                return res.toJSON();
+            });
+
+            if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
+                whereObj["typeId"] = 1;
+            }
+
+            whereObj[Sequelize.Op.or] = [
+                {
+                    id: _(projectMembers)
+                        .uniqBy("linkId")
+                        .map(o => {
+                            return o.linkId;
+                        })
+                        .value()
+                },
+                {
+                    createdBy: queryString.userId
+                }
+            ];
         }
-
-        whereObj[Sequelize.Op.or] = [
-            {
-                id: _(projectMembers)
-                    .uniqBy("linkId")
-                    .map(o => {
-                        return o.linkId;
-                    })
-                    .value()
-            },
-            {
-                createdBy: queryString.userId
-            }
-        ];
 
         async.parallel(
             {
