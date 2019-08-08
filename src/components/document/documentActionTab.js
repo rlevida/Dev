@@ -3,8 +3,7 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
 import { withRouter } from "react-router";
-import { getData, showToast, setDatePicker } from "../../globalFunction";
-
+import { getData, showToast, setDatePicker, getParameterByName } from "../../globalFunction";
 let delayTimer = "";
 let keyTimer = "";
 
@@ -154,8 +153,11 @@ class DocumentActionTab extends React.Component {
     }
 
     setDropDown(name) {
-        const { dispatch, document } = this.props;
+        const { dispatch, document, history } = this.props;
         if (_.isEqual(name, document.ActiveTab) == false) {
+            if (getParameterByName("folder-id")) {
+                history.replace(history.location.pathname);
+            }
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} });
             dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", active: name });

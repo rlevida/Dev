@@ -139,13 +139,17 @@ export default class Component extends React.Component {
         });
     }
     openFileViewer({ document, linkId }) {
-        const { dispatch } = { ...this.props };
-        $(`#documentViewerModal`).modal("show");
-        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, c => {
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document, isStarred: 1 } });
-            dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
-            dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
-        });
+        const { dispatch, history, project_id } = { ...this.props };
+        if (document.type === "document") {
+            $(`#documentViewerModal`).modal("show");
+            getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, c => {
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document, isStarred: 1 } });
+                dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+            });
+        } else {
+            history.push(`/projects/${project_id}/files?folder-id=${document.id}`);
+        }
     }
     openNotes(obj) {
         const { history, project_id } = { ...this.props };
@@ -162,6 +166,7 @@ export default class Component extends React.Component {
         });
         const currentPage = typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false ? starred.Count[type].current_page : 1;
         const lastPage = typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false ? starred.Count[type].last_page : 1;
+
         return (
             <div>
                 <h5 class="mt0">

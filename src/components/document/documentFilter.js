@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
 import { withRouter } from "react-router";
-import { getData, } from "../../globalFunction";
+import { getData } from "../../globalFunction";
 import { DropDown, Loading } from "../../globalComponents";
 
 import DatePicker from "react-datepicker";
@@ -12,7 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 let delayTimer = "";
 let keyTimer = "";
 
-@connect((store) => {
+@connect(store => {
     return {
         loggedUser: store.loggedUser,
         global: store.global,
@@ -20,13 +20,14 @@ let keyTimer = "";
         folder: store.folder,
         workstream: store.workstream,
         task: store.task
-    }
+    };
 })
-
 class DocumentFilter extends React.Component {
     constructor(props) {
         super(props);
-        _.map(["fetchWorkstreamList", "handleDropdown", "getWorkstreamList", "getTaskList", "setTaskList"], (fn) => { this[fn] = this[fn].bind(this) });
+        _.map(["fetchWorkstreamList", "handleDropdown", "getWorkstreamList", "getTaskList", "setTaskList"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     handleDropdown(name, value) {
@@ -48,15 +49,14 @@ class DocumentFilter extends React.Component {
         if (ActiveTab === "active") {
             requestUrl += `&folderId=null&type=document`;
         }
-        if (ActiveTab === 'library') {
+        if (ActiveTab === "library") {
             if (folder.Selected.id) {
-                requestUrl += `&folderId=${folder.Selected.id}`
+                requestUrl += `&folderId=${folder.Selected.id}`;
             } else if (!uploadFrom && !uploadTo && !uploadedBy && !tagWorkstream && !tagTask && !fileName) {
                 requestUrl += `&type=folder&folderId=null`;
             }
         }
 
-        
         if (uploadFrom && uploadTo) {
             requestUrl += `&uploadFrom=${moment(uploadFrom).format("YYYY-MM-DD")}&uploadTo=${moment(uploadTo).format("YYYY-MM-DD")}`;
         }
@@ -72,11 +72,10 @@ class DocumentFilter extends React.Component {
         if (fileName) {
             requestUrl += `&fileName=${fileName}`;
         }
-        getData(`${requestUrl}`, {}, (c) => {
-            const { result, count } = { ...c.data }
-            dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
-            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' })
-
+        getData(`${requestUrl}`, {}, c => {
+            const { result, count } = { ...c.data };
+            dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
         });
     }
 
@@ -96,9 +95,11 @@ class DocumentFilter extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&workstream=${options}`;
         }
-        getData(fetchUrl, {}, (c) => {
+        getData(fetchUrl, {}, c => {
             const workstreamOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.workstream } })
+                .map(e => {
+                    return { id: e.id, name: e.workstream };
+                })
                 .value();
             dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
@@ -121,9 +122,11 @@ class DocumentFilter extends React.Component {
             fetchUrl += `&task=${options}`;
         }
 
-        getData(fetchUrl, {}, (c) => {
+        getData(fetchUrl, {}, c => {
             const taskOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.task } })
+                .map(e => {
+                    return { id: e.id, name: e.task };
+                })
                 .value();
             dispatch({ type: "SET_TASK_SELECT_LIST", List: taskOptions });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
@@ -141,59 +144,59 @@ class DocumentFilter extends React.Component {
                             <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                                 <div class="flex-row tab-row mb0">
                                     <div class="flex-col">
-                                        <a class="btn btn-default" onClick={(e) => e.preventDefault()}>Filter</a>
+                                        <a class="btn btn-default" onClick={e => e.preventDefault()}>
+                                            Filter
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 col-sm-6 col-xs-12 pd0 ">
-                                {document.Loading === "" &&
+                                {document.Loading === "" && (
                                     <div class="button-action">
-                                        <input class="form-control mr10" type="text" value={fileName} onChange={(e) => this.handleDropdown('fileName', e.target.value)} placeholder="Search File Name"></input>
-                                        <a class="btn btn-default" onClick={() => this.handleFilter()}><i className="fa fa-search"></i></a>
+                                        <input class="form-control mr10" type="text" value={fileName} onChange={e => this.handleDropdown("fileName", e.target.value)} placeholder="Search File Name" />
+                                        <a class="btn btn-default" onClick={() => this.handleFilter()}>
+                                            <i className="fa fa-search" />
+                                        </a>
                                     </div>
-                                }
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}>
-                    {(document.Loading === "") &&
+                <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
+                    {document.Loading === "" && (
                         <div class="card-body m0">
                             <div class="row">
                                 <div class="col-lg-6 col-md-6 col-sm-6">
                                     <label> Upload date:</label>
                                     <div class="form-group input-inline">
                                         <div>
-                                            <label>
-                                                From
-                                            </label>
+                                            <label>From</label>
                                         </div>
                                         <div>
                                             <DatePicker
                                                 name="uploadFrom"
                                                 dateFormat="MMMM DD, YYYY"
                                                 onChange={date => {
-                                                    this.handleDropdown('uploadFrom', date);
+                                                    this.handleDropdown("uploadFrom", date);
                                                 }}
-                                                value={(moment(uploadFrom, 'MMMM DD, YYYY', true).isValid()) ? moment(uploadFrom).format('MMMM DD, YYYY') : ""}
+                                                value={moment(uploadFrom, "MMMM DD, YYYY", true).isValid() ? moment(uploadFrom).format("MMMM DD, YYYY") : ""}
                                                 placeholderText="Select valid upload date"
                                                 class="form-control"
                                                 selected={uploadFrom}
                                             />
                                         </div>
                                         <div class="ml10">
-                                            <label>
-                                                To
-                                            </label>
+                                            <label>To</label>
                                         </div>
                                         <div>
                                             <DatePicker
                                                 name="uploadTo"
                                                 dateFormat="MMMM DD, YYYY"
                                                 onChange={date => {
-                                                    this.handleDropdown('uploadTo', date);
+                                                    this.handleDropdown("uploadTo", date);
                                                 }}
-                                                value={(moment(uploadTo, 'MMMM DD, YYYY', true).isValid()) ? moment(uploadTo).format('MMMM DD, YYYY') : ""}
+                                                value={moment(uploadTo, "MMMM DD, YYYY", true).isValid() ? moment(uploadTo).format("MMMM DD, YYYY") : ""}
                                                 placeholderText="Select valid upload date"
                                                 class="form-control"
                                                 selected={uploadTo}
@@ -203,9 +206,8 @@ class DocumentFilter extends React.Component {
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-6">
                                     <label>User:</label>
-                                    <input class="form-control" type="text" name="uploadedBy" onChange={(e) => this.handleDropdown('uploadedBy', e.target.value)} value={uploadedBy || ""}></input>
+                                    <input class="form-control" type="text" name="uploadedBy" onChange={e => this.handleDropdown("uploadedBy", e.target.value)} value={uploadedBy || ""} />
                                 </div>
-
                             </div>
                             <div class="row">
                                 <div class="col-lg-6  col-md-6 col-sm-6">
@@ -217,8 +219,8 @@ class DocumentFilter extends React.Component {
                                         selected={tagWorkstream}
                                         loading={true}
                                         isClearable={true}
-                                        onChange={(e) => {
-                                            this.handleDropdown("tagWorkstream", (e == null) ? null : e.value);
+                                        onChange={e => {
+                                            this.handleDropdown("tagWorkstream", e == null ? null : e.value);
                                         }}
                                         required={true}
                                         disabled={Loading === "SUBMITTING" ? true : false}
@@ -233,21 +235,20 @@ class DocumentFilter extends React.Component {
                                         selected={tagTask}
                                         loading={true}
                                         isClearable={true}
-                                        onChange={(e) => {
-                                            this.handleDropdown("tagTask", (e == null) ? null : e.value);
+                                        onChange={e => {
+                                            this.handleDropdown("tagTask", e == null ? null : e.value);
                                         }}
                                         required={true}
-                                        disabled={(tagWorkstream && task.Loading === "") ? false : true}
+                                        disabled={tagWorkstream && task.Loading === "" ? false : true}
                                     />
                                 </div>
                             </div>
                         </div>
-                    }
+                    )}
                 </div>
             </div>
-        )
+        );
     }
 }
-
 
 export default withRouter(DocumentFilter);

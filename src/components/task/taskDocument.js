@@ -46,7 +46,7 @@ export default class TaskDocument extends React.Component {
         const { document, loggedUser, task, dispatch } = { ...this.props };
 
         let data = new FormData();
-        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: "Loading" });
+        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
         _.map(document.Files, file => {
             const checklist = typeof document.Selected.tagged != "undefined" ? document.Selected.tagged : [];
             data.append("file", file);
