@@ -40,8 +40,7 @@ export default class ProjectList extends React.Component {
 
     fetchProject() {
         const { dispatch, loggedUser } = this.props;
-        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1`;
-
+        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active`;
         getData(requestUrl, {}, c => {
             dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
