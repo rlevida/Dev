@@ -186,7 +186,7 @@ exports.get = {
                         attributes: ["id"]
                     }
                 ],
-                attributes: ["id"]
+                attributes: ["id", "userTypeLinkId"]
             },
             {
                 model: Type,
