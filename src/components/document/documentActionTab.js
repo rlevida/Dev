@@ -175,32 +175,32 @@ class DocumentActionTab extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "active" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("active")}>
+                                <a class={document.ActiveTab === "active" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("active")}>
                                     Active Files
                                 </a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "library" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("library")}>
+                                <a class={document.ActiveTab === "library" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("library")}>
                                     Library
                                 </a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "sort" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("sort")}>
+                                <a class={document.ActiveTab === "sort" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("sort")}>
                                     Sort Files
                                 </a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "trash" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("trash")}>
+                                <a class={document.ActiveTab === "trash" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("trash")}>
                                     Trash
                                 </a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "archived" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("archived")}>
+                                <a class={document.ActiveTab === "archived" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("archived")}>
                                     Archived
                                 </a>
                             </div>
                             <div class="flex-col">
-                                <a class={document.ActiveTab === "activities" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("activities")}>
+                                <a class={document.ActiveTab === "activities" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("activities")}>
                                     Activities
                                 </a>
                             </div>
