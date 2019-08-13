@@ -28,7 +28,7 @@ class DocumentActionTab extends React.Component {
         const { dispatch, loggedUser, folder, match, document } = { ...this.props };
         const projectId = match.params.projectId;
 
-        if (_.isEqual(prevProps.document.ActiveTab, document.ActiveTab) == false) {
+        if (_.isEqual(prevProps.document.ActiveTab, document.ActiveTab) == false && !getParameterByName("folder-id")) {
             clearTimeout(delayTimer);
 
             if (_.isEmpty(folder.Selected) === false) {

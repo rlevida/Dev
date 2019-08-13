@@ -1,35 +1,34 @@
-import React from "react"
+import React from "react";
 
-import { getData } from '../../globalFunction'
+import { getData } from "../../globalFunction";
 
-import { connect } from "react-redux"
-@connect((store) => {
+import { connect } from "react-redux";
+@connect(store => {
     return {
         document: store.document,
         global: store.global,
         loggedUser: store.loggedUser,
         project: store.project
-    }
+    };
 })
-
 export default class DocumentStatus extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     componentDidMount() {
         let { dispatch, loggedUser, project } = this.props;
-        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: c.data.count })
-        })
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, c => {
+            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: "new", count: c.data.count });
+        });
 
-        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'library', count: c.data.count })
-        })
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, c => {
+            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: "library", count: c.data.count });
+        });
     }
 
     render() {
-        let { document } = this.props
+        let { document } = this.props;
 
         return (
             <div class="container-fluid">
@@ -44,6 +43,6 @@ export default class DocumentStatus extends React.Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }

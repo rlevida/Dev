@@ -99,14 +99,17 @@ class DocumentList extends React.Component {
     }
 
     async getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder, match } = this.props;
+        const { dispatch, loggedUser, folder, match, history } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
 
         if (data === "") {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-            dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
-            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            await dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+            await dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
+            await dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            if (getParameterByName("folder-id")) {
+                history.replace(history.location.pathname);
+            }
             this.fetchData(1);
         } else if (folder.Selected.id !== data.id) {
             getData(
@@ -444,209 +447,201 @@ class DocumentList extends React.Component {
         return (
             <div>
                 {document.ActiveTab !== "sort" && document.ActiveTab !== "activities" && (
-                    <div>
-                        <div class="card-header">
-                            {document.ActiveTab === "library" && document.Loading === "" && (
-                                <div class="mt20">
-                                    <h4>
-                                        <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>
-                                            All Files
-                                        </a>
-                                    </h4>
+                    <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
+                        <div class="card-body m0">
+                            {document.ActiveTab === "library" && (
+                                <div class="d-flex ml10">
+                                    <label class="c-pointer" href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>
+                                        All Files
+                                    </label>
                                     {folder.SelectedFolderName.length > 0 &&
                                         folder.SelectedFolderName.map((e, index) => {
                                             const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;
                                             return (
                                                 <span key={index}>
-                                                    {" "}
-                                                    >{" "}
-                                                    <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}>
-                                                        {" "}
+                                                    <i class="fa fa-angle-right mr5 ml5" />
+                                                    <label class="c-pointer" href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}>
                                                         {fName}
-                                                    </a>{" "}
+                                                    </label>
                                                 </span>
                                             );
                                         })}
                                 </div>
                             )}
-                        </div>
-                        <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
-                            <div class="card-body m0">
-                                <div>
-                                    {document.List.length > 0 && (
-                                        <table class="table-document">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" class="td-left">
-                                                        File Name
-                                                    </th>
-                                                    <th scope="col">Uploaded By</th>
-                                                    <th scope="col">Upload Date</th>
-                                                    <th scope="col">Workstream</th>
-                                                    <th scope="col">Task</th>
-                                                    <th scope="col">Read On</th>
-                                                    {match.path === "/projects/:projectId/files" && <th scope="col">Actions</th>}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {document.Loading === "" &&
-                                                    _.orderBy(document.List, ["dateAdded"], ["desc"]).map((data, index) => {
-                                                        const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
-                                                        return (
-                                                            <tr key={index}>
-                                                                <td class="document-name">
-                                                                    <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                                                        {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10" />}
-                                                                        {data.type === "folder" && <span class="read">{documentName}</span>}
-                                                                        {data.type === "document" && <span class={data.isRead ? "read" : "unread"}>{documentName}</span>}
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <div class="display-flex">
-                                                                        <div class="thumbnail-profile">
-                                                                            <span title={data.user.firstName + " " + data.user.lastName}>
-                                                                                <img src={data.user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                            </span>
-                                                                        </div>
+                            <div>
+                                {document.List.length > 0 && (
+                                    <table class="table-document">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="td-left">
+                                                    File Name
+                                                </th>
+                                                <th scope="col">Uploaded By</th>
+                                                <th scope="col">Upload Date</th>
+                                                <th scope="col">Workstream</th>
+                                                <th scope="col">Task</th>
+                                                <th scope="col">Read On</th>
+                                                {match.path === "/projects/:projectId/files" && <th scope="col">Actions</th>}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {document.Loading === "" &&
+                                                _.orderBy(document.List, ["dateAdded"], ["desc"]).map((data, index) => {
+                                                    const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td class="document-name">
+                                                                <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                                                    {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10" />}
+                                                                    {data.type === "folder" && <span class="read">{documentName}</span>}
+                                                                    {data.type === "document" && <span class={data.isRead ? "read" : "unread"}>{documentName}</span>}
+                                                                </a>
+                                                            </td>
+                                                            <td>
+                                                                <div class="display-flex">
+                                                                    <div class="thumbnail-profile">
+                                                                        <span title={data.user.firstName + " " + data.user.lastName}>
+                                                                            <img src={data.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                        </span>
                                                                     </div>
-                                                                </td>
-                                                                <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
+                                                                </div>
+                                                            </td>
+                                                            <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
+                                                            <td>
+                                                                {data.tagWorkstream.length > 0 &&
+                                                                    data.tagWorkstream.map((t, tIndex) => {
+                                                                        return (
+                                                                            <p class="m0" key={tIndex}>
+                                                                                {t.label}
+                                                                            </p>
+                                                                        );
+                                                                    })}
+                                                            </td>
+                                                            <td>
+                                                                {data.tagTask.length > 0 &&
+                                                                    data.tagTask.map((t, tIndex) => {
+                                                                        return (
+                                                                            <p class="m0" key={tIndex}>
+                                                                                {t.label}
+                                                                            </p>
+                                                                        );
+                                                                    })}
+                                                            </td>
+                                                            <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ""}</td>
+                                                            {match.path === "/projects/:projectId/files" && document.ActiveTab !== "trash" && document.ActiveTab !== "archived" && (
                                                                 <td>
-                                                                    {data.tagWorkstream.length > 0 &&
-                                                                        data.tagWorkstream.map((t, tIndex) => {
-                                                                            return (
-                                                                                <p class="m0" key={tIndex}>
-                                                                                    {t.label}
-                                                                                </p>
-                                                                            );
-                                                                        })}
-                                                                </td>
-                                                                <td>
-                                                                    {data.tagTask.length > 0 &&
-                                                                        data.tagTask.map((t, tIndex) => {
-                                                                            return (
-                                                                                <p class="m0" key={tIndex}>
-                                                                                    {t.label}
-                                                                                </p>
-                                                                            );
-                                                                        })}
-                                                                </td>
-                                                                <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ""}</td>
-                                                                {match.path === "/projects/:projectId/files" && document.ActiveTab !== "trash" && document.ActiveTab !== "archived" && (
-                                                                    <td>
-                                                                        <a href="javascript:void(0)" onClick={() => this.downloadDocument(data)} class="btn btn-action">
-                                                                            <span class="fa fa-download" title="DOWNLOAD" />
-                                                                        </a>
-                                                                        <a
-                                                                            href="javascript:void(0)"
-                                                                            data-toggle="modal"
-                                                                            data-target={`${data.isArchived ? "" : "#archiveModal"}`}
-                                                                            onClick={e => {
-                                                                                data.isArchived ? e.preventDefault() : dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-                                                                            }}
-                                                                            class="btn btn-action"
-                                                                        >
-                                                                            <span class={`fa fa-archive ${data.isArchived ? "text-cyan" : ""}`} title="ARCHIVE" />
-                                                                        </a>
-                                                                        <a href="javascript:void(0)" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })} class="btn btn-action">
-                                                                            <span class="fa fa-trash" title="DELETE" />
-                                                                        </a>
-                                                                        <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                            <span>
-                                                                                <i class="fa fa-ellipsis-v" />
-                                                                            </span>
-                                                                        </a>
-                                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                                            {data.type != "folder" && (
-                                                                                <li>
-                                                                                    <a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>
-                                                                                        Duplicate
-                                                                                    </a>
-                                                                                </li>
-                                                                            )}
+                                                                    <a href="javascript:void(0)" onClick={() => this.downloadDocument(data)} class="btn btn-action">
+                                                                        <span class="fa fa-download" title="DOWNLOAD" />
+                                                                    </a>
+                                                                    <a
+                                                                        href="javascript:void(0)"
+                                                                        data-toggle="modal"
+                                                                        data-target={`${data.isArchived ? "" : "#archiveModal"}`}
+                                                                        onClick={e => {
+                                                                            data.isArchived ? e.preventDefault() : dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+                                                                        }}
+                                                                        class="btn btn-action"
+                                                                    >
+                                                                        <span class={`fa fa-archive ${data.isArchived ? "text-cyan" : ""}`} title="ARCHIVE" />
+                                                                    </a>
+                                                                    <a href="javascript:void(0)" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })} class="btn btn-action">
+                                                                        <span class="fa fa-trash" title="DELETE" />
+                                                                    </a>
+                                                                    <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                        <span>
+                                                                            <i class="fa fa-ellipsis-v" />
+                                                                        </span>
+                                                                    </a>
+                                                                    <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                        {data.type != "folder" && (
                                                                             <li>
-                                                                                <a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>
-                                                                                    Rename
+                                                                                <a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>
+                                                                                    Duplicate
                                                                                 </a>
                                                                             </li>
-                                                                            <li>
-                                                                                <a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>
-                                                                                    Edit Tags
-                                                                                </a>
-                                                                            </li>
-                                                                            <li>
-                                                                                <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>{data.isStarred ? "Unstarred" : "Star"}</a>
-                                                                            </li>
-                                                                            <li>
-                                                                                <a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>
-                                                                                    View
-                                                                                </a>
-                                                                            </li>
+                                                                        )}
+                                                                        <li>
+                                                                            <a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>
+                                                                                Rename
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>
+                                                                                Edit Tags
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>{data.isStarred ? "Unstarred" : "Star"}</a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>
+                                                                                View
+                                                                            </a>
+                                                                        </li>
 
-                                                                            {data.type === "document" && (
-                                                                                <li>
-                                                                                    {data.isRead > 0 ? (
-                                                                                        <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>
-                                                                                            Mark as unread
-                                                                                        </a>
-                                                                                    ) : (
-                                                                                        <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>
-                                                                                            Mark as read
-                                                                                        </a>
-                                                                                    )}
-                                                                                </li>
-                                                                            )}
-                                                                            {document.ActiveTab === "library" && (
-                                                                                <li>
-                                                                                    <a class=" dropdown dropdown-library">
-                                                                                        Move to
-                                                                                        <div class="dropdown-content dropdown-menu-right">
-                                                                                            {folder.SelectList.map((e, fIndex) => {
-                                                                                                if (e.id !== data.id) {
-                                                                                                    if (typeof folder.Selected.id !== "undefined") {
-                                                                                                        if (e.id !== folder.Selected.id) {
-                                                                                                            return (
-                                                                                                                <span key={fIndex} onClick={() => this.moveTo(e, data)}>
-                                                                                                                    {e.name}
-                                                                                                                </span>
-                                                                                                            );
-                                                                                                        }
-                                                                                                    } else {
+                                                                        {data.type === "document" && (
+                                                                            <li>
+                                                                                {data.isRead > 0 ? (
+                                                                                    <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>
+                                                                                        Mark as unread
+                                                                                    </a>
+                                                                                ) : (
+                                                                                    <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>
+                                                                                        Mark as read
+                                                                                    </a>
+                                                                                )}
+                                                                            </li>
+                                                                        )}
+                                                                        {document.ActiveTab === "library" && (
+                                                                            <li>
+                                                                                <a class=" dropdown dropdown-library">
+                                                                                    Move to
+                                                                                    <div class="dropdown-content dropdown-menu-right">
+                                                                                        {folder.SelectList.map((e, fIndex) => {
+                                                                                            if (e.id !== data.id) {
+                                                                                                if (typeof folder.Selected.id !== "undefined") {
+                                                                                                    if (e.id !== folder.Selected.id) {
                                                                                                         return (
                                                                                                             <span key={fIndex} onClick={() => this.moveTo(e, data)}>
                                                                                                                 {e.name}
                                                                                                             </span>
                                                                                                         );
                                                                                                     }
+                                                                                                } else {
+                                                                                                    return (
+                                                                                                        <span key={fIndex} onClick={() => this.moveTo(e, data)}>
+                                                                                                            {e.name}
+                                                                                                        </span>
+                                                                                                    );
                                                                                                 }
-                                                                                            })}
-                                                                                        </div>
-                                                                                    </a>
-                                                                                </li>
-                                                                            )}
-                                                                        </ul>
-                                                                    </td>
-                                                                )}
-                                                                {(document.ActiveTab === "trash" || document.ActiveTab === "archived") && (
-                                                                    <td>
-                                                                        <a href="javascript:void(0)" onClick={() => this.restore(data)} class="btn btn-action">
-                                                                            <span class="fa fa-undo" title="RESTORE" />
-                                                                        </a>
-                                                                    </td>
-                                                                )}
-                                                            </tr>
-                                                        );
-                                                    })}
-                                            </tbody>
-                                        </table>
-                                    )}
-                                    {currentPage != lastPage && document.List.length > 0 && document.Loading != "RETRIEVING" && (
-                                        <p class="mb0 text-center">
-                                            <a onClick={() => this.getNextResult()}>Load More Documents</a>
-                                        </p>
-                                    )}
-                                    {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
-                                </div>
+                                                                                            }
+                                                                                        })}
+                                                                                    </div>
+                                                                                </a>
+                                                                            </li>
+                                                                        )}
+                                                                    </ul>
+                                                                </td>
+                                                            )}
+                                                            {(document.ActiveTab === "trash" || document.ActiveTab === "archived") && (
+                                                                <td>
+                                                                    <a href="javascript:void(0)" onClick={() => this.restore(data)} class="btn btn-action">
+                                                                        <span class="fa fa-undo" title="RESTORE" />
+                                                                    </a>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                })}
+                                        </tbody>
+                                    </table>
+                                )}
+                                {currentPage != lastPage && document.List.length > 0 && document.Loading != "RETRIEVING" && (
+                                    <p class="mb0 text-center">
+                                        <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                                    </p>
+                                )}
+                                {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
                             </div>
                         </div>
                     </div>
