@@ -41,7 +41,7 @@ const associationFindAllStack = [
         model: Users,
         as: "creator",
         required: true,
-        attributes: ["id"]
+        attributes: ["id", "firstName", "lastName", "avatar"]
     },
     {
         model: Members,
@@ -55,10 +55,9 @@ const associationFindAllStack = [
                 model: Users,
                 as: "user",
                 required: false,
-                attributes: ["id"]
+                attributes: ["id", "firstName", "lastName", "avatar"]
             }
-        ],
-        attributes: ["id"]
+        ]
     },
     {
         model: Members,
@@ -186,7 +185,7 @@ exports.get = {
                         attributes: ["id"]
                     }
                 ],
-                attributes: ["id"]
+                attributes: ["id", "userTypeLinkId"]
             },
             {
                 model: Type,
