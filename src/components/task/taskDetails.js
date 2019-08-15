@@ -564,7 +564,7 @@ export default class TaskDetails extends React.Component {
         const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch, tasktimeLog } = { ...this.props };
         const commentType = conversation.Selected.type || "";
         const { Loading, Selected } = taskObj;
-        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId } = Selected;
+        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId, task_preceding = [] } = Selected;
         const assigned = _.find(task_members, o => {
             return o.memberType == "assignedTo";
         });
@@ -661,6 +661,23 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const totalHoursValue = (_.sum(totalHours) / 60).toFixed(2);
+
+        const succeedingList = task_dependency.filter(e => {
+            return e.dependencyType === "Preceded by";
+        });
+
+        const succeedingCompleted = task_dependency.filter(e => {
+            return e.dependencyType === "Preceded by" && e.task.status === "Completed";
+        });
+
+        const precedingList = task_preceding.filter(e => {
+            return e.dependencyType === "Succeeding";
+        });
+
+        const precedingCompleted = task_preceding.filter(e => {
+            return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
+        });
+
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -687,7 +704,8 @@ export default class TaskDetails extends React.Component {
                                                     (loggedUser.data.userRole < 4 ||
                                                         typeof isAssignedToMe != "undefined" ||
                                                         (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") && assigned.user.userType == "External") ||
-                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) && (
+                                                        (loggedUser.data.userRole >= 4 && (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") && assigned.user.user_role[0].roleId == 4)) &&
+                                                    (succeedingList.length === succeedingCompleted.length && precedingList.length === precedingCompleted.length) && (
                                                         <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                             <span>
                                                                 <i class="fa mr10 fa-check" aria-hidden="true" />
