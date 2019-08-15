@@ -173,7 +173,8 @@ export default class TaskCalendar extends React.Component {
                     title: title,
                     start: typeof o.startDate != "undefined" && o.startDate != null ? moment(o.startDate).toDate() : moment(o.dueDate).toDate(),
                     end: moment(o.dueDate)
-                        .endOf("day")
+                        .add("days", 1)
+                        .startOf("day")
                         .toDate(),
                     allday: true,
                     workstream: o.workstream
