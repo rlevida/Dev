@@ -57,7 +57,8 @@ const associationFindAllStack = [
                 required: false,
                 attributes: ["id", "firstName", "lastName", "avatar"]
             }
-        ]
+        ],
+        attributes: ["id", "userTypeLinkId"]
     },
     {
         model: Members,
@@ -68,7 +69,7 @@ const associationFindAllStack = [
             isDeleted: 0
         },
         required: false,
-        attributes: ["id"]
+        attributes: ["id", "userTypeLinkId"]
     },
     {
         model: Members,

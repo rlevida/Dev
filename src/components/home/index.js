@@ -5,12 +5,11 @@ import ProjectCompletionTasks from "../project/projectCompletionTasks";
 import ProfilePerformance from "../profile/profilePerformance";
 import { connect } from "react-redux";
 
-@connect((store) => {
+@connect(store => {
     return {
         loggedUser: store.loggedUser
-    }
+    };
 })
-
 export default class Component extends React.Component {
     constructor(props) {
         super(props);
@@ -41,10 +40,7 @@ export default class Component extends React.Component {
                                 <h4 class="text-center">My Performance</h4>
                             </div>
                             <div class="card-body">
-                                <ProfilePerformance
-                                    show_title={false}
-                                    show_legend={false}
-                                />
+                                <ProfilePerformance show_title={false} show_legend={false} />
                             </div>
                         </div>
                     </div>
@@ -63,6 +59,6 @@ export default class Component extends React.Component {
                 </div>
                 <ProjectCompletionTasks handleRedirect={this.handleRedirect} />
             </div>
-        )
+        );
     }
 }
