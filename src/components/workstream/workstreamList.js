@@ -26,7 +26,6 @@ export default class WorkstreamList extends React.Component {
 
     componentDidMount() {
         const { workstream } = { ...this.props };
-
         if (_.isEmpty(workstream.Count)) {
             this.getList(1);
         }
@@ -96,7 +95,6 @@ export default class WorkstreamList extends React.Component {
         const workstreamCurrentPage = typeof workstream.Count.current_page != "undefined" ? workstream.Count.current_page : 1;
         const workstreamLastPage = typeof workstream.Count.last_page != "undefined" ? workstream.Count.last_page : 1;
         const projectType = typeof project.Selected.type != "undefined" ? project.Selected.type.type : "";
-
         return (
             <div>
                 <div class={workstream.Loading == "RETRIEVING" && workstream.List.length == 0 ? "linear-background" : ""}>

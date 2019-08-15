@@ -281,7 +281,6 @@ export default class ProjectForm extends React.Component {
                 };
             })
         ];
-
         let projectManagerOptions = users.SelectList;
         let statusList = [],
             typeList = [];
@@ -325,7 +324,6 @@ export default class ProjectForm extends React.Component {
                 "id"
             );
         }
-
         return (
             <div class="row">
                 <div class="col-lg-12">

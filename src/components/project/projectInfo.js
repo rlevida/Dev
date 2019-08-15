@@ -24,7 +24,6 @@ export default class ProjectInfo extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
     }
 
     componentDidMount() {
@@ -99,7 +98,6 @@ export default class ProjectInfo extends React.Component {
     }
     handleEdit() {
         const { dispatch } = { ...this.props };
-
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
     }
     render() {
