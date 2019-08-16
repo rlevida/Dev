@@ -1,9 +1,7 @@
 const async = require("async");
-const dbName = "workstream";
 const sequence = require("sequence").Sequence;
 const models = require("../modelORM");
 const moment = require("moment");
-const { defaultDelete } = require("./");
 const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs, Notes, TaskChecklist } = models;
 const associationStack = [
     {
@@ -454,6 +452,208 @@ exports.get = {
         } catch (err) {
             callback(err);
         }
+    },
+    completionRate: async (req, cb) => {
+        const includeStack = [
+            {
+                model: Tasks,
+                as: "task",
+                required: false,
+                attributes: ["id", "task", "status", "dueDate", "isDeleted"],
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Members,
+                        as: "task_members",
+                        required: false,
+                        where: { linkType: "task", isDeleted: 0 },
+                        include: [
+                            {
+                                model: Users,
+                                as: "user",
+                                attributes: ["id", "firstName", "lastName", "avatar"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+        const queryString = req.query;
+        const limit = 10;
+        const whereObj = {
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { id: queryString.workstreamId } : {}),
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {}),
+            ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "" ? { isTemplate: queryString.isTemplate } : {}),
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
+            ...(typeof queryString.workstream != "undefined" && queryString.workstream != ""
+                ? {
+                      [Sequelize.Op.and]: [
+                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
+                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
+                          })
+                      ]
+                  }
+                : {})
+        };
+
+        if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
+            const dueDate = queryString.dueDate || new Date();
+            const startMonth = moment(dueDate, "YYYY-MM-DD")
+                .startOf("year")
+                .utc()
+                .format("YYYY-MM-DD HH:mm");
+            const endMonth = moment(dueDate, "YYYY-MM-DD")
+                .endOf("month")
+                .utc()
+                .format("YYYY-MM-DD HH:mm");
+
+            _.find(includeStack, { as: "task" }).where = {
+                dueDate: {
+                    [Sequelize.Op.between]: [startMonth, endMonth]
+                },
+                isDeleted: 0
+            };
+        }
+
+        if (typeof queryString.userRole != "undefined" && queryString.userRole > 4) {
+            const workstreamResponsible = await Members.findAll({
+                where: {
+                    memberType: "responsible",
+                    linkType: "workstream",
+                    usersType: "users",
+                    userTypeLinkId: queryString.userId
+                }
+            }).map(o => {
+                const response = o.toJSON();
+                return response.linkId;
+            });
+            const taskMemberAssigned = await Members.findAll({
+                where: {
+                    memberType: ["assignedTo", "approver"],
+                    linkType: "task",
+                    usersType: "users",
+                    userTypeLinkId: queryString.userId
+                }
+            }).map(o => {
+                const response = o.toJSON();
+                return response.linkId;
+            });
+            const taskList = await Tasks.findAll({
+                where: {
+                    id: taskMemberAssigned
+                }
+            }).map(o => {
+                return o.toJSON().workstreamId;
+            });
+
+            whereObj["id"] = [...workstreamResponsible, ...taskList];
+        }
+
+        const options = {
+            include: includeStack,
+            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["dateAdded", "DESC"]]
+        };
+
+        async.parallel(
+            {
+                count: function(callback) {
+                    try {
+                        Workstream.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then(response => {
+                            const pageData = {
+                                total_count: response.count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
+                            };
+
+                            callback(null, pageData);
+                        });
+                    } catch (err) {
+                        callback(err);
+                    }
+                },
+                result: function(callback) {
+                    try {
+                        Workstream.findAll({
+                            where: whereObj,
+                            ...options
+                        })
+                            .map(response => {
+                                const resultObj = response.toJSON();
+                                const completedTasks = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "Completed";
+                                });
+                                const issuesTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
+                                });
+                                const pendingTasks = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
+                                });
+                                const dueTodayTask = _.filter(resultObj.task, taskObj => {
+                                    const dueDateMoment = moment(taskObj.dueDate);
+                                    const currentDateMoment = moment.utc();
+                                    return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
+                                });
+                                const newDoc = _.filter(resultObj.tag, tagObj => {
+                                    return tagObj.document && tagObj.document.status == "new";
+                                });
+                                const forApproval = _.filter(resultObj.task, taskObj => {
+                                    return taskObj.status == "For Approval";
+                                });
+                                return {
+                                    ...resultObj,
+                                    pending: pendingTasks,
+                                    completed: completedTasks,
+                                    for_approval: forApproval.length,
+                                    issues: issuesTasks.length,
+                                    dueToday: dueTodayTask.length,
+                                    new_documents: newDoc.length,
+                                    numberOfTasks: resultObj.task.length,
+                                    completion_rate: {
+                                        tasks_due_today: {
+                                            value: dueTodayTask.length > 0 ? (dueTodayTask.length / resultObj.task.length) * 100 : 0,
+                                            color: "#f6dc64",
+                                            count: dueTodayTask.length
+                                        },
+                                        tasks_for_approval: {
+                                            value: forApproval.length > 0 ? (forApproval.length / resultObj.task.length) * 100 : 0,
+                                            color: "#ff754a",
+                                            count: forApproval.length
+                                        },
+                                        delayed_task: {
+                                            value: issuesTasks.length > 0 ? (issuesTasks.length / resultObj.task.length) * 100 : 0,
+                                            color: "#f9003b",
+                                            count: issuesTasks.length
+                                        },
+                                        completed: {
+                                            value: completedTasks.length > 0 ? (completedTasks.length / resultObj.task.length) * 100 : 0,
+                                            color: "#00e589",
+                                            count: completedTasks.length
+                                        }
+                                    }
+                                };
+                            })
+                            .then(resultArray => {
+                                callback(null, resultArray);
+                            });
+                    } catch (err) {
+                        callback(err);
+                    }
+                }
+            },
+            function(err, results) {
+                if (err != null) {
+                    cb({ status: false, error: err });
+                } else {
+                    cb({ status: true, data: results });
+                }
+            }
+        );
     }
 };
 
