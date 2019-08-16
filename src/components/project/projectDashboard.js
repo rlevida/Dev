@@ -85,9 +85,9 @@ export default class ProjectDashboard extends React.Component {
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
-        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&userRole=${
+        const requestUrl = `/api/workstream/completionRate?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&userRole=${
             loggedUser.data.userRole
-        }&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+        }&typeId=${typeId}&isActive=1&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, c => {
             if (c.status == 200) {
