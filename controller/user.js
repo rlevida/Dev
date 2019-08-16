@@ -1,7 +1,6 @@
 const async = require("async");
 const sequence = require("sequence").Sequence;
 const models = require("../modelORM");
-const dbName = "users";
 const { Users, UsersNotificationSetting, UsersCreatePassword, UsersRole, UsersTeam, Roles, Teams, Members, Sequelize, sequelize } = models;
 const Op = Sequelize.Op;
 const associationStack = [
@@ -71,6 +70,19 @@ exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+        const associationInclude = [
+            {
+                model: UsersRole,
+                as: "user_role",
+                include: [
+                    {
+                        model: Roles,
+                        as: "role"
+                    }
+                ]
+            }
+        ];
+
         let whereObj = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.name != "undefined" && queryString.name != ""
@@ -185,7 +197,7 @@ exports.get = {
                 count: parallelCallback => {
                     try {
                         Users.findAndCountAll({
-                            include: associationStack,
+                            include: associationInclude,
                             ..._.omit(options, ["offset", "limit"]),
                             distinct: true,
                             where: whereObj
@@ -203,29 +215,14 @@ exports.get = {
                 result: parallelCallback => {
                     try {
                         Users.findAll({
-                            include: associationStack,
+                            include: associationInclude,
                             attributes: ["id", "username", "firstName", "lastName", "emailAddress", "phoneNumber", "avatar", "isActive", "userType", "company"],
                             ...options,
                             distinct: true,
                             where: whereObj
                         })
                             .map(res => {
-                                let responseToReturn = {
-                                    ...res.toJSON(),
-                                    user_projects: res.user_projects.map(e => {
-                                        return { value: e.linkId };
-                                    }),
-                                    projectId: res.projectId.map(e => {
-                                        return e.linkId;
-                                    }),
-                                    userRole: res.user_role[0].roleId,
-                                    team: res.team_as_teamLeader.concat(
-                                        res.users_team.map(e => {
-                                            return e.team;
-                                        })
-                                    )
-                                };
-                                return _.omit(responseToReturn, "team_as_teamLeader", "users_team");
+                                return res.toJSON();
                             })
                             .then(res => {
                                 parallelCallback(null, res);
@@ -245,18 +242,33 @@ exports.get = {
         );
     },
     getById: (req, cb) => {
-        defaultGetById(dbName, req, res => {
-            if (res.status) {
-                cb({
-                    status: true,
-                    data: res.data
-                });
-            } else {
-                cb({
-                    status: false,
-                    error: res.error
-                });
-            }
+        const associationArray = _.cloneDeep(associationStack);
+        const whereObj = {
+            id: req.params.id
+        };
+
+        Users.findOne({
+            include: associationArray,
+            attributes: ["id", "username", "firstName", "lastName", "emailAddress", "phoneNumber", "avatar", "isActive", "userType", "company"],
+            distinct: true,
+            where: whereObj
+        }).then(res => {
+            let responseToReturn = {
+                ...res.toJSON(),
+                user_projects: res.user_projects.map(e => {
+                    return { value: e.linkId };
+                }),
+                projectId: res.projectId.map(e => {
+                    return e.linkId;
+                }),
+                userRole: res.user_role[0].roleId,
+                team: res.team_as_teamLeader.concat(
+                    res.users_team.map(e => {
+                        return e.team;
+                    })
+                )
+            };
+            cb({ status: true, data: _.omit(responseToReturn, "team_as_teamLeader", "users_team") });
         });
     }
 };

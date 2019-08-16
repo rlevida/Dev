@@ -96,33 +96,35 @@ export default class UserList extends React.Component {
 
     handleEdit(data) {
         const { dispatch } = this.props;
-        dispatch({
-            type: "SET_USER_SELECTED",
-            Selected: {
-                ...data,
-                team: data.team.map(e => {
-                    return {
-                        value: e.id,
-                        label: e.team,
-                        teamLeader: e.teamLeader
-                    };
-                })
-            }
+        getData(`/api/user/detail/${data.id}`, {}, c => {
+            dispatch({
+                type: "SET_USER_SELECTED",
+                Selected: {
+                    ...c.data,
+                    team: c.data.team.map(e => {
+                        return {
+                            value: e.id,
+                            label: e.team,
+                            teamLeader: e.teamLeader
+                        };
+                    })
+                }
+            });
+            dispatch({
+                type: "SET_CURRENT_DATA_SELECTED",
+                Selected: {
+                    ...c.data,
+                    team: c.data.team.map(e => {
+                        return {
+                            value: e.id,
+                            label: e.team,
+                            teamLeader: e.teamLeader
+                        };
+                    })
+                }
+            });
+            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
         });
-        dispatch({
-            type: "SET_CURRENT_DATA_SELECTED",
-            Selected: {
-                ...data,
-                team: data.team.map(e => {
-                    return {
-                        value: e.id,
-                        label: e.team,
-                        teamLeader: e.teamLeader
-                    };
-                })
-            }
-        });
-        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
     }
 
     render() {
