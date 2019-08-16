@@ -1726,19 +1726,26 @@ td {
     }
 }
 .linear-background {
-    animation-duration: 1s;
-    animation-fill-mode: forwards;
-    animation-iteration-count: infinite;
-    animation-name: placeHolderShimmer;
-    animation-timing-function: linear;
-    background: #f6f7f8;
-    background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
-    background-size: 1000px 104px;
-    position: relative;
-    overflow: hidden;
-    height: 200px;
+    text-align: center;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #9d9d9f;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: block;
+    animation: spin 2s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
 }
-
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 .status-count [class*="col"]:not(:last-child) {
     border-right: 1px #dddddd solid;
 }
@@ -1921,10 +1928,6 @@ form {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-}
-
-.dashboard-card .card-body .linear-background {
-    height: 115px;
 }
 
 table ul.dropdown-menu {
@@ -2622,10 +2625,6 @@ textarea::-webkit-scrollbar-thumb {
 
 #message_list {
     height: 100%;
-}
-
-#message_list .linear-background {
-    height: 90%;
 }
 
 #message-thread .thread {
@@ -3592,4 +3591,12 @@ td .display-flex {
 .d-div {
     pointer-events: none;
     opacity: 0.4;
+}
+
+.c-pointer {
+    cursor: pointer;
+}
+
+.rbc-time-content {
+    display: none !important;
 }

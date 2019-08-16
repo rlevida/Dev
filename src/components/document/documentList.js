@@ -444,15 +444,13 @@ class DocumentList extends React.Component {
         return (
             <div>
                 {document.ActiveTab !== "sort" && document.ActiveTab !== "activities" && (
-                    <div>
-                        <div class="card-header">
+                    <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
+                        <div class="card-body m0">
                             {document.ActiveTab === "library" && document.Loading === "" && (
-                                <div class="mt20">
-                                    <h4>
-                                        <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>
-                                            All Files
-                                        </a>
-                                    </h4>
+                                <div class="d-flex ml10">
+                                    <label class="c-pointer" href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>
+                                        All Files
+                                    </label>
                                     {folder.SelectedFolderName.length > 0 &&
                                         folder.SelectedFolderName.map((e, index) => {
                                             const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;

@@ -163,88 +163,86 @@ class DocumentFilter extends React.Component {
                         </div>
                     </div>
                 </div>
-                <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
-                    {document.Loading === "" && (
-                        <div class="card-body m0">
-                            <div class="row">
-                                <div class="col-lg-6 col-md-6 col-sm-6">
-                                    <label> Upload date:</label>
-                                    <div class="form-group input-inline">
-                                        <div>
-                                            <label>From</label>
-                                        </div>
-                                        <div>
-                                            <DatePicker
-                                                name="uploadFrom"
-                                                dateFormat="MMMM DD, YYYY"
-                                                onChange={date => {
-                                                    this.handleDropdown("uploadFrom", date);
-                                                }}
-                                                value={moment(uploadFrom, "MMMM DD, YYYY", true).isValid() ? moment(uploadFrom).format("MMMM DD, YYYY") : ""}
-                                                placeholderText="Select valid upload date"
-                                                class="form-control"
-                                                selected={uploadFrom}
-                                            />
-                                        </div>
-                                        <div class="ml10">
-                                            <label>To</label>
-                                        </div>
-                                        <div>
-                                            <DatePicker
-                                                name="uploadTo"
-                                                dateFormat="MMMM DD, YYYY"
-                                                onChange={date => {
-                                                    this.handleDropdown("uploadTo", date);
-                                                }}
-                                                value={moment(uploadTo, "MMMM DD, YYYY", true).isValid() ? moment(uploadTo).format("MMMM DD, YYYY") : ""}
-                                                placeholderText="Select valid upload date"
-                                                class="form-control"
-                                                selected={uploadTo}
-                                            />
-                                        </div>
+                <div>
+                    <div class="card-body m0">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <label> Upload date:</label>
+                                <div class="form-group input-inline">
+                                    <div>
+                                        <label>From</label>
+                                    </div>
+                                    <div>
+                                        <DatePicker
+                                            name="uploadFrom"
+                                            dateFormat="MMMM DD, YYYY"
+                                            onChange={date => {
+                                                this.handleDropdown("uploadFrom", date);
+                                            }}
+                                            value={moment(uploadFrom, "MMMM DD, YYYY", true).isValid() ? moment(uploadFrom).format("MMMM DD, YYYY") : ""}
+                                            placeholderText="Select valid upload date"
+                                            class="form-control"
+                                            selected={uploadFrom}
+                                        />
+                                    </div>
+                                    <div class="ml10">
+                                        <label>To</label>
+                                    </div>
+                                    <div>
+                                        <DatePicker
+                                            name="uploadTo"
+                                            dateFormat="MMMM DD, YYYY"
+                                            onChange={date => {
+                                                this.handleDropdown("uploadTo", date);
+                                            }}
+                                            value={moment(uploadTo, "MMMM DD, YYYY", true).isValid() ? moment(uploadTo).format("MMMM DD, YYYY") : ""}
+                                            placeholderText="Select valid upload date"
+                                            class="form-control"
+                                            selected={uploadTo}
+                                        />
                                     </div>
                                 </div>
-                                <div class="col-lg-6 col-md-6 col-sm-6">
-                                    <label>User:</label>
-                                    <input class="form-control" type="text" name="uploadedBy" onChange={e => this.handleDropdown("uploadedBy", e.target.value)} value={uploadedBy || ""} />
-                                </div>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-6  col-md-6 col-sm-6">
-                                    <label>Workstream:</label>
-                                    <DropDown
-                                        id="workstream-options"
-                                        options={workstream.SelectList}
-                                        onInputChange={this.getWorkstreamList}
-                                        selected={tagWorkstream}
-                                        loading={true}
-                                        isClearable={true}
-                                        onChange={e => {
-                                            this.handleDropdown("tagWorkstream", e == null ? null : e.value);
-                                        }}
-                                        required={true}
-                                        disabled={Loading === "SUBMITTING" ? true : false}
-                                    />
-                                </div>
-                                <div class="col-lg-6  col-md-6 col-sm-6">
-                                    <label>Task:</label>
-                                    <DropDown
-                                        id="workstream-options"
-                                        options={task.SelectList}
-                                        onInputChange={this.setTaskList}
-                                        selected={tagTask}
-                                        loading={true}
-                                        isClearable={true}
-                                        onChange={e => {
-                                            this.handleDropdown("tagTask", e == null ? null : e.value);
-                                        }}
-                                        required={true}
-                                        disabled={tagWorkstream && task.Loading === "" ? false : true}
-                                    />
-                                </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <label>User:</label>
+                                <input class="form-control" type="text" name="uploadedBy" onChange={e => this.handleDropdown("uploadedBy", e.target.value)} value={uploadedBy || ""} />
                             </div>
                         </div>
-                    )}
+                        <div class="row">
+                            <div class="col-lg-6  col-md-6 col-sm-6">
+                                <label>Workstream:</label>
+                                <DropDown
+                                    id="workstream-options"
+                                    options={workstream.SelectList}
+                                    onInputChange={this.getWorkstreamList}
+                                    selected={tagWorkstream}
+                                    loading={true}
+                                    isClearable={true}
+                                    onChange={e => {
+                                        this.handleDropdown("tagWorkstream", e == null ? null : e.value);
+                                    }}
+                                    required={true}
+                                    disabled={Loading === "SUBMITTING" ? true : false}
+                                />
+                            </div>
+                            <div class="col-lg-6  col-md-6 col-sm-6">
+                                <label>Task:</label>
+                                <DropDown
+                                    id="workstream-options"
+                                    options={task.SelectList}
+                                    onInputChange={this.setTaskList}
+                                    selected={tagTask}
+                                    loading={true}
+                                    isClearable={true}
+                                    onChange={e => {
+                                        this.handleDropdown("tagTask", e == null ? null : e.value);
+                                    }}
+                                    required={true}
+                                    disabled={tagWorkstream && task.Loading === "" ? false : true}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
