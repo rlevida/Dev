@@ -1,8 +1,6 @@
 const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
-
-const { defaultDelete } = require("./");
 const models = require("../modelORM");
 const {
     ChecklistDocuments,
@@ -20,7 +18,6 @@ const {
     Sequelize,
     DocumentLink,
     ActivityLogs,
-    Reminder,
     Starred,
     Type,
     UsersTeam,
@@ -31,7 +28,6 @@ const {
     UsersNotificationSetting
 } = models;
 
-const dbName = "task";
 const func = global.initFunc();
 const Op = Sequelize.Op;
 
@@ -217,7 +213,132 @@ const associationStack = [
 
 exports.get = {
     index: async (req, cb) => {
-        const associationArray = _.cloneDeep(associationStack);
+        const associationArray = [
+            {
+                model: Members,
+                as: "task_members",
+                required: false,
+                where: { linkType: "task", isDeleted: 0 },
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        include: [
+                            {
+                                model: UsersRole,
+                                as: "user_role",
+                                include: [
+                                    {
+                                        model: Roles,
+                                        as: "role"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                model: TaskDependency,
+                as: "task_dependency",
+                required: false,
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Tasks,
+                        as: "task",
+                        attributes: ["id"]
+                    }
+                ]
+            },
+            {
+                model: TaskDependency,
+                as: "task_preceding",
+                required: false,
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Tasks,
+                        as: "pre_task",
+                        attributes: ["id"]
+                    }
+                ]
+            },
+            {
+                model: Starred,
+                as: "task_starred",
+                where: { linkType: "task", isActive: 1 },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "emailAddress"]
+                    }
+                ]
+            },
+            {
+                model: TaskChecklist,
+                as: "checklist",
+                where: { isDeleted: 0 },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "emailAddress"]
+                    },
+                    {
+                        model: ChecklistDocuments,
+                        as: "tagDocuments",
+                        where: { isDeleted: 0 },
+                        required: false,
+                        include: [
+                            {
+                                model: Document,
+                                as: "document",
+                                include: [
+                                    {
+                                        model: DocumentRead,
+                                        as: "document_read",
+                                        attributes: ["id"],
+                                        required: false
+                                    },
+                                    {
+                                        model: Users,
+                                        as: "user",
+                                        attributes: ["id", "username", "firstName", "lastName", "avatar"]
+                                    }
+                                ],
+                                attributes: ["id"]
+                            }
+                        ],
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            },
+            {
+                model: Workstream,
+                as: "workstream",
+                include: [
+                    {
+                        model: Projects,
+                        as: "project",
+                        required: false,
+                        include: [
+                            {
+                                model: Type,
+                                as: "type",
+                                required: false,
+                                attributes: ["type"]
+                            }
+                        ],
+                        attributes: ["id", "color"]
+                    }
+                ]
+            }
+        ];
         const queryString = req.query;
         const limit = typeof queryString.limit != "undefined" ? parseInt(queryString.limit) : 10;
         const status = typeof queryString.status != "undefined" ? JSON.parse(queryString.status) : "";
@@ -238,6 +359,7 @@ exports.get = {
                 dueDate = JSON.parse(queryString.dueDate);
             }
         }
+
         const whereObj = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),

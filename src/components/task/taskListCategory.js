@@ -32,8 +32,8 @@ export default class TaskListCategory extends React.Component {
         const { dispatch } = { ...this.props };
         const taskId = getParameterByName("task-id");
 
-        dispatch({ type: "SET_TASK_LIST", list: [] });
-        this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
+        // dispatch({ type: "SET_TASK_LIST", list: [] });
+        // this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
 
         if (taskId != null) {
             setTimeout(() => {
@@ -44,8 +44,6 @@ export default class TaskListCategory extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { task } = this.props;
-        const taskId = getParameterByName("task-id");
-
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => {
                 this.getList(1);
@@ -256,7 +254,6 @@ export default class TaskListCategory extends React.Component {
         const precedingCompleted = task_preceding.filter(e => {
             return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
         });
-
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
