@@ -449,7 +449,7 @@ class DocumentList extends React.Component {
                 {document.ActiveTab !== "sort" && document.ActiveTab !== "activities" && (
                     <div class={document.Loading == "RETRIEVING" && document.List.length == 0 ? "linear-background" : ""}>
                         <div class="card-body m0">
-                            {document.ActiveTab === "library" && (
+                            {document.ActiveTab === "library" && document.Loading === "" && (
                                 <div class="d-flex ml10">
                                     <label class="c-pointer" href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>
                                         All Files
