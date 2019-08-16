@@ -127,9 +127,9 @@ export default class TaskTimeline extends React.Component {
                         <div class="col-md-6 col-sm-6 col-xs-12" />
                     </div>
                 </div>
-                <div class={"linear-background"}>
+                <div class={loading === "RETRIEVING" && Timeline.length === 0 ? "linear-background" : ""}>
                     <div class="card-body m0">
-                        {/* <div class="mt20">
+                        <div class="mt20">
                             {Timeline.length > 0 && (
                                 <Chart
                                     width={"100%"}
@@ -152,7 +152,7 @@ export default class TaskTimeline extends React.Component {
                                     <a onClick={() => this.getNext()}>Load More Tasks</a>
                                 </p>
                             )}
-                        </div> */}
+                        </div>
                     </div>
                 </div>
             </div>
