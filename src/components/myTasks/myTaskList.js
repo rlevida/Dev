@@ -4,11 +4,11 @@ import _ from "lodash";
 
 import TaskListCategory from "../task/taskListCategory";
 
-@connect((store) => {
+@connect(store => {
     return {
         task: store.task,
         loggedUser: store.loggedUser
-    }
+    };
 })
 export default class MyTaskList extends React.Component {
     render() {
