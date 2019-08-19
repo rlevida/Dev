@@ -137,7 +137,7 @@ class NotificationList extends React.Component {
                     <div>
                         <div class="card-body m0">
                             <ul class="n-list">
-                                {notification.Loading === "" &&
+                                {List.length > 0 &&
                                     _.orderBy(List, ["isRead"], ["asc"]).map((e, i) => {
                                         switch (e.type) {
                                             case "fileNewUpload": {
