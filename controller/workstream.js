@@ -1,6 +1,4 @@
 const async = require("async");
-const dbName = "workstream";
-const sequence = require("sequence").Sequence;
 const models = require("../modelORM");
 const moment = require("moment");
 const { defaultDelete } = require("./");
@@ -94,7 +92,56 @@ const taskInclude = [
 
 exports.get = {
     index: async (req, cb) => {
-        const includeStack = _.cloneDeep(associationStack);
+        const includeStack = [
+            {
+                model: Type,
+                as: "type",
+                required: false,
+                where: { linkType: "workstream" },
+                attributes: ["id", "type", "linkType"]
+            },
+            {
+                model: Tasks,
+                as: "task",
+                required: false,
+                attributes: ["id", "task", "status", "dueDate", "isDeleted"],
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Members,
+                        as: "task_members",
+                        required: false,
+                        where: { linkType: "task", isDeleted: 0 },
+                        include: [
+                            {
+                                model: Users,
+                                as: "user",
+                                attributes: ["id", "firstName", "lastName", "avatar"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                model: Tag,
+                as: "tag",
+                required: false,
+                where: { linkType: "workstream", tagType: "document" },
+                include: [
+                    {
+                        required: false,
+                        model: Document,
+                        as: "document",
+                        where: { isDeleted: 0 }
+                    }
+                ]
+            },
+            {
+                model: Notes,
+                as: "workstreamNotes",
+                required: false
+            }
+        ];
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
@@ -274,24 +321,10 @@ exports.get = {
                                 const newDoc = _.filter(resultObj.tag, tagObj => {
                                     return tagObj.document && tagObj.document.status == "new";
                                 });
-                                const members = [
-                                    ...resultObj.responsible,
-                                    ..._(resultObj.task)
-                                        .map(o => {
-                                            return o.task_members;
-                                        })
-                                        .flatten()
-                                        .uniqBy(e => {
-                                            return e.user.id;
-                                        })
-                                        .value()
-                                ];
                                 const forApproval = _.filter(resultObj.task, taskObj => {
                                     return taskObj.status == "For Approval";
                                 });
-                                const responsible = _.filter(members, member => {
-                                    return member.memberType == "responsible";
-                                });
+
                                 return {
                                     ...resultObj,
                                     pending: pendingTasks,
@@ -323,9 +356,7 @@ exports.get = {
                                             count: completedTasks.length
                                         }
                                     },
-                                    members,
-                                    messages: resultObj.workstreamNotes.length,
-                                    responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                                    messages: resultObj.workstreamNotes.length
                                 };
                             })
                             .then(resultArray => {
@@ -345,59 +376,81 @@ exports.get = {
             }
         );
     },
-    getById: (req, cb) => {
-        const whereObj = {
-            id: req.params.id
-        };
+    getById: async (req, cb) => {
+        const id = req.params.id;
+        const includeStack = [
+            {
+                model: Tasks,
+                as: "task",
+                required: false,
+                attributes: ["id", "task", "status", "dueDate", "isDeleted"],
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Members,
+                        as: "task_members",
+                        required: false,
+                        where: { linkType: "task", isDeleted: 0 },
+                        include: [
+                            {
+                                model: Users,
+                                as: "user",
+                                attributes: ["id", "firstName", "lastName", "avatar"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                model: Members,
+                as: "responsible",
+                required: false,
+                where: {
+                    linkType: "workstream"
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ]
+            }
+        ];
         const options = {
-            include: associationStack
+            include: includeStack
         };
-
         try {
-            Workstream.findOne({ ...options, where: whereObj }).then(response => {
-                const responseData = response.toJSON();
-                cb({
-                    status: true,
-                    data: responseData
+            Workstream.findOne({
+                where: { id: id },
+                ...options
+            }).then(response => {
+                const resultObj = response.toJSON();
+                const members = [
+                    ...resultObj.responsible,
+                    ..._(resultObj.task)
+                        .map(o => {
+                            return o.task_members;
+                        })
+                        .flatten()
+                        .uniqBy(e => {
+                            return e.user.id;
+                        })
+                        .value()
+                ];
+                const responsible = _.filter(members, member => {
+                    return member.memberType == "responsible";
                 });
+                const returnObj = {
+                    ...resultObj,
+                    members,
+                    responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                };
+                cb({ status: true, data: returnObj });
             });
         } catch (err) {
             cb({ status: false, error: err });
         }
-    },
-    getWorkstreamDetail: (req, cb) => {
-        let d = req.query;
-        sequence
-            .create()
-            .then(nextThen => {
-                let workstream = global.initModel("workstream");
-                workstream.getData("workstream", { id: d.id }, {}, c => {
-                    if (c.data.length > 0) {
-                        nextThen(c.data[0]);
-                    }
-                });
-            })
-            .then((nextThen, data) => {
-                let members = global.initModel("members");
-                members.getData("members", { linkType: "workstream", linkId: data.id, usersType: "users", memberType: "responsible" }, {}, e => {
-                    if (e.data.length > 0) {
-                        data.responsible = e.data[0].userTypeLinkId;
-                    }
-                    nextThen(data);
-                });
-            })
-            .then((nextThen, data) => {
-                let members = global.initModel("members");
-                let filter = typeof d.filter != "undefined" ? d.filter : {};
-                members.getWorkstreamTaskMembers({ id: d.id }, c => {
-                    if (c.status) {
-                        data.taskMemberList = c.data;
-                        cb({ status: true, data: data });
-                    } else {
-                        cb({ status: false, error: c.error });
-                    }
-                });
-            });
     },
     status: (req, cb) => {
         const queryString = req.query;
