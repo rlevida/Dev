@@ -138,56 +138,9 @@ const associationFindAllStack = [
 
 exports.get = {
     index: async (req, cb) => {
-        const associationArray = [
-            {
-                model: DocumentLink,
-                as: "document_link",
-                where: {
-                    linkType: "project"
-                },
-                required: false,
-                include: [
-                    {
-                        model: Document,
-                        as: "document",
-                        where: {
-                            folderId: null,
-                            isDeleted: 0
-                        },
-                        required: false,
-                        attributes: ["id"]
-                    }
-                ],
-                attributes: ["id"]
-            },
-            {
-                model: Members,
-                as: "members",
-                where: {
-                    usersType: "users",
-                    linkType: "project",
-                    isDeleted: 0
-                },
-                required: false,
-                attributes: ["userTypeLinkId"]
-            },
-            {
-                model: Members,
-                as: "projectManager",
-                where: {
-                    memberType: "project manager"
-                },
-                required: false,
-                include: [
-                    {
-                        model: Users,
-                        as: "user",
-                        required: false,
-                        attributes: ["id"]
-                    }
-                ],
-                attributes: ["id", "userTypeLinkId"]
-            },
+        const queryString = req.query;
+        const limit = 5;
+        let associationArray = [
             {
                 model: Type,
                 as: "type",
@@ -224,8 +177,62 @@ exports.get = {
                 attributes: ["id"]
             }
         ];
-        const queryString = req.query;
-        const limit = 5;
+
+        if (parseInt(queryString.hasMembers)) {
+            associationArray.push(
+                {
+                    model: Members,
+                    as: "members",
+                    where: {
+                        usersType: "users",
+                        linkType: "project",
+                        isDeleted: 0
+                    },
+                    required: false,
+                    attributes: ["userTypeLinkId"]
+                },
+                {
+                    model: Members,
+                    as: "projectManager",
+                    where: {
+                        memberType: "project manager"
+                    },
+                    required: false,
+                    include: [
+                        {
+                            model: Users,
+                            as: "user",
+                            required: false,
+                            attributes: ["id"]
+                        }
+                    ],
+                    attributes: ["id", "userTypeLinkId"]
+                }
+            );
+        } else {
+            associationArray.push({
+                model: DocumentLink,
+                as: "document_link",
+                where: {
+                    linkType: "project"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Document,
+                        as: "document",
+                        where: {
+                            folderId: null,
+                            isDeleted: 0
+                        },
+                        required: false,
+                        attributes: ["id"]
+                    }
+                ],
+                attributes: ["id"]
+            });
+        }
+
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {})
