@@ -417,7 +417,7 @@ exports.get = {
 
                                 const resToReturn = {
                                     ...responseObj,
-                                    projectManagerId: res.projectManager.length > 0 ? res.projectManager[0].userTypeLinkId : "",
+                                    projectManagerId: res.projectManager && res.projectManager.length > 0 ? res.projectManager[0].userTypeLinkId : "",
                                     newDocuments: documentCount,
                                     members: memberList
                                 };
@@ -647,42 +647,129 @@ exports.get = {
     },
     getById: (req, cb) => {
         const id = req.params.id;
+        const queryString = req.query;
+        let associationIncludes = [];
+        let hasInfo = parseInt(queryString.info) ? true : false;
+
+        if (hasInfo) {
+            associationIncludes = [
+                {
+                    model: Type,
+                    as: "type",
+                    required: false,
+                    attributes: ["type"]
+                },
+                {
+                    model: Users,
+                    as: "creator",
+                    required: true,
+                    attributes: ["id", "firstName", "lastName", "avatar"]
+                },
+                {
+                    model: Members,
+                    as: "projectManager",
+                    where: {
+                        memberType: "project manager"
+                    },
+                    required: false,
+                    include: [
+                        {
+                            model: Users,
+                            as: "user",
+                            required: false,
+                            attributes: ["id", "firstName", "lastName", "avatar"]
+                        }
+                    ],
+                    attributes: ["id", "userTypeLinkId"]
+                },
+                {
+                    model: Members,
+                    as: "members",
+                    where: {
+                        usersType: "users",
+                        linkType: "project",
+                        isDeleted: 0
+                    },
+                    required: false,
+                    attributes: ["id", "userTypeLinkId"]
+                },
+                {
+                    model: Members,
+                    as: "team",
+                    where: {
+                        usersType: "team",
+                        linkType: "project",
+                        isDeleted: 0
+                    },
+                    required: false,
+                    include: [
+                        {
+                            model: Teams,
+                            as: "team",
+                            required: false,
+                            include: [
+                                {
+                                    model: UsersTeam,
+                                    as: "users_team",
+                                    required: false,
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            required: false
+                                        }
+                                    ],
+                                    attributes: ["id"]
+                                }
+                            ],
+                            attributes: ["id"]
+                        }
+                    ],
+                    attributes: ["id"]
+                }
+            ];
+        }
+
         try {
             Projects.findOne({
-                include: associationFindAllStack,
+                include: associationIncludes,
                 where: { id: id }
             }).then(async res => {
                 const responseObj = res.toJSON();
-                const projectUserMembers = _(responseObj.members)
-                    .map(o => {
-                        return o.userTypeLinkId;
-                    })
-                    .filter(o => {
-                        return o != null;
-                    })
-                    .uniq()
-                    .value();
-                const memberList = await Users.findAll({
-                    where: {
-                        id: projectUserMembers
-                    },
-                    attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
-                }).map(o => {
-                    const userResponse = o.toJSON();
-                    return {
-                        ...userResponse,
-                        member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
-                            return userResponse.id == userTypeLinkId;
-                        }).id
-                    };
-                });
+                let projectUserMembers = [];
+                let memberList = [];
+
+                if (hasInfo) {
+                    projectUserMembers = _(responseObj.members)
+                        .map(o => {
+                            return o.userTypeLinkId;
+                        })
+                        .filter(o => {
+                            return o != null;
+                        })
+                        .uniq()
+                        .value();
+                    memberList = await Users.findAll({
+                        where: {
+                            id: projectUserMembers
+                        },
+                        attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
+                    }).map(o => {
+                        const userResponse = o.toJSON();
+                        return {
+                            ...userResponse,
+                            member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
+                                return userResponse.id == userTypeLinkId;
+                            }).id
+                        };
+                    });
+                }
 
                 const resToReturn = {
                     ...responseObj,
-                    projectManagerId: responseObj.projectManager.length > 0 ? responseObj.projectManager[0].userTypeLinkId : "",
+                    projectManagerId: hasInfo && responseObj.projectManager.length > 0 ? responseObj.projectManager[0].userTypeLinkId : "",
                     members: memberList
                 };
-
                 cb({ status: true, data: resToReturn });
             });
         } catch (err) {

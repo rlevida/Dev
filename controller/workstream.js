@@ -94,7 +94,37 @@ const taskInclude = [
 
 exports.get = {
     index: async (req, cb) => {
-        const includeStack = _.cloneDeep(associationStack);
+        const includeStack = [
+            {
+                model: Type,
+                as: "type",
+                required: false,
+                where: { linkType: "workstream" },
+                attributes: ["id", "type", "linkType"]
+            },
+            {
+                model: Tasks,
+                as: "task",
+                required: false,
+                attributes: ["id", "task", "status", "dueDate", "isDeleted"],
+                where: { isDeleted: 0 },
+                include: [
+                    {
+                        model: Members,
+                        as: "task_members",
+                        required: false,
+                        where: { linkType: "task", isDeleted: 0 },
+                        include: [
+                            {
+                                model: Users,
+                                as: "user",
+                                attributes: ["id", "firstName", "lastName", "avatar"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
@@ -166,6 +196,47 @@ exports.get = {
             });
 
             whereObj["id"] = [...workstreamResponsible, ...taskList];
+        }
+
+        if (parseInt(queryString.hasMembers)) {
+            includeStack.push({
+                model: Members,
+                as: "responsible",
+                required: false,
+                where: {
+                    linkType: "workstream"
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ],
+                attributes: ["id", "userTypeLinkId"]
+            });
+        } else {
+            includeStack.push(
+                {
+                    model: Tag,
+                    as: "tag",
+                    required: false,
+                    where: { linkType: "workstream", tagType: "document" },
+                    include: [
+                        {
+                            required: false,
+                            model: Document,
+                            as: "document",
+                            where: { isDeleted: 0 }
+                        }
+                    ]
+                },
+                {
+                    model: Notes,
+                    as: "workstreamNotes",
+                    required: false
+                }
+            );
         }
 
         const options = {
@@ -289,9 +360,23 @@ exports.get = {
                                 const forApproval = _.filter(resultObj.task, taskObj => {
                                     return taskObj.status == "For Approval";
                                 });
-                                const responsible = _.filter(members, member => {
-                                    return member.memberType == "responsible";
-                                });
+
+                                let members = [];
+
+                                if (parseInt(queryString.hasMembers)) {
+                                    members = [
+                                        ...resultObj.responsible,
+                                        ..._(resultObj.task)
+                                            .map(o => {
+                                                return o.task_members;
+                                            })
+                                            .flatten()
+                                            .uniqBy(e => {
+                                                return e.user.id;
+                                            })
+                                            .value()
+                                    ];
+                                }
                                 return {
                                     ...resultObj,
                                     pending: pendingTasks,
@@ -324,8 +409,7 @@ exports.get = {
                                         }
                                     },
                                     members,
-                                    messages: resultObj.workstreamNotes.length,
-                                    responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                                    messages: resultObj.workstreamNotes ? resultObj.workstreamNotes.length : 0
                                 };
                             })
                             .then(resultArray => {
