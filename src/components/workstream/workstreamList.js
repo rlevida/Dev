@@ -67,9 +67,17 @@ export default class WorkstreamList extends React.Component {
     }
 
     editData(value) {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: value });
-        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" });
+        const { dispatch, loggedUser, project: projectObj, match } = this.props;
+        const projectId = typeof projectObj.Selected.id != "undefined" ? projectObj.Selected.id : match.params.projectId;
+        const requestUrl = `/api/workstream/detail/${value.id}?projectId=${projectId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isDeleted=0&workstreamId=${value.id}`;
+
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+
+        getData(requestUrl, {}, c => {
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: { ...value, ...c.data } });
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+            dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" });
+        });
     }
 
     confirmDelete() {
