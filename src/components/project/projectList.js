@@ -64,7 +64,7 @@ export default class ProjectList extends React.Component {
 
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
 
-        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, c => {
+        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`, {}, c => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         });
