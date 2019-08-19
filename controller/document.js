@@ -59,22 +59,22 @@ const associationFindAllStack = [
         model: Users,
         as: "user"
     },
-    {
-        model: Share,
-        as: "share",
-        include: [
-            {
-                model: Users,
-                as: "user",
-                include: [
-                    {
-                        model: UsersRole,
-                        as: "user_role"
-                    }
-                ]
-            }
-        ]
-    },
+    // {
+    //     model: Share,
+    //     as: "share",
+    //     include: [
+    //         {
+    //             model: Users,
+    //             as: "user",
+    //             include: [
+    //                 {
+    //                     model: UsersRole,
+    //                     as: "user_role"
+    //                 }
+    //             ]
+    //         }
+    //     ]
+    // },
     {
         model: Starred,
         as: "document_starred",
@@ -184,16 +184,16 @@ exports.get = {
             delete _.find(associationStack, { as: "user" }).required;
             delete _.find(associationStack, { as: "user" }).where;
         }
-        if (typeof queryString.members !== "undefined" && queryString.members !== "") {
-            _.find(associationStack, { as: "share" }).where = {
-                linkType: "project",
-                usersType: "users",
-                userTypeLinkId: queryString.members
-            };
-            _.find(associationStack, { as: "share" }).required = true;
-        } else {
-            _.find(associationStack, { as: "share" }).required = false;
-        }
+        // if (typeof queryString.members !== "undefined" && queryString.members !== "") {
+        //     _.find(associationStack, { as: "share" }).where = {
+        //         linkType: "project",
+        //         usersType: "users",
+        //         userTypeLinkId: queryString.members
+        //     };
+        //     _.find(associationStack, { as: "share" }).required = true;
+        // } else {
+        //     _.find(associationStack, { as: "share" }).required = false;
+        // }
         if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
             _.find(associationStack, { as: "document_starred" }).where = {
                 linkType: "document",
@@ -268,14 +268,14 @@ exports.get = {
                                     tagNote: tagDocumentObj.tagDocumentNotes.map(e => {
                                         return { value: e.TagNotes.id, label: e.TagNotes.note };
                                     }),
-                                    members: tagDocumentObj.share.map(e => {
-                                        return e.user;
-                                    }),
-                                    share: JSON.stringify(
-                                        tagDocumentObj.share.map(e => {
-                                            return { value: e.user.id, label: e.user.firstName };
-                                        })
-                                    ),
+                                    // members: tagDocumentObj.share.map(e => {
+                                    //     return e.user;
+                                    // }),
+                                    // share: JSON.stringify(
+                                    //     tagDocumentObj.share.map(e => {
+                                    //         return { value: e.user.id, label: e.user.firstName };
+                                    //     })
+                                    // ),
                                     isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document.document_starred.length > 0 ? res.document.document_starred[0].isActive : 0,
                                     isRead: tagDocumentObj.document_read.length > 0 ? 1 : 0
                                 };
