@@ -120,7 +120,7 @@ export default class ProjectList extends React.Component {
                                 <div class="mb20 bb">
                                     <ProjectActionTab />
                                 </div>
-                                <div class={project.Loading == "RETRIEVING" && project.List.length == 0 ? "linear-background" : ""}>
+                                <div class={(project.Loading == "RETRIEVING" && project.List.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
                                     {project.List.length > 0 && (
                                         <table>
                                             <thead>
@@ -280,7 +280,7 @@ export default class ProjectList extends React.Component {
                                             <a onClick={() => this.getNextResult()}>Load More Projects</a>
                                         </p>
                                     )}
-                                    {project.List.length == 0 && project.Loading != "RETRIEVING" && (
+                                    {project.List.length == 0 && project.Loading != "RETRIEVING" && !_.isEmpty(project.Count) && (
                                         <p class="mb0 text-center">
                                             <strong>No Records Found</strong>
                                         </p>

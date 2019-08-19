@@ -704,6 +704,7 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {})
         };
         const whereObj = {
+            ...{ isDeleted: 0 },
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
         };
