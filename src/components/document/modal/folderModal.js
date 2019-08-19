@@ -31,7 +31,7 @@ class FolderModal extends React.Component {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
         }
 
-        this.fetchProjectList();
+        // this.fetchProjectList();
         this.getWorkstreamList();
         this.fetchFolderList();
 

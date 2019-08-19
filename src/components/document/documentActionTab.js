@@ -19,7 +19,7 @@ let keyTimer = "";
 class DocumentActionTab extends React.Component {
     constructor(props) {
         super(props);
-        _.map(["setDropDown", "handleDate", "handleChange", "fetchWorkstreamList", "getWorkstreamList"], fn => {
+        _.map(["setDropDown"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -110,48 +110,6 @@ class DocumentActionTab extends React.Component {
             }
         });
     }
-
-    handleChange(params) {
-        const { dispatch, document } = this.props;
-        if (document.Filter.workstream != params.workstream) {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [] });
-            dispatch({ type: "SET_DOCUMENT_FILTER", filter: params });
-        }
-    }
-
-    handleDate(e) {
-        const { dispatch } = this.props;
-        const selectedDate = e.target.value != "" ? moment(e.target.value).format("YYYY-MM-DD") : "";
-        dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [e.target.name]: selectedDate } });
-    }
-
-    getWorkstreamList(options) {
-        keyTimer && clearTimeout(keyTimer);
-        keyTimer = setTimeout(() => {
-            this.fetchWorkstreamList(options);
-        }, 1500);
-    }
-
-    fetchWorkstreamList(options) {
-        const { dispatch, loggedUser, match } = { ...this.props };
-        const projectId = match.params.projectId;
-
-        let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
-
-        if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&workstream=${options}`;
-        }
-        getData(fetchUrl, {}, c => {
-            const workstreamOptions = _(c.data.result)
-                .map(e => {
-                    return { id: e.id, name: e.workstream };
-                })
-                .value();
-            dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
-            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
-        });
-    }
-
     setDropDown(name) {
         const { dispatch, document, history } = this.props;
         if (_.isEqual(name, document.ActiveTab) == false) {

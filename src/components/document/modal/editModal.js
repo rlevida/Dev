@@ -1,5 +1,5 @@
 import React from "react";
-import { showToast, putData, getData } from '../../../globalFunction';
+import { showToast, putData, getData } from "../../../globalFunction";
 import { DropDown } from "../../../globalComponents";
 import _ from "lodash";
 import { connect } from "react-redux";
@@ -7,35 +7,24 @@ import { withRouter } from "react-router";
 
 let keyTimer = "";
 
-@connect((store) => {
+@connect(store => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
-        workstream: store.workstream,
-    }
+        workstream: store.workstream
+    };
 })
-
 class EditModal extends React.Component {
     constructor(props) {
-        super(props)
-        _.map([
-            "handleChange",
-            "handleSubmit",
-            "fetchWorkstreamList",
-            "setWorkstreamList",
-            "handleSubmit",
-            "selectTag",
-            "setDropDown"
-        ], (fn) => { this[fn] = this[fn].bind(this) });
+        super(props);
+        _.map(["handleChange", "handleSubmit", "fetchWorkstreamList", "setWorkstreamList", "handleSubmit", "selectTag", "setDropDown"], fn => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     componentDidMount() {
-        const { workstream } = this.props;
         $(".form-container").validator();
-        if (_.isEmpty(workstream.SelectList)) {
-            this.setWorkstreamList();
-        }
     }
 
     setWorkstreamList(options) {
@@ -55,9 +44,11 @@ class EditModal extends React.Component {
             fetchUrl += `&workstream=${options}`;
         }
 
-        getData(fetchUrl, {}, (c) => {
+        getData(fetchUrl, {}, c => {
             const workstreamOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.workstream } })
+                .map(e => {
+                    return { id: e.id, name: e.workstream };
+                })
                 .value();
             dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
@@ -77,15 +68,15 @@ class EditModal extends React.Component {
         const projectId = match.params.projectId;
         let result = true;
 
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
-            if ($(this).hasClass('has-error')) {
+        $(".form-container *").validator("validate");
+        $(".form-container .form-group").each(function() {
+            if ($(this).hasClass("has-error")) {
                 result = false;
             }
         });
 
         if (!result) {
-            showToast("error", "Form did not fullfill the required value.")
+            showToast("error", "Form did not fullfill the required value.");
             return;
         }
 
@@ -97,39 +88,43 @@ class EditModal extends React.Component {
                 usersId: loggedUser.data.id,
                 projectId: projectId,
                 type: document.Selected.type
-            }
-            putData(`/api/document/rename/${document.Selected.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
+            };
+            putData(`/api/document/rename/${document.Selected.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, c => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
-                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                    showToast("success", "Successfully Updated.")
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
+                    showToast("success", "Successfully Updated.");
                 } else {
-                    showToast("error", "Updating failed. Please try again.")
+                    showToast("error", "Updating failed. Please try again.");
                 }
-                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-            })
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+            });
         } else if (document.EditType == "tags") {
             const dataToSubmit = {
                 tagWorkstream: document.Selected.tagWorkstream,
                 oldDocument: document.Selected.oldDocument,
-                newDocument: document.Selected.tagWorkstream.map((e) => { return e.label }).join(','),
+                newDocument: document.Selected.tagWorkstream
+                    .map(e => {
+                        return e.label;
+                    })
+                    .join(","),
                 usersId: loggedUser.data.id,
                 projectId: projectId,
                 origin: document.Selected.origin,
                 type: document.Selected.type
-            }
+            };
 
-            putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}&starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
+            putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}&starredUser=${loggedUser.data.id}`, dataToSubmit, c => {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
-                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
                     showToast("success", "Successfully Updated.");
                 } else {
-                    showToast("error", "Updating failed. Please try again.")
+                    showToast("error", "Updating failed. Please try again.");
                 }
-                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-            })
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+            });
         }
 
         $("#editModal").modal("hide");
@@ -144,7 +139,7 @@ class EditModal extends React.Component {
     }
 
     setDropDown(name, value) {
-        const { dispatch, document } = this.props
+        const { dispatch, document } = this.props;
         const selectedObj = { ...document.Selected, [name]: value };
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
     }
@@ -157,20 +152,19 @@ class EditModal extends React.Component {
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="panel-title">DOCUMENT {(document.Selected.id) ? " > Edit > " + document.Selected.origin : " > Add"}</h3>
+                            <h3 class="panel-title">DOCUMENT {document.Selected.id ? " > Edit > " + document.Selected.origin : " > Add"}</h3>
                         </div>
                         <div class="modal-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
-                                {(document.EditType == "rename") &&
+                                {document.EditType == "rename" && (
                                     <div class="form-group">
                                         <label class="col-md-4 col-xs-12 control-label">Document Name *</label>
                                         <div class="col-md-8 col-xs-12">
-                                            <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined") ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-
+                                            <input type="text" name="origin" required value={typeof document.Selected.origin == "undefined" ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
                                         </div>
                                     </div>
-                                }
-                                {(document.EditType == "tags") &&
+                                )}
+                                {document.EditType == "tags" && (
                                     <div class="form-group">
                                         <label class="col-md-4 col-xs-12 control-label">Document Tags *</label>
                                         <div class="col-md-8 col-xs-12">
@@ -179,35 +173,34 @@ class EditModal extends React.Component {
                                                 multiple={true}
                                                 required={true}
                                                 options={workstream.SelectList}
-                                                selected={(document.Selected.tagWorkstream != null) ? document.Selected.tagWorkstream : []}
-                                                onChange={(e) => this.setDropDown("tagWorkstream", (e == null) ? "" : e)}
+                                                selected={document.Selected.tagWorkstream != null ? document.Selected.tagWorkstream : []}
+                                                onChange={e => this.setDropDown("tagWorkstream", e == null ? "" : e)}
                                             />
                                         </div>
                                     </div>
-                                }
-                                {(document.EditType == "folder") &&
+                                )}
+                                {document.EditType == "folder" && (
                                     <div class="form-group">
                                         <label class="col-md-4 col-xs-12 control-label">Folder Name *</label>
                                         <div class="col-md-8 col-xs-12">
-                                            <input type="text" name="name" required value={(typeof document.Selected.name == "undefined") ? "" : document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
-
+                                            <input type="text" name="name" required value={typeof document.Selected.name == "undefined" ? "" : document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
                                         </div>
                                     </div>
-                                }
+                                )}
                             </form>
                             <div class="mt20">
                                 <a class="btn btn-violet mr5" onClick={() => this.handleSubmit()}>
-                                    <span>
-                                        Submit
-                                </span>
+                                    <span>Submit</span>
                                 </a>
-                                <a class="btn btn-default" data-dismiss="modal"><span>Cancel</span></a>
+                                <a class="btn btn-default" data-dismiss="modal">
+                                    <span>Cancel</span>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
 
