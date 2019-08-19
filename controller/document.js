@@ -1048,14 +1048,14 @@ exports.post = {
                                 tagNote: res.document.tagDocumentNotes.map(e => {
                                     return { value: e.TagNotes.id, label: e.TagNotes.note };
                                 }),
-                                members: res.document.share.map(e => {
-                                    return e.user;
-                                }),
-                                share: JSON.stringify(
-                                    res.document.share.map(e => {
-                                        return { value: e.user.id, label: e.user.firstName };
-                                    })
-                                ),
+                                // members: res.document.share.map(e => {
+                                //     return e.user;
+                                // }),
+                                // share: JSON.stringify(
+                                //     res.document.share.map(e => {
+                                //         return { value: e.user.id, label: e.user.firstName };
+                                //     })
+                                // ),
                                 isRead: res.document.document_read.length > 0 ? 1 : 0
                             };
                             return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask");
