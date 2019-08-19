@@ -64,10 +64,12 @@ export default class TaskForm extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
     }
     componentDidMount() {
-        const { task, workstream, project } = { ...this.props };
+        const { task, project } = { ...this.props };
 
         this.fetchAssignList();
         this.fetchProjectList();
+
+        $(".form-control").attr("autocomplete", "off");
 
         if (typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") {
             this.fetchWorkstreamList();
