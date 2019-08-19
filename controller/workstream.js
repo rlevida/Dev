@@ -120,25 +120,6 @@ exports.get = {
                         ]
                     }
                 ]
-            },
-            {
-                model: Tag,
-                as: "tag",
-                required: false,
-                where: { linkType: "workstream", tagType: "document" },
-                include: [
-                    {
-                        required: false,
-                        model: Document,
-                        as: "document",
-                        where: { isDeleted: 0 }
-                    }
-                ]
-            },
-            {
-                model: Notes,
-                as: "workstreamNotes",
-                required: false
             }
         ];
         const queryString = req.query;
@@ -212,6 +193,47 @@ exports.get = {
             });
 
             whereObj["id"] = [...workstreamResponsible, ...taskList];
+        }
+
+        if (parseInt(queryString.hasMembers)) {
+            includeStack.push({
+                model: Members,
+                as: "responsible",
+                required: false,
+                where: {
+                    linkType: "workstream"
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ],
+                attributes: ["id", "userTypeLinkId"]
+            });
+        } else {
+            includeStack.push(
+                {
+                    model: Tag,
+                    as: "tag",
+                    required: false,
+                    where: { linkType: "workstream", tagType: "document" },
+                    include: [
+                        {
+                            required: false,
+                            model: Document,
+                            as: "document",
+                            where: { isDeleted: 0 }
+                        }
+                    ]
+                },
+                {
+                    model: Notes,
+                    as: "workstreamNotes",
+                    required: false
+                }
+            );
         }
 
         const options = {
@@ -324,6 +346,22 @@ exports.get = {
                                     return taskObj.status == "For Approval";
                                 });
 
+                                let members = [];
+
+                                if (parseInt(queryString.hasMembers)) {
+                                    members = [
+                                        ...resultObj.responsible,
+                                        ..._(resultObj.task)
+                                            .map(o => {
+                                                return o.task_members;
+                                            })
+                                            .flatten()
+                                            .uniqBy(e => {
+                                                return e.user.id;
+                                            })
+                                            .value()
+                                    ];
+                                }
                                 return {
                                     ...resultObj,
                                     pending: pendingTasks,
@@ -355,7 +393,8 @@ exports.get = {
                                             count: completedTasks.length
                                         }
                                     },
-                                    messages: resultObj.workstreamNotes.length
+                                    members,
+                                    messages: resultObj.workstreamNotes ? resultObj.workstreamNotes.length : 0
                                 };
                             })
                             .then(resultArray => {

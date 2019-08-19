@@ -40,7 +40,7 @@ export default class ProjectList extends React.Component {
 
     fetchProject() {
         const { dispatch, loggedUser } = this.props;
-        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active`;
+        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
         getData(requestUrl, {}, c => {
             dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
@@ -85,9 +85,12 @@ export default class ProjectList extends React.Component {
 
     handleEdit(params) {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: params });
-        dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
-        dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+
+        getData(`/api/project/detail/${params.id}?info=${1}`, {}, c => {
+            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
+            dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+        });
     }
 
     handleArchive(data) {
