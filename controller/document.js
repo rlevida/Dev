@@ -321,14 +321,14 @@ exports.get = {
                 tagNote: documentObj.tagDocumentNotes.map(e => {
                     return { value: e.TagNotes.id, label: e.TagNotes.note };
                 }),
-                members: documentObj.share.map(e => {
-                    return e.user;
-                }),
-                share: JSON.stringify(
-                    documentObj.share.map(e => {
-                        return { value: e.user.id, label: e.user.firstName };
-                    })
-                ),
+                // members: documentObj.share.map(e => {
+                //     return e.user;
+                // }),
+                // share: JSON.stringify(
+                //     documentObj.share.map(e => {
+                //         return { value: e.user.id, label: e.user.firstName };
+                //     })
+                // ),
                 isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && documentObj.document_starred.length > 0 ? documentObj.document_starred[0].isActive : 0,
                 isRead: documentObj.document_read.length > 0 ? 1 : 0
             };
@@ -494,14 +494,14 @@ exports.get = {
                                             tagNote: res.tagDocumentNotes.map(e => {
                                                 return { value: e.TagNotes.id, label: e.TagNotes.note };
                                             }),
-                                            members: res.share.map(e => {
-                                                return e.user;
-                                            }),
-                                            share: JSON.stringify(
-                                                res.share.map(e => {
-                                                    return { value: e.user.id, label: e.user.firstName };
-                                                })
-                                            ),
+                                            // members: res.share.map(e => {
+                                            //     return e.user;
+                                            // }),
+                                            // share: JSON.stringify(
+                                            //     res.share.map(e => {
+                                            //         return { value: e.user.id, label: e.user.firstName };
+                                            //     })
+                                            // ),
                                             isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document_starred.length > 0 ? res.document_starred[0].isActive : 0,
                                             isRead: res.document_read.length > 0 ? 1 : 0
                                         };
@@ -633,14 +633,14 @@ exports.get = {
                                             tagNote: res.tagDocumentNotes.map(e => {
                                                 return { value: e.TagNotes.id, label: e.TagNotes.note };
                                             }),
-                                            members: res.share.map(e => {
-                                                return e.user;
-                                            }),
-                                            share: JSON.stringify(
-                                                res.share.map(e => {
-                                                    return { value: e.user.id, label: e.user.firstName };
-                                                })
-                                            ),
+                                            // members: res.share.map(e => {
+                                            //     return e.user;
+                                            // }),
+                                            // share: JSON.stringify(
+                                            //     res.share.map(e => {
+                                            //         return { value: e.user.id, label: e.user.firstName };
+                                            //     })
+                                            // ),
                                             isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document_starred.length > 0 ? res.document_starred[0].isActive : 0,
                                             isRead: res.document_read.length > 0 ? 1 : 0
                                         };
@@ -1253,14 +1253,14 @@ exports.put = {
                                         tagNote: findRes.document.tagDocumentNotes.map(e => {
                                             return { value: e.TagNotes.id, label: e.TagNotes.note };
                                         }),
-                                        members: findRes.document.share.map(e => {
-                                            return e.user;
-                                        }),
-                                        share: JSON.stringify(
-                                            findRes.document.share.map(e => {
-                                                return { value: e.user.id, label: e.user.firstName };
-                                            })
-                                        ),
+                                        // members: findRes.document.share.map(e => {
+                                        //     return e.user;
+                                        // }),
+                                        // share: JSON.stringify(
+                                        //     findRes.document.share.map(e => {
+                                        //         return { value: e.user.id, label: e.user.firstName };
+                                        //     })
+                                        // ),
                                         isRead: findRes.document.document_read.length > 0 ? 1 : 0
                                     };
                                     parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") });
@@ -1396,14 +1396,14 @@ exports.put = {
                                         tagNote: res.document.tagDocumentNotes.map(e => {
                                             return { value: e.TagNotes.id, label: e.TagNotes.note };
                                         }),
-                                        members: res.document.share.map(e => {
-                                            return e.user;
-                                        }),
-                                        share: JSON.stringify(
-                                            res.document.share.map(e => {
-                                                return { value: e.user.id, label: e.user.firstName };
-                                            })
-                                        ),
+                                        // members: res.document.share.map(e => {
+                                        //     return e.user;
+                                        // }),
+                                        // share: JSON.stringify(
+                                        //     res.document.share.map(e => {
+                                        //         return { value: e.user.id, label: e.user.firstName };
+                                        //     })
+                                        // ),
                                         isRead: res.document.document_read.length > 0 ? 1 : 0
                                     };
                                     parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") });
@@ -1514,14 +1514,14 @@ exports.put = {
                                             tagNote: findRes.document.tagDocumentNotes.map(e => {
                                                 return { value: e.TagNotes.id, label: e.TagNotes.note };
                                             }),
-                                            members: findRes.document.share.map(e => {
-                                                return e.user;
-                                            }),
-                                            share: JSON.stringify(
-                                                findRes.document.share.map(e => {
-                                                    return { value: e.user.id, label: e.user.firstName };
-                                                })
-                                            ),
+                                            // members: findRes.document.share.map(e => {
+                                            //     return e.user;
+                                            // }),
+                                            // share: JSON.stringify(
+                                            //     findRes.document.share.map(e => {
+                                            //         return { value: e.user.id, label: e.user.firstName };
+                                            //     })
+                                            // ),
                                             isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && findRes.document.document_starred.length > 0 ? findRes.document.document_starred[0].isActive : 0,
                                             isRead: findRes.document.document_read.length > 0 ? 1 : 0
                                         };
@@ -1599,14 +1599,14 @@ exports.put = {
                         tagNote: findRes.document.tagDocumentNotes.map(e => {
                             return { value: e.TagNotes.id, label: e.TagNotes.note };
                         }),
-                        members: findRes.document.share.map(e => {
-                            return e.user;
-                        }),
-                        share: JSON.stringify(
-                            findRes.document.share.map(e => {
-                                return { value: e.user.id, label: e.user.firstName };
-                            })
-                        ),
+                        // members: findRes.document.share.map(e => {
+                        //     return e.user;
+                        // }),
+                        // share: JSON.stringify(
+                        //     findRes.document.share.map(e => {
+                        //         return { value: e.user.id, label: e.user.firstName };
+                        //     })
+                        // ),
                         isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && findRes.document.document_starred.length > 0 ? findRes.document.document_starred[0].isActive : 0
                     };
                     cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") });
@@ -1668,14 +1668,14 @@ exports.put = {
                                                     tagNote: documentObj.tagDocumentNotes.map(e => {
                                                         return { value: e.TagNotes.id, label: e.TagNotes.note };
                                                     }),
-                                                    members: documentObj.share.map(e => {
-                                                        return e.user;
-                                                    }),
-                                                    share: JSON.stringify(
-                                                        documentObj.share.map(e => {
-                                                            return { value: e.user.id, label: e.user.firstName };
-                                                        })
-                                                    ),
+                                                    // members: documentObj.share.map(e => {
+                                                    //     return e.user;
+                                                    // }),
+                                                    // share: JSON.stringify(
+                                                    //     documentObj.share.map(e => {
+                                                    //         return { value: e.user.id, label: e.user.firstName };
+                                                    //     })
+                                                    // ),
                                                     isRead: documentObj.document_read.length > 0 ? 1 : 0
                                                 };
                                                 mapCallback(null, _.omit(returnDocumentObj, "tagDocumentWorkstream", "tagDocumentTask"));
