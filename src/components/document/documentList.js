@@ -642,6 +642,11 @@ class DocumentList extends React.Component {
                                     </p>
                                 )}
                                 {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
+                                {document.List.length == 0 && document.Loading != "RETRIEVING" && (
+                                    <p class="mb0 text-center">
+                                        <strong>No Records Found</strong>
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
