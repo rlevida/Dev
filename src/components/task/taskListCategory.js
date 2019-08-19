@@ -32,8 +32,8 @@ export default class TaskListCategory extends React.Component {
         const { dispatch } = { ...this.props };
         const taskId = getParameterByName("task-id");
 
-        // dispatch({ type: "SET_TASK_LIST", list: [] });
-        // this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
+        dispatch({ type: "SET_TASK_LIST", list: [] });
+        this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
 
         if (taskId != null) {
             setTimeout(() => {
@@ -107,7 +107,6 @@ export default class TaskListCategory extends React.Component {
         let toDate = "";
 
         let fetchUrl = `/api/task?page=${page}`;
-
         switch (date) {
             case "Today":
                 fromDate = moment()
@@ -347,6 +346,7 @@ export default class TaskListCategory extends React.Component {
 
     groupList() {
         const { task, date } = { ...this.props };
+        console.log(task.List);
         const taskList = _.filter(task.List, o => {
             const { dueDate } = o;
             const given = moment(dueDate).local();
