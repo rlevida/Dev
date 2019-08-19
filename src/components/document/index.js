@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { Route, Switch } from "react-router-dom";
 import DocumentViewer from "../document/modal/documentViewerModal";
 import DocumentUpload from "../document/documentUpload";
-import Form from "./form";
 import List from "./list";
 
 @connect(store => {
@@ -42,7 +41,6 @@ export default class DocumentComponent extends React.Component {
                         <Route path={`${match.path}/:documentId`} component={DocumentViewer} />
                     </Switch>
                 )}
-                {document.FormActive === "Form" && <Form />}
                 {document.FormActive === "Upload" && <DocumentUpload />}
             </div>
         );
