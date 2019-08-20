@@ -4,6 +4,7 @@ import { withRouter } from "react-router";
 import { Route, Switch, Link } from "react-router-dom";
 import _ from "lodash";
 import { getData, notificationType, putData, textColor } from "../../globalFunction";
+import { Loading } from "../../globalComponents";
 
 import Menu from "./menu";
 import Home from "../home";
@@ -13,6 +14,8 @@ import Users from "../users";
 import Profile from "../profile";
 import notAvailable from "../notAvailable";
 import Notification from "../notification";
+
+let keyTimer = "";
 
 @connect(store => {
     return {
@@ -41,22 +44,31 @@ class Main extends React.Component {
         const { showLeft, showRight } = { ...this.state };
         this.setState({ showLeft: !showLeft, showRight: !showRight });
     }
+    componentDidMount() {
+        const self = this;
+        $(".notif-wrapper").scroll(function() {
+            const { notification, dispatch } = { ...self.props };
+            if (this.scrollHeight - this.scrollTop < this.clientHeight + 50) {
+                dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
 
+                keyTimer && clearTimeout(keyTimer);
+                keyTimer = setTimeout(() => {
+                    self.fetchNotification(notification.Count.current_page + 1);
+                }, 400);
+            }
+        });
+    }
     componentWillMount() {
         const { dispatch, user, location } = this.props;
-
-        getData(`/api/reminder?usersId=${user.id}`, {}, c => {
-            dispatch({ type: "SET_REMINDER_LIST", list: c.data });
-        });
 
         getData(`/api/globalORM/settings`, {}, c => {
             dispatch({ type: "UPDATE_SETTINGS", value: c.data.value, name: "imageUrl" });
         });
 
         if (location.pathname !== "/notification") {
-            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, c => {
-                const { count, result } = { ...c.data };
-                dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            getData(`/api/notification/count?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, c => {
+                const { count } = { ...c.data };
+                dispatch({ type: "SET_NOTIFICATION_COUNT", Count: count });
             });
         }
 
@@ -209,6 +221,15 @@ class Main extends React.Component {
         }
     }
 
+    fetchNotification(page) {
+        const { user, dispatch } = { ...this.props };
+        getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
+            const { count, result } = { ...c.data };
+            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            dispatch({ type: "SET_NOTIFICATION_LOADING", Loading: "" });
+        });
+    }
+
     render() {
         const { showLeft } = { ...this.state };
         const { project, loggedUser, notification } = { ...this.props };
@@ -284,10 +305,6 @@ class Main extends React.Component {
         const getProjectDetailsPath = currentPath.split("/");
         const showProjectMenu = getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined";
         const currentProjectPage = typeof getProjectDetailsPath[3] == "undefined" ? "dashboard" : getProjectDetailsPath[3];
-        const notificationUnreadCount = _.filter(notification.List, o => {
-            return !o.isRead;
-        }).length;
-
         return (
             <div class={showLeft ? "flex-row" : ""} id="main-container">
                 {showLeft && (
@@ -339,60 +356,71 @@ class Main extends React.Component {
                                 )}
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
-                                            <span class={`fa fa-bell ${this.props.location.pathname !== "/notification" && notificationUnreadCount > 0 ? "bell-active" : ""}`}> </span>
-                                            {notificationUnreadCount > 0 && this.props.location.pathname !== "/notification" && (
-                                                <div class="circle">
-                                                    <p>{notificationUnreadCount || ""}</p>
+                                        <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell" onClick={() => this.fetchNotification(1)}>
+                                            <span class={`fa fa-bell ${this.props.location.pathname !== "/notification" && notification.NotificationCount > 0 ? "bell-active" : ""}`}> </span>
+                                            {notification.NotificationCount > 0 && this.props.location.pathname !== "/notification" && (
+                                                <div class="circle" style={{ width: JSON.stringify(notification.NotificationCount).length > 2 ? "auto" : "" }}>
+                                                    <p>{notification.NotificationCount || ""}</p>
                                                 </div>
                                             )}
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="notif-wrapper">
-                                                {_.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
-                                                    const { from, dateAdded, project_notification } = { ...e };
-                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                    const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-                                                    return (
-                                                        <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
-                                                            <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
-                                                                <div class="menu-profile">
-                                                                    {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
-                                                                        <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                    ) : (
-                                                                        <span class="n-tod-warning">
-                                                                            <i class="fa fa-exclamation-circle" />
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <div class="ml10 w100">
-                                                                    <p class="m0 ">
+                                                {notification.List.length > 0 &&
+                                                    _.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
+                                                        const { from, dateAdded } = { ...e };
+                                                        const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                        const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                        return (
+                                                            <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
+                                                                <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
+                                                                    <div class="menu-profile">
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
-                                                                            <span>
-                                                                                {`${from.firstName} ${from.lastName} `}
-                                                                                <strong>{notificationType(e.type)}</strong>
-                                                                            </span>
+                                                                            <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
                                                                         ) : (
-                                                                            <span>
-                                                                                {`${notificationType(e.type)} `}
-                                                                                <strong>{`Checkout the task ${e.task_notification.task}`}</strong>
+                                                                            <span class="n-tod-warning">
+                                                                                <i class="fa fa-exclamation-circle" />
                                                                             </span>
                                                                         )}
-                                                                    </p>
-                                                                    <p class="note m0">{date}</p>
-                                                                    {e.project_notification && (
-                                                                        <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
-                                                                            <span title={e.project_notification.type.type}>
-                                                                                <i class={e.project_notification.type.type == "Client" ? "fa fa-users mr5" : e.project_notification.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
-                                                                            </span>
-                                                                            {e.project_notification.project}
+                                                                    </div>
+                                                                    <div class="ml10 w100">
+                                                                        <p class="m0 ">
+                                                                            {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
+                                                                                <span>
+                                                                                    {`${from.firstName} ${from.lastName} `}
+                                                                                    <strong>{notificationType(e.type)}</strong>
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span>
+                                                                                    {`${notificationType(e.type)} `}
+                                                                                    <strong>{`Checkout the task ${e.task_notification.task}`}</strong>
+                                                                                </span>
+                                                                            )}
                                                                         </p>
-                                                                    )}
+                                                                        <p class="note m0">{date}</p>
+                                                                        {e.project_notification && (
+                                                                            <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
+                                                                                <span title={e.project_notification.type.type}>
+                                                                                    <i class={e.project_notification.type.type == "Client" ? "fa fa-users mr5" : e.project_notification.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
+                                                                                </span>
+                                                                                {e.project_notification.project}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </a>
-                                                    );
-                                                })}
+                                                            </a>
+                                                        );
+                                                    })}
+                                                {notification.Loading == "RETRIEVING" && (
+                                                    <p class={`text-center m0 text-orange ${notification.List.length > 0 ? "notif-item n-unread" : ""}`}>
+                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw fa-lg m10" />
+                                                    </p>
+                                                )}
+                                                {notification.List.length == 0 && notification.Loading != "RETRIEVING" && (
+                                                    <p class="mb0">
+                                                        <strong>No Records Found</strong>
+                                                    </p>
+                                                )}
                                             </div>
                                             <a href={`/account#/notification`}>
                                                 <div class="notify-drop-footer text-center">View All Notification</div>
