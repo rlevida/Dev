@@ -138,7 +138,6 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
             order: [["isRead", "ASC"], ["dateAdded", "ASC"]]
         };
-
         const notificationStack = _.cloneDeep(NotificationInclude);
         try {
             async.parallel(
