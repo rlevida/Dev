@@ -222,12 +222,14 @@ class Main extends React.Component {
     }
 
     fetchNotification(page) {
-        const { user, dispatch } = { ...this.props };
-        getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
-            const { count, result } = { ...c.data };
-            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
-            dispatch({ type: "SET_NOTIFICATION_LOADING", Loading: "" });
-        });
+        const { user, dispatch, notification } = { ...this.props };
+        if (_.isEmpty(notification.Count) || notification.Count.current_page !== page) {
+            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
+                const { count, result } = { ...c.data };
+                dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+                dispatch({ type: "SET_NOTIFICATION_LOADING", Loading: "" });
+            });
+        }
     }
 
     render() {
