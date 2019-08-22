@@ -60,18 +60,23 @@ export default class TaskDocument extends React.Component {
                 const updatedChecklist = _.map(c.data.result, o => {
                     return { ...o, isCompleted: 1 };
                 });
+
+                const taskObj = {
+                    ...task.Selected,
+                    checklist: _(task.Selected.checklist)
+                        .differenceBy(updatedChecklist, "id")
+                        .concat(updatedChecklist)
+                        .sortBy("dateAdded")
+                        .reverse()
+                        .value()
+                };
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: {
-                        ...task.Selected,
-                        checklist: _(task.Selected.checklist)
-                            .differenceBy(updatedChecklist, "id")
-                            .concat(updatedChecklist)
-                            .sortBy("dateAdded")
-                            .reverse()
-                            .value()
+                        ...taskObj
                     }
                 });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [taskObj] });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
                 if (c.data.activity_logs.length > 0) {
                     _.map(c.data.activity_logs, o => {
@@ -138,18 +143,22 @@ export default class TaskDocument extends React.Component {
                 const updatedChecklist = _.map(c.data.result, o => {
                     return { ...o, isCompleted: 1 };
                 });
+                const taskObj = {
+                    ...task.Selected,
+                    checklist: _(task.Selected.checklist)
+                        .differenceBy(updatedChecklist, "id")
+                        .concat(updatedChecklist)
+                        .sortBy("dateAdded")
+                        .reverse()
+                        .value()
+                };
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: {
-                        ...task.Selected,
-                        checklist: _(task.Selected.checklist)
-                            .differenceBy(updatedChecklist, "id")
-                            .concat(updatedChecklist)
-                            .sortBy("dateAdded")
-                            .reverse()
-                            .value()
+                        ...taskObj
                     }
                 });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [taskObj] });
                 dispatch({ type: "UPDATE_CHECKLIST", List: updatedChecklist });
                 if (c.data.activity_logs.length > 0) {
                     _.map(c.data.activity_logs, o => {
