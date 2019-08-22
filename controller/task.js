@@ -316,7 +316,6 @@ exports.get = {
                         attributes: ["id"]
                     }
                 ],
-                attributes: ["id"]
             },
             {
                 model: Workstream,

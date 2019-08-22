@@ -346,7 +346,6 @@ export default class TaskListCategory extends React.Component {
 
     groupList() {
         const { task, date } = { ...this.props };
-        console.log(task.List);
         const taskList = _.filter(task.List, o => {
             const { dueDate } = o;
             const given = moment(dueDate).local();
