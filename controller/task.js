@@ -315,7 +315,7 @@ exports.get = {
                         ],
                         attributes: ["id"]
                     }
-                ],
+                ]
             },
             {
                 model: Workstream,
@@ -446,9 +446,7 @@ exports.get = {
             whereObj[Sequelize.Op.and] = {
                 id: {
                     [Sequelize.Op.in]: Sequelize.literal(
-                        `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${
-                            queryString.assigned
-                        } AND members.isDeleted = 0)`
+                        `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${queryString.assigned} AND members.isDeleted = 0)`
                     )
                 }
             };
