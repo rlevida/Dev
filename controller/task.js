@@ -2829,7 +2829,7 @@ exports.put = {
                                                                             taskId: updatedResponse.id,
                                                                             workstreamId: updatedResponse.workstreamId,
                                                                             type: "taskFollowingCompleted",
-                                                                            message: `Task ${updatedResponse.task} that you fallowed has been completed.`,
+                                                                            message: `Task ${updatedResponse.task} that you followed has been completed.`,
                                                                             emailAddress: nSetting.notification_setting.emailAddress,
                                                                             receiveEmail: nSetting.receiveEmail
                                                                         };
