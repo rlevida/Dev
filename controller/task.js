@@ -333,7 +333,7 @@ exports.get = {
                                 attributes: ["type"]
                             }
                         ],
-                        attributes: ["id", "color"]
+                        attributes: ["id", "color","project"]
                     }
                 ]
             }
