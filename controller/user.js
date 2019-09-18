@@ -270,6 +270,15 @@ exports.get = {
             };
             cb({ status: true, data: _.omit(responseToReturn, "team_as_teamLeader", "users_team") });
         });
+    },
+    getNotificationSetting: (req, cb) => {
+        try {
+            UsersNotificationSetting.findOne({ where: { usersId: req.query.id } }).then(ret => {
+                cb({ status: true, data: ret });
+            });
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
     }
 };
 
