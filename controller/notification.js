@@ -288,6 +288,52 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err });
         }
+    },
+    markAllAsRead: (req, cb) => {
+        try {
+            const notificationStack = _.cloneDeep(NotificationInclude);
+
+            Notification.update({ isRead: 1 }, { where: { usersId: req.params.id } }).then(ret => {
+                let limit = 10;
+
+                const options = {
+                    offset: limit * 1 - limit,
+                    limit,
+                    order: [["isRead", "ASC"], ["dateAdded", "ASC"]]
+                };
+
+                async.parallel(
+                    {
+                        count: parallelCallback => {
+                            Notification.findAndCountAll({
+                                ...options,
+                                where: { usersId: req.params.id, isDeleted: 0, isArchived: 0 }
+                            }).then(res => {
+                                const pageData = {
+                                    total_count: res.count,
+                                    ...{ current_page: res.count > 0 ? 1 : 0, last_page: _.ceil(res.count / limit) }
+                                };
+                                parallelCallback(null, pageData);
+                            });
+                        },
+                        result: parallelCallback => {
+                            Notification.findAll({
+                                ...options,
+                                where: { usersId: req.params.id },
+                                include: notificationStack
+                            }).then(res => {
+                                parallelCallback(null, res);
+                            });
+                        }
+                    },
+                    (err, results) => {
+                        cb({ status: true, data: results });
+                    }
+                );
+            });
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
     }
 };
 
