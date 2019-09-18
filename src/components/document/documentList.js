@@ -111,6 +111,7 @@ class DocumentList extends React.Component {
                 history.replace(history.location.pathname);
             }
             this.fetchData(1);
+            this.fetchFolderSelectList();
         } else if (folder.Selected.id !== data.id) {
             getData(
                 `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
@@ -264,9 +265,7 @@ class DocumentList extends React.Component {
         const { dispatch, loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
-            loggedUser.data.id
-        }&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
@@ -276,7 +275,7 @@ class DocumentList extends React.Component {
             if (c.status == 200) {
                 const folderOptions = _(c.data.result)
                     .map(e => {
-                        const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                        const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;
                         return { id: e.id, name: fName };
                     })
                     .value();
@@ -552,7 +551,7 @@ class DocumentList extends React.Component {
                                                                             <i class="fa fa-ellipsis-v" />
                                                                         </span>
                                                                     </a>
-                                                                    <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                    <ul class="dropdown-menu pull-right" aria-labelledby="dropdownMenu2">
                                                                         {data.type != "folder" && (
                                                                             <li>
                                                                                 <a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>
@@ -598,7 +597,7 @@ class DocumentList extends React.Component {
                                                                                     Move to
                                                                                     <div class="dropdown-content dropdown-menu-right">
                                                                                         {folder.SelectList.map((e, fIndex) => {
-                                                                                            if (e.id !== data.id) {
+                                                                                            if (e.id !== data.id && _.find(document.List, { id: e.id })) {
                                                                                                 if (typeof folder.Selected.id !== "undefined") {
                                                                                                     if (e.id !== folder.Selected.id) {
                                                                                                         return (

@@ -12,7 +12,8 @@ let keyTimer = "";
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
-        workstream: store.workstream
+        workstream: store.workstream,
+        folder: store.folder
     };
 })
 class EditModal extends React.Component {
@@ -64,7 +65,7 @@ class EditModal extends React.Component {
     }
 
     handleSubmit() {
-        const { loggedUser, document, dispatch, match } = this.props;
+        const { loggedUser, document, dispatch, match, folder } = this.props;
         const projectId = match.params.projectId;
         let result = true;
 
@@ -94,6 +95,17 @@ class EditModal extends React.Component {
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
                     showToast("success", "Successfully Updated.");
+
+                    if (c.data.result.type === "folder") {
+                        const folderSelectList = folder.SelectList.map(e => {
+                            if (c.data.result.id === e.id) {
+                                return { ...e, name: c.data.result.origin };
+                            } else {
+                                return e;
+                            }
+                        });
+                        dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderSelectList });
+                    }
                 } else {
                     showToast("error", "Updating failed. Please try again.");
                 }
