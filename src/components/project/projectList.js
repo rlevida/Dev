@@ -41,10 +41,14 @@ export default class ProjectList extends React.Component {
     fetchProject() {
         const { dispatch, loggedUser } = this.props;
         let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
-        getData(requestUrl, {}, c => {
-            dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
-        });
+        try {
+            getData(requestUrl, {}, c => {
+                dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            });
+        } catch (err) {
+            showToast("error", "Something went wrong. Please try again.");
+        }
     }
 
     fetchFormField() {
@@ -70,17 +74,9 @@ export default class ProjectList extends React.Component {
         });
     }
 
-    renderStatus({ workstream, render_type }) {
-        const lateWorkstream = _.filter(workstream, ({ taskOverDue }) => {
-            return taskOverDue.length > 0;
-        }).length;
-        const workstreamTaskDueToday = _.filter(workstream, ({ taskDueToday }) => {
-            return taskDueToday.length > 0;
-        }).length;
-        const status = lateWorkstream > 0 ? `${lateWorkstream} stream${lateWorkstream > 1 ? "s" : ""} delayed` : workstreamTaskDueToday > 0 ? `${workstreamTaskDueToday} stream${workstreamTaskDueToday > 1 ? "s" : ""} due today` : `On track`;
-        const color = lateWorkstream > 0 ? "text-red" : workstreamTaskDueToday > 0 ? "text-yellow" : "text-green";
-        const component = render_type == "text" ? <p class={`mb0 ${color}`}>{status}</p> : <i class={`fa fa-circle mb0 mr5 ${color}`} />;
-        return component;
+    renderStatus(status) {
+        const color = status.delayed_task.count > 0 ? "text-red" : status.tasks_due_today.count > 0 ? "text-yellow" : "text-green";
+        return <i class={`fa fa-circle mb0 mr5 ${color}`} />;
     }
 
     handleEdit(params) {
@@ -131,8 +127,8 @@ export default class ProjectList extends React.Component {
                                                     <th scope="col" class="td-left">
                                                         Project Name
                                                     </th>
-                                                    <th scope="col">Status</th>
-                                                    <th scope="col">Updates</th>
+                                                    {/* <th scope="col">Status</th> */}
+                                                    {/* {/* <th scope="col">Updates</th> */}
                                                     <th scope="col">Workstreams</th>
                                                     <th scope="col">Completion</th>
                                                     <th scope="col">Members</th>
@@ -165,15 +161,16 @@ export default class ProjectList extends React.Component {
                                                         <tr key={index}>
                                                             <td data-label="Project Name" class="td-left table-name">
                                                                 <p class="mb0">
-                                                                    {numberOfTasks > 0 && isDeleted == 0 && <span>{this.renderStatus({ workstream, render_type: "icon" })}</span>}
+                                                                    <span>{this.renderStatus(completion_rate)}</span>
+                                                                    {/* {numberOfTasks > 0 && isDeleted == 0 && <span>{this.renderStatus({ workstream, render_type: "icon" })}</span>} */}
                                                                     <Link to={`/projects/${id}`}>{project}</Link>
                                                                 </p>
                                                             </td>
-                                                            <td data-label="Status">
+                                                            {/* <td data-label="Status">
                                                                 {numberOfTasks > 0 && isDeleted == 0 && <div>{this.renderStatus({ workstream, render_type: "text" })}</div>}
                                                                 {isDeleted == 1 && <p class="m0 text-red">Archived</p>}
-                                                            </td>
-                                                            <td data-label="Type">
+                                                            </td> */}
+                                                            {/* <td data-label="Type">
                                                                 {typeof updates != "undefined" && updates.count > 0 && (
                                                                     <a data-tip data-for={`update-${index}`}>
                                                                         <p class="mb0 text-blue">
@@ -222,7 +219,7 @@ export default class ProjectList extends React.Component {
                                                                         )}
                                                                     </div>
                                                                 </ReactTooltip>
-                                                            </td>
+                                                            </td> */}
                                                             <td data-label="Workstreams">{workstream.length}</td>
                                                             <td data-label="Completion">{completionRate > 0 && <p class={`m0 ${completionRate == 100 ? "text-green" : ""}`}>{completionRate.toFixed(2) + "%"}</p>}</td>
                                                             <td data-label="Members">
