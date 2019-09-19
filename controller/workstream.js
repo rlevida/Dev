@@ -860,7 +860,7 @@ exports.post = {
                                                     } else {
                                                         const newTaskMembers = [{ linkType: "task", linkId: taskReturn.id, userTypeLinkId: defaultTaskAssigned, usersType: "users", memberType: "assignedTo" }];
                                                         const newTaskchecklist = taskObjChecklistArray.map(c => {
-                                                            return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id };
+                                                            return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id, createdBy: defaultTaskAssigned, dateAdded: moment().format() };
                                                         });
                                                         mapCallback(null, { members: newTaskMembers, checklist: newTaskchecklist });
                                                     }
