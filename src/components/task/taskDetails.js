@@ -71,7 +71,12 @@ export default class TaskDetails extends React.Component {
     }
 
     componentWillUnmount() {
+        const { dispatch } = { ...this.props };
         $(`#task-details`).modal("hide");
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+        dispatch({ type: "SET_COMMENT_SELECTED", Selected: {} });
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
     }
 
     editTask() {
@@ -356,16 +361,19 @@ export default class TaskDetails extends React.Component {
         };
 
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
-
-        postData(`/api/conversation/comment`, dataToBeSubmited, c => {
-            if (c.status == 200) {
-                dispatch({ type: "UPDATE_COMMENT_LIST", comment: c.data });
-                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
-                dispatch({ type: "SET_COMMENT_SELECTED", Selected: { comment: "" } });
-            } else {
-                showToast("error", "Something went wrong. Please try again later.");
-            }
-        });
+        try {
+            postData(`/api/conversation/comment`, dataToBeSubmited, c => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_COMMENT_LIST", comment: c.data });
+                    dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+                    dispatch({ type: "SET_COMMENT_SELECTED", Selected: { comment: "" } });
+                } else {
+                    showToast("error", "Something went wrong. Please try again later.");
+                }
+            });
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     replyComment({ firstName, lastName, username, id }) {
