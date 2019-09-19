@@ -385,7 +385,7 @@ class Main extends React.Component {
                                             </a>
                                         )}
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell" id="test">
-                                            <div class="notif-wrapper">
+                                            <div class={` ${notification.Loading === "RETRIEVING" || (notification.List.length == 0 && notification.Loading != "RETRIEVING") ? "notif-wrapper-nr" : "notif-wrapper"}`}>
                                                 {notification.List.length > 0 &&
                                                     _.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
                                                         const { from, dateAdded } = { ...e };
@@ -437,7 +437,7 @@ class Main extends React.Component {
                                                     </p>
                                                 )}
                                                 {notification.List.length == 0 && notification.Loading != "RETRIEVING" && (
-                                                    <p class="mb0 text-center">
+                                                    <p class="mb0 text-center lh-35">
                                                         <strong>No Records Found</strong>
                                                     </p>
                                                 )}
