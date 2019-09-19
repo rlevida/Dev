@@ -10,6 +10,7 @@ export default function reducer(
             isDeleted: 0
         },
         NotificationCount: 0,
+        NotificationBellIsOpen: false,
         Loading: "RETRIEVING"
     },
     action
@@ -33,17 +34,26 @@ export default function reducer(
             });
             return { ...state, List: newList };
         }
+        case "MARK_ALL_AS_READ": {
+            return { ...state, List: action.list, ...(action.count ? { Count: action.count } : {}) };
+        }
         case "SET_NOTIFICATION_COUNT": {
             return { ...state, NotificationCount: action.Count };
         }
         case "SET_NOTIFICATION_LOADING": {
             return { ...state, Loading: action.loading };
         }
+        case "SET_NOTIFICATION_BELL": {
+            return { ...state, NotificationBellIsOpen: action.notificationBellIsOpen };
+        }
         case "REMOVE_NOTIFICATION_FROM_LIST": {
             const tempList = state.List.filter(e => {
                 return e.id !== action.id;
             });
             return { ...state, List: tempList };
+        }
+        case "RESET_NOTIFICATION": {
+            return { ...state, ...action };
         }
         default:
             return state;

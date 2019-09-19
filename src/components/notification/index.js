@@ -1,25 +1,24 @@
 import React from "react";
 import { connect } from "react-redux";
 import NotificationActionTab from "./notificationActionTab";
-import NotificationlList from "./notificationList"
-import { getData } from "../../globalFunction"
+import NotificationlList from "./notificationList";
+import { getData } from "../../globalFunction";
 
-@connect((store) => {
+@connect(store => {
     return {
         project: store.project,
         task: store.task,
         loggedUser: store.loggedUser
-    }
+    };
 })
-
 export default class Component extends React.Component {
-
     componentWillUnmount() {
         const { dispatch, loggedUser } = { ...this.props };
-        getData(`/api/notification?usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
-            const { count, result } = { ...c.data }
-            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
-        })
+        dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationCount: 0 });
+        getData(`/api/notification/count?usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, {}, c => {
+            const { count } = { ...c.data };
+            dispatch({ type: "SET_NOTIFICATION_COUNT", Count: count });
+        });
     }
 
     render() {
@@ -34,6 +33,6 @@ export default class Component extends React.Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }

@@ -299,7 +299,7 @@ exports.put = {
                 const options = {
                     offset: limit * 1 - limit,
                     limit,
-                    order: [["isRead", "ASC"], ["dateAdded", "ASC"]]
+                    order: [["isRead", "DESC"], ["dateAdded", "DESC"]]
                 };
 
                 async.parallel(
