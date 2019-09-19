@@ -71,7 +71,10 @@ export default class TaskDetails extends React.Component {
     }
 
     componentWillUnmount() {
+        const { dispatch } = { ...this.props };
         $(`#task-details`).modal("hide");
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
     }
 
     editTask() {
