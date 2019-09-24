@@ -3,30 +3,23 @@ import { connect } from "react-redux";
 import _ from "lodash";
 
 import { DropDown } from "../../globalComponents";
-import { showToast, postData, getData } from '../../globalFunction';
+import { showToast, postData, getData } from "../../globalFunction";
 
 let keyTimer = "";
 
-@connect((store) => {
+@connect(store => {
     return {
         checklist: store.checklist,
         task: store.task,
         taskDependency: store.taskDependency,
-        loggedUser: store.loggedUser,
-    }
+        loggedUser: store.loggedUser
+    };
 })
-
 export default class TaskDependency extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map([
-            "handleSubmit",
-            "setDropDown",
-            "getTaskList",
-            "setDropDownMultiple",
-            "setTaskList"
-        ], (fn) => {
+        _.map(["handleSubmit", "setDropDown", "getTaskList", "setDropDownMultiple", "setTaskList"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -41,29 +34,27 @@ export default class TaskDependency extends React.Component {
         };
         let result = true;
 
-        $('#task-dependency-form *').validator('validate');
-        $('#task-dependency-form .form-group').each(function () {
-            if ($(this).hasClass('has-error')) {
+        $("#task-dependency-form *").validator("validate");
+        $("#task-dependency-form .form-group").each(function() {
+            if ($(this).hasClass("has-error")) {
                 result = false;
             }
         });
 
-
         if (!result) {
             showToast("error", "Please fill up the required fields.");
         } else {
-            postData(`/api/taskDependency`, toBeSubmitted, (c) => {
+            postData(`/api/taskDependency`, toBeSubmitted, c => {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data.task_dependencies });
-                    dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: "" })
+                    dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: "" });
                     showToast("success", "Task Dependency successfully updated.");
                 } else {
                     showToast("error", c.response.data.message);
                 }
-                $("#task-dependency-form *").validator('destroy');
+                $("#task-dependency-form *").validator("destroy");
             });
         }
-
     }
 
     setDropDown(name, value) {
@@ -77,7 +68,7 @@ export default class TaskDependency extends React.Component {
             selected["task_dependency"] = [];
         }
 
-        dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: selected })
+        dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: selected });
     }
 
     setDropDownMultiple(name, values) {
@@ -98,15 +89,27 @@ export default class TaskDependency extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&task=${options}`;
         }
-        getData(fetchUrl, {}, (c) => {
+        getData(fetchUrl, {}, c => {
             const taskOptions = _(c.data.result)
-                .filter((o) => {
-                    const findSelectedTaskIndex = _.findIndex(taskDependency.List, (taskDependencyObj) => { return taskDependencyObj.task.id == o.id });
+                .filter(o => {
+                    const findSelectedTaskIndex = _.findIndex(taskDependency.List, taskDependencyObj => {
+                        return taskDependencyObj.task.id == o.id;
+                    });
                     return findSelectedTaskIndex < 0 && o.id != task.Selected.id;
                 })
-                .map((e) => { return { id: e.id, name: e.task } })
+                .map(e => {
+                    return { id: e.id, name: e.task };
+                })
                 .value();
-            dispatch({ type: "SET_TASK_SELECT_LIST", List: _.concat(taskOptions, _.map(task.Selected.task_dependency, (o) => { return { id: o.value, name: o.label } })) });
+            dispatch({
+                type: "SET_TASK_SELECT_LIST",
+                List: _.concat(
+                    taskOptions,
+                    _.map(task.Selected.task_dependency, o => {
+                        return { id: o.value, name: o.label };
+                    })
+                )
+            });
         });
     }
 
@@ -118,27 +121,41 @@ export default class TaskDependency extends React.Component {
                 <div class="mt10 row">
                     <div class="col-lg-8 col-sm-12">
                         <div class="form-group input-inline">
-                            <label for="email">Dependency Type:<span class="text-red">*</span></label>
-                            <DropDown multiple={false}
+                            <label for="email">
+                                Dependency Type:<span class="text-red">*</span>
+                            </label>
+                            <DropDown
+                                multiple={false}
                                 required={true}
-                                options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
-                                selected={(typeof taskDependency.Selected.dependency_type == "undefined") ? "" : taskDependency.Selected.dependency_type}
-                                onChange={(e) => {
-                                    this.setDropDown("dependency_type", (e == null) ? "" : e.value);
+                                options={_.map(
+                                    [
+                                        "Preceded by"
+                                        // 'Succeeding'
+                                    ],
+                                    o => {
+                                        return { id: o, name: o };
+                                    }
+                                )}
+                                selected={typeof taskDependency.Selected.dependency_type == "undefined" ? "" : taskDependency.Selected.dependency_type}
+                                onChange={e => {
+                                    this.setDropDown("dependency_type", e == null ? "" : e.value);
                                 }}
                                 isClearable={true}
                                 disabled={typeof task.Selected.workstreamId == "undefined" || task.Selected.workstreamId == ""}
                             />
                         </div>
                         <div class="form-group input-inline">
-                            <label for="email">Dependent Tasks:<span class="text-red">*</span></label>
-                            <DropDown multiple={true}
+                            <label for="email">
+                                Dependent Tasks:<span class="text-red">*</span>
+                            </label>
+                            <DropDown
+                                multiple={true}
                                 required={true}
                                 options={task.SelectList}
                                 onInputChange={this.setTaskList}
                                 onFocus={this.setTaskList}
-                                selected={(typeof taskDependency.Selected.task_dependency == "undefined") ? [] : taskDependency.Selected.task_dependency}
-                                onChange={(e) => this.setDropDownMultiple("task_dependency", e)}
+                                selected={typeof taskDependency.Selected.task_dependency == "undefined" ? [] : taskDependency.Selected.task_dependency}
+                                onChange={e => this.setDropDownMultiple("task_dependency", e)}
                                 disabled={typeof task.Selected.workstreamId == "undefined" || task.Selected.workstreamId == ""}
                                 placeholder={"Search or select task"}
                             />
@@ -149,6 +166,6 @@ export default class TaskDependency extends React.Component {
                     <span>Create Task Dependency</span>
                 </a>
             </form>
-        )
+        );
     }
 }
