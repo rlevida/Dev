@@ -175,6 +175,15 @@ export default class TaskListCategory extends React.Component {
             fetchUrl += `&assigned=${Filter.taskAssigned}`;
         }
 
+        if (date === "Succeeding month" || date === "This month") {
+            const weekFrom = moment()
+                    .add("days", 1)
+                    .format("YYYY-MM-DD"),
+                weekTo = moment()
+                    .endOf("week")
+                    .format("YYYY-MM-DD");
+            fetchUrl += `&weekDate=${JSON.stringify({ opt: "notBetween", value: [weekFrom, weekTo] })}`;
+        }
         getData(fetchUrl, {}, c => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
         });
@@ -349,8 +358,12 @@ export default class TaskListCategory extends React.Component {
         const taskList = _.filter(task.List, o => {
             const { dueDate } = o;
             const given = moment(dueDate).local();
-            const current = moment().startOf("day");
-
+            const weekDate = moment.weekdays().map((e, i) => {
+                return moment()
+                    .day(i)
+                    .format("YYYY-MM-DD");
+            });
+            const isInWeek = weekDate.indexOf(given.format("YYYY-MM-DD")) > -1;
             switch (date) {
                 case "Today":
                     return given.isSameOrBefore(moment().endOf("day"));
@@ -359,10 +372,10 @@ export default class TaskListCategory extends React.Component {
                     return given.isAfter(moment().endOf("day")) && given.isBefore(moment().endOf("week"));
                     break;
                 case "This month":
-                    return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month"));
+                    return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month")) && !isInWeek;
                     break;
                 case "Succeeding month":
-                    return given.isAfter(moment().endOf("month")) && given.isBefore(moment().endOf("year"));
+                    return given.isAfter(moment().endOf("month")) && given.isBefore(moment().endOf("year")) && !isInWeek;
                     break;
                 default:
                     return dueDate == null;
