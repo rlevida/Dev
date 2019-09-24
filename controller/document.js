@@ -1465,6 +1465,7 @@ exports.put = {
                 try {
                     Document.findAll({
                         where: {
+                            id: { [Op.ne]: id },
                             origin: body.origin
                         },
                         order: Sequelize.literal("documentNameCount DESC"),

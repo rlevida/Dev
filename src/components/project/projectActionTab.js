@@ -25,7 +25,7 @@ export default class ProjectActionTab extends React.Component {
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
             const { typeId, projectStatus } = this.props.project.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
-            let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+            let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
 
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });

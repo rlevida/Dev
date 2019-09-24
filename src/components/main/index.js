@@ -1,20 +1,22 @@
 import React from "react";
 import { connect } from "react-redux";
-import { HashRouter as Router } from 'react-router-dom';
+import { HashRouter as Router } from "react-router-dom";
 import App from "./app";
-
-@connect((store) => {
+import NetworkChecker from "./internetChecker";
+@connect(store => {
     return {
         user: store.loggedUser.data,
         reminder: store.reminder
-    }
+    };
 })
-export default class Main extends React.Component {
+class Main extends React.Component {
     render() {
         return (
             <Router>
-                <App/>
+                <App />
             </Router>
-        )
+        );
     }
 }
+
+export default NetworkChecker(Main);
