@@ -48,7 +48,7 @@ class Main extends React.Component {
         const self = this;
         $(".notif-wrapper").scroll(function() {
             const { notification, dispatch } = { ...self.props };
-            if (this.scrollHeight - this.scrollTop < this.clientHeight + 50) {
+            if (this.scrollHeight - this.scrollTop < this.clientHeight + 50 && notification.Filter.last_page > notification.Filter.current_page) {
                 dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
 
                 keyTimer && clearTimeout(keyTimer);
@@ -56,6 +56,13 @@ class Main extends React.Component {
                     self.fetchNotification(notification.Count.current_page + 1);
                 }, 400);
             }
+        });
+
+        $("#bell").on("hidden.bs.dropdown", () => {
+            const { dispatch } = { ...self.props };
+            setTimeout(() => {
+                dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationBellIsOpen: false });
+            }, 200);
         });
     }
     componentWillMount() {
@@ -161,12 +168,12 @@ class Main extends React.Component {
     }
 
     async handleNotificationRedirect(notif) {
-        const { history, dispatch, loggedUser } = { ...this.props };
+        const { history, dispatch, loggedUser, notification } = { ...this.props };
         const { taskId, workstreamId, projectId } = { ...notif };
 
         if (!notif.isRead) {
-            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
-                dispatch({ type: "UPDATE_DATA_NOTIFICATION_LIST", updatedData: c.data });
+            putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
+                dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
             });
         }
 
@@ -221,13 +228,22 @@ class Main extends React.Component {
         }
     }
 
+    handleNotificationBell() {
+        const { dispatch, notification } = { ...this.props };
+        dispatch({ type: "SET_NOTIFICATION_BELL", notificationBellIsOpen: !notification.NotificationBellIsOpen });
+        if (!notification.NotificationBellIsOpen) {
+            this.fetchNotification(1);
+        }
+    }
+
     fetchNotification(page) {
         const { user, dispatch, notification } = { ...this.props };
-        if (_.isEmpty(notification.Count) || notification.Count.current_page !== page) {
+        if (_.isEmpty(notification.Count)) {
+            dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
             getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
                 const { count, result } = { ...c.data };
                 dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
-                dispatch({ type: "SET_NOTIFICATION_LOADING", Loading: "" });
+                dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "" });
             });
         }
     }
@@ -357,17 +373,19 @@ class Main extends React.Component {
                                     </div>
                                 )}
                                 <div class="action item">
-                                    <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell" onClick={() => this.fetchNotification(1)}>
-                                            <span class={`fa fa-bell ${this.props.location.pathname !== "/notification" && notification.NotificationCount > 0 ? "bell-active" : ""}`}> </span>
-                                            {notification.NotificationCount > 0 && this.props.location.pathname !== "/notification" && (
-                                                <div class="circle" style={{ width: JSON.stringify(notification.NotificationCount).length > 2 ? "auto" : "" }}>
-                                                    <p>{notification.NotificationCount || ""}</p>
-                                                </div>
-                                            )}
-                                        </a>
-                                        <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
-                                            <div class="notif-wrapper">
+                                    <div class="hidden-sm hidden-xs text-center display-flex action-link" id="bell">
+                                        {this.props.location.pathname !== "/notification" && (
+                                            <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell" onClick={() => this.handleNotificationBell()}>
+                                                <span class={`fa fa-bell ${this.props.location.pathname !== "/notification" && notification.NotificationCount > 0 ? "bell-active" : ""}`}> </span>
+                                                {notification.NotificationCount > 0 && this.props.location.pathname !== "/notification" && (
+                                                    <div class="circle" style={{ width: JSON.stringify(notification.NotificationCount).length > 2 ? "auto" : "" }}>
+                                                        <p>{notification.NotificationCount || ""}</p>
+                                                    </div>
+                                                )}
+                                            </a>
+                                        )}
+                                        <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell" id="test">
+                                            <div class={` ${notification.Loading === "RETRIEVING" || (notification.List.length == 0 && notification.Loading != "RETRIEVING") ? "notif-wrapper-nr" : "notif-wrapper"}`}>
                                                 {notification.List.length > 0 &&
                                                     _.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
                                                         const { from, dateAdded } = { ...e };
@@ -419,7 +437,7 @@ class Main extends React.Component {
                                                     </p>
                                                 )}
                                                 {notification.List.length == 0 && notification.Loading != "RETRIEVING" && (
-                                                    <p class="mb0">
+                                                    <p class="mb0 text-center lh-35">
                                                         <strong>No Records Found</strong>
                                                     </p>
                                                 )}

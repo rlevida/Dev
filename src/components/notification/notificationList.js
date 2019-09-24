@@ -38,7 +38,7 @@ class NotificationList extends React.Component {
 
     async componentDidMount() {
         const { dispatch } = { ...this.props };
-        await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
+        await dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });
         await this.fetchData(1);
     }
 
@@ -70,11 +70,11 @@ class NotificationList extends React.Component {
     }
 
     async handleNotificationRedirect(notif) {
-        const { history, dispatch, loggedUser } = { ...this.props };
+        const { history, dispatch, loggedUser, notification } = { ...this.props };
         const { taskId, workstreamId, projectId } = { ...notif };
         if (!notif.isRead) {
             await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
-                dispatch({ type: "UPDATE_DATA_NOTIFICATION_LIST", updatedData: c.data });
+                dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
             });
         }
 

@@ -34,11 +34,11 @@ export default class TaskListCategory extends React.Component {
 
         dispatch({ type: "SET_TASK_LIST", list: [] });
         this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
-
-        if (taskId != null) {
+        if (taskId != null && currentTaskId === "") {
+            currentTaskId = taskId;
             setTimeout(() => {
                 this.openTaskDetails(taskId);
-            }, 500);
+            }, 200);
         }
     }
 
@@ -197,7 +197,6 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-
         getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, c => {
             if (c.status == 200) {
                 const { data } = c;
