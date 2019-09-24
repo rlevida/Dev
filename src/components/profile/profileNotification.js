@@ -17,8 +17,20 @@ export default class ProfileNotification extends React.Component {
         });
     }
     componentDidMount() {
+        this.getNotificationSetting();
+    }
+
+    getNotificationSetting() {
         const { dispatch, loggedUser } = { ...this.props };
-        dispatch({ type: "SET_USER_NOTIFICATION_SELECTED", Setting: loggedUser.data.notification_setting });
+        getData(`/api/user/getNotificationSetting?id=${loggedUser.data.id}`, {}, c => {
+            const { status, data } = { ...c };
+            if (status === 200) {
+                dispatch({ type: "SET_USER_NOTIFICATION_SELECTED", Setting: data });
+                showToast("success", "Successfully Updated.");
+            } else {
+                showToast("error", "Something went wrong. Please try again later.");
+            }
+        });
     }
 
     handleChange(name, value) {
