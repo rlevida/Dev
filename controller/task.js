@@ -464,21 +464,6 @@ exports.get = {
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {})
         };
 
-        if (weekDate) {
-            console.log(
-                _.map(weekDate.value, o => {
-                    return moment(o, "YYYY-MM-DD")
-                        .utc()
-                        .format("YYYY-MM-DD HH:mm");
-                })
-            );
-            console.log(`---------------`);
-            console.log(weekDate);
-            console.log(dueDate);
-            console.log(whereObj);
-            console.log(`---------------`);
-        }
-
         if (typeof queryString.type == "undefined" && (typeof queryString.assigned != "undefined" && queryString.assigned != "")) {
             whereObj[Sequelize.Op.and] = {
                 id: {

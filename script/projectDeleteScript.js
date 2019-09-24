@@ -1,10 +1,7 @@
-const async = require("async"),
-    moment = require("moment"),
-    _ = require("lodash"),
+const moment = require("moment"),
     CronJob = require("cron").CronJob;
 
 const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
 
 /**
  *
@@ -41,7 +38,6 @@ var job = new CronJob(
                 return projectRet.id;
             })
             .then(projectReturn => {
-                console.log(projectReturn);
                 if (projectReturn.length > 0) {
                     Projects.destroy({ where: { id: { [Sequelize.Op.in]: [projectReturn] } } }).then(() => {
                         return;
