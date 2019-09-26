@@ -77,7 +77,6 @@ class Component extends React.Component {
     }
     handleFetchProjectCategory({ category, page, initialLoad }) {
         const { loggedUser, dispatch, project } = { ...this.props };
-
         if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
             const requestUrl = `/api/project/getByType?userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
             let typeId = 0;
@@ -96,6 +95,7 @@ class Component extends React.Component {
     }
     render() {
         const { pages, current_page = "", project, loggedUser } = { ...this.props };
+        const projectTypes = ["Client", ...loggedUser.data.userType !== "External" ? ["Internal", "Private"] : []];
         return (
             <div>
                 <ul id="menu">
@@ -114,7 +114,7 @@ class Component extends React.Component {
                                 </Link>
                                 {page.path_name == "projects" && (
                                     <div class="hidden-xs">
-                                        {_.map(["Client", "Internal", "Private"], (o, index) => {
+                                        {_.map(projectTypes, (o, index) => {
                                             const currentPage = typeof project.Category[o].count.current_page != "undefined" ? project.Category[o].count.current_page : 1;
                                             const lastPage = typeof project.Category[o].count.last_page != "undefined" ? project.Category[o].count.last_page : 1;
                                             return (
