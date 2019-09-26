@@ -32,11 +32,6 @@ export default class Component extends React.Component {
         this.unlisten = this.props.history.listen(() => {
             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-            const currentProjectPage = this.props.history.location.pathname.split("/");
-            // if (typeof currentProjectPage[3] == "undefined" || currentProjectPage[3] != "workstreams") {
-            //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-            //     dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
-            // }
         });
     }
     render() {

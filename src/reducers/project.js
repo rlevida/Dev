@@ -4,7 +4,8 @@ export default function reducer(
     state = {
         Count: {},
         Filter: {
-            projectStatus: "Active",
+            projectProgress: "All",
+            projectType: 1,
             typeId: 1
         },
         FormActive: "List",

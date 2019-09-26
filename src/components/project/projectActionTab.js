@@ -23,19 +23,20 @@ export default class ProjectActionTab extends React.Component {
         const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
-            const { typeId, projectStatus } = this.props.project.Filter;
+            const { typeId, projectType, projectProgress } = this.props.project.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
             let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
 
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
 
-            if (projectStatus == "In Active") {
-                fetchUrl += `&projectStatus=${projectStatus}`;
-            } else if (projectStatus != "Archived") {
-                fetchUrl += `&projectStatus=${projectStatus}&isActive=1&isActive=0`;
-            } else if (projectStatus == "Archived") {
-                fetchUrl += `&isDeleted=1&isActive=1&isActive=0`;
+            if (projectProgress) {
+                fetchUrl += `&projectProgress=${projectProgress}`;
+            }
+            if (typeId === "Innactive/Archived") {
+                fetchUrl += `&isActive=0&isDeleted=1&projectType=${projectType}`;
+            } else {
+                fetchUrl += `&isActive=1`;
             }
 
             getData(fetchUrl, {}, c => {
@@ -61,8 +62,8 @@ export default class ProjectActionTab extends React.Component {
                 return { id: o.id, name: o.type };
             })
             .value();
-        const statusList = [{ id: "All", name: "All Status" }, { id: "Active", name: "Active" }, { id: "Archived", name: "Archived" }, { id: "On Time", name: "On Time" }, { id: "In Active", name: "Inactive" }, { id: "Issues", name: "Issues" }];
-
+        const projectProcessOptions = [{ id: "All", name: "All" }, { id: "On Time", name: "On Time" }, { id: "Issues", name: "Issues" }];
+        const projectTypeOptions = [{ id: 1, name: "Client" }, { id: 2, name: "Internal" }, { id: 3, name: "Private" }];
         return (
             <div class="container-fluid filter mb20">
                 <div class="row content-row">
@@ -77,11 +78,20 @@ export default class ProjectActionTab extends React.Component {
                                     </div>
                                 );
                             })}
+                            <div class="flex-col">
+                                <a class={project.Filter.typeId === "Innactive/Archived" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Innactive/Archived")}>
+                                    Innactive/Archived
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            <DropDown multiple={false} required={false} options={statusList} selected={Filter.projectStatus} onChange={e => this.setDropDown("projectStatus", e.value)} />
+                            {project.Filter.typeId === "Innactive/Archived" ? (
+                                <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} />
+                            ) : (
+                                <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} />
+                            )}
                             {loggedUser.data.userRole <= 4 && (
                                 <a
                                     class="btn btn-default"

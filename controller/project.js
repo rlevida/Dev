@@ -113,7 +113,9 @@ exports.get = {
             ...(typeof queryString.id != "undefined" && queryString.id != "" ? { id: queryString.id.split(",") } : {}),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
-            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" && queryString.typeId !== "Innactive/Archived" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.projectType != "undefined" && queryString.projectType != "" && queryString.typeId === "Innactive/Archived" ? { typeId: queryString.projectType } : {}),
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {}),
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.project != "undefined" && queryString.project != ""
                 ? {
@@ -125,6 +127,7 @@ exports.get = {
                   }
                 : {})
         };
+
 
         if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
             const userTeam = await UsersTeam.findAll({
@@ -174,19 +177,11 @@ exports.get = {
                 }
             ];
         }
-
-        if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
-            switch (queryString.projectStatus) {
+        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" &&  queryString.typeId !== "Innactive/Archived" ) {
+            switch (queryString.projectProgress) {
                 case "All":
-                    whereObj[Sequelize.Op.or].isActive = { [Sequelize.Op.or]: [0, 1] };
-
-                    whereObj["isDeleted"] = [1, 0];
-                    break;
-                case "Active":
-                    whereObj["isActive"] = 1;
-                    break;
-                case "In Active":
-                    whereObj["isActive"] = 0;
+                    whereObj["isDeleted"] = [0];
+                    whereObj["isActive"] = [1];
                     break;
                 case "On Time":
                     whereObj["id"] = {
@@ -196,12 +191,13 @@ exports.get = {
                                     workstream
                                 LEFT JOIN
                                     task
-                                ON task.workstreamId = workstream.id
+                                ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                                 WHERE task.dueDate >= "${moment(queryString.dueDate, "YYYY-MM-DD")
                                     .utc()
                                     .format("YYYY-MM-DD HH:mm")}"
                                 OR task.dueDate IS NULL
                                 OR task.status = "Completed"
+                                AND task.isDeleted = 0
                                 )`),
                             [Op.notIn]: Sequelize.literal(`(SELECT DISTINCT
                                 workstream.projectId
@@ -209,29 +205,29 @@ exports.get = {
                                 workstream
                             LEFT JOIN
                                 task
-                            ON task.workstreamId = workstream.id
+                            ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                             WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
                                 .utc()
-                                .format("YYYY-MM-DD HH:mm")}" 
-                            AND (task.status != "Completed" OR task.status IS NULL)
+                                .format("YYYY-MM-DD HH:mm")}"
+                            AND (task.status != "Completed" OR task.status IS NULL) AND task.isDeleted = 0
                             )`)
                         }
                     };
                     break;
                 case "Issues":
                     whereObj["id"] = {
-                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT
+                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT
                             workstream.projectId
                         FROM
                             workstream
                         LEFT JOIN
                             task
-                        ON task.workstreamId = workstream.id
+                        ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                         WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
                             .utc()
                             .format("YYYY-MM-DD HH:mm")}"
-                        AND (task.status != "Completed" OR task.status IS NULL)
-                    )`)
+                        AND (task.status != "Completed" OR task.status IS NULL) AND task.isDeleted = 0
+                    )`),
                     };
                     break;
                 default:
@@ -257,7 +253,7 @@ exports.get = {
                     try {
                         Projects.findAll({
                             ...options,
-                            where: whereObj,
+                            where: whereObj
                         })
                             .map(async res => {
                                 const responseObj = res.toJSON();

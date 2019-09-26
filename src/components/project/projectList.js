@@ -39,10 +39,11 @@ export default class ProjectList extends React.Component {
     }
 
     fetchProject() {
-        const { dispatch, loggedUser } = this.props;
-        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
+        const { dispatch, loggedUser, project } = this.props;
+        let fetchUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
+
         try {
-            getData(requestUrl, {}, c => {
+            getData(fetchUrl, {}, c => {
                 dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             });
@@ -64,11 +65,22 @@ export default class ProjectList extends React.Component {
     getNextResult() {
         const { project, dispatch, loggedUser } = { ...this.props };
         const { Count, List, Filter } = project;
-        const { typeId, projectStatus } = Filter;
+        const { typeId, projectType, projectProgress } = { ...Filter};
+        const dueDateMoment = moment().format("YYYY-MM-DD");
+        let fetchUrl = `/api/project?page=${Count.current_page + 1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&dueDate=${dueDateMoment}`;
+
+        if (projectProgress) {
+            fetchUrl += `&projectProgress=${projectProgress}`;
+        }
+        if (typeId === "Innactive/Archived") {
+            fetchUrl += `&isActive=0&isDeleted=1&projectType=${projectType}`;
+        } else {
+            fetchUrl += `&isActive=1&typeId=${typeId}`;
+        }
 
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
 
-        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`, {}, c => {
+        getData(fetchUrl, {}, c => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         });
