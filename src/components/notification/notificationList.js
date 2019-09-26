@@ -31,7 +31,7 @@ import MessageMentioned from "./template/messageMentioned";
 class NotificationList extends React.Component {
     constructor(props) {
         super(props);
-        _.map(["fetchData", "getNextResult", "archive", "handleNotificationRedirect", "markAsRead"], fn => {
+        _.map(["fetchData", "getNextResult", "handleNotificationRedirect", "markAsRead"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -58,15 +58,6 @@ class NotificationList extends React.Component {
         const { notification } = { ...this.props };
         const { Count } = { ...notification };
         this.fetchData(Count.current_page + 1);
-    }
-
-    archive(data) {
-        const { dispatch, loggedUser } = { ...this.props };
-        putData(`/api/notification/archive/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, c => {
-            const { count, result } = { ...c.data };
-            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
-            showToast("success", "Successfully Archived.");
-        });
     }
 
     async handleNotificationRedirect(notif) {
@@ -143,21 +134,21 @@ class NotificationList extends React.Component {
                                             case "fileNewUpload": {
                                                 return (
                                                     <div key={i}>
-                                                        <FileNewUpload data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <FileNewUpload data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "fileTagged": {
                                                 return (
                                                     <div key={i}>
-                                                        <FileTagged data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <FileTagged data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskAssigned": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskAssgined data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskAssgined data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
@@ -165,84 +156,84 @@ class NotificationList extends React.Component {
                                             case "taskApprover": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskApprover data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskApprover data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "messageSend": {
                                                 return (
                                                     <div key={i}>
-                                                        <MessageSend data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <MessageSend data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "messageMentioned": {
                                                 return (
                                                     <div key={i}>
-                                                        <MessageMentioned data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <MessageMentioned data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskTagged": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskTagged data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskTagged data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "commentReplies": {
                                                 return (
                                                     <div key={i}>
-                                                        <CommentReplies data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <CommentReplies data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskFollowingCompleted": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskFollowingCompleted data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskFollowingCompleted data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskMemberCompleted": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskMemberCompleted data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskMemberCompleted data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskDeadline data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskTeamDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskTeamDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskTeamDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskFollowingDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskFollowingDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskFollowingDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskApproved": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskFollowingDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskFollowingDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskAssignedComment": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskAssginedComment data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskAssginedComment data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
@@ -251,7 +242,7 @@ class NotificationList extends React.Component {
                                             case "taskBeforeDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskResponsibleDeadline data={e} index={i} archive={data => this.archive(data)} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskResponsibleDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
@@ -266,7 +257,7 @@ class NotificationList extends React.Component {
                                 <a onClick={() => this.getNextResult()}>Load More Notifications</a>
                             </p>
                         )}
-                        {notification.Loading === "RETRIEVING" && List.length > 0 && <Loading />}
+                        {notification.Loading === "RETRIEVING" && <Loading />}
                         {List.length === 0 && notification.Loading != "RETRIEVING" && (
                             <p class="mb0 text-center">
                                 <strong>No Records Found</strong>

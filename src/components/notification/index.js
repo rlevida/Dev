@@ -14,7 +14,7 @@ import { getData } from "../../globalFunction";
 export default class Component extends React.Component {
     componentWillUnmount() {
         const { dispatch, loggedUser } = { ...this.props };
-        dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationCount: 0 });
+        dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationCount: 0, Filter: { isArchived: 0 } });
         getData(`/api/notification/count?usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, {}, c => {
             const { count } = { ...c.data };
             dispatch({ type: "SET_NOTIFICATION_COUNT", Count: count });
