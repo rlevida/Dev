@@ -48,8 +48,10 @@ class NotificationActionTab extends React.Component {
     async setDropDown(name, e) {
         const { dispatch, notification } = this.props;
         const { Filter } = { ...notification };
-        await dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });
-        await dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { ...Filter, [name]: e } });
+        if (notification.Loading === "") {
+            await dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });
+            await dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { ...Filter, [name]: e } });
+        }
     }
 
     render() {
