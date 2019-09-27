@@ -5,6 +5,7 @@ import { DropDown } from "../../globalComponents";
 import { showToast, postData, getData } from "../../globalFunction";
 import _ from "lodash";
 import { withRouter } from "react-router";
+import async from "async";
 
 let keyTimer = "";
 
@@ -198,27 +199,36 @@ class DocumentUpload extends React.Component {
 
         await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
 
-        await tempFiles.map(e => {
-            data.append("file", e);
-        });
-
-        await postData(`/api/document/upload`, data, async c => {
-            const documentToSave = await c.data.map(e => {
-                e = {
-                    name: e.filename,
-                    origin: e.origin,
-                    project: projectId,
-                    uploadedBy: loggedUser.data.id,
-                    status: "new",
-                    type: "document",
-                    folderId: folder.SelectedNewFolder.id
-                };
-                return e;
-            });
-            selectedObj.DocumentToSave = documentToSave;
-            await dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
-            await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
-        });
+        async.map(
+            tempFiles,
+            (e, cb) => {
+                data.append("file", e);
+                cb();
+            },
+            () => {
+                postData(`/api/document/upload`, data, c => {
+                    async.map(
+                        c.data,
+                        (e, mapCallBack) => {
+                            mapCallBack(null, {
+                                name: e.filename,
+                                origin: e.origin,
+                                project: projectId,
+                                uploadedBy: loggedUser.data.id,
+                                status: "new",
+                                type: "document",
+                                folderId: folder.SelectedNewFolder.id
+                            });
+                        },
+                        (err, result) => {
+                            selectedObj.DocumentToSave = result;
+                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
+                            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
+                        }
+                    );
+                });
+            }
+        );
     }
 
     removefile(selecindextedId) {
