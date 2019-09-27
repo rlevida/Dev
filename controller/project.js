@@ -177,7 +177,7 @@ exports.get = {
                 }
             ];
         }
-        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" &&  queryString.typeId !== "Innactive/Archived" ) {
+        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" && queryString.typeId !== "Innactive/Archived") {
             switch (queryString.projectProgress) {
                 case "All":
                     whereObj["isDeleted"] = [0];
@@ -216,7 +216,7 @@ exports.get = {
                     break;
                 case "Issues":
                     whereObj["id"] = {
-                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT
+                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT
                             workstream.projectId
                         FROM
                             workstream
@@ -227,11 +227,16 @@ exports.get = {
                             .utc()
                             .format("YYYY-MM-DD HH:mm")}"
                         AND (task.status != "Completed" OR task.status IS NULL) AND task.isDeleted = 0
-                    )`),
+                    )`)
                     };
                     break;
                 default:
             }
+        }
+
+        if (queryString.typeId === "Innactive/Archived") {
+            whereObj["isDeleted"] = [0, 1];
+            whereObj["isActive"] = [0, 1];
         }
 
         async.parallel(
@@ -519,7 +524,6 @@ exports.get = {
         const queryString = req.query;
         let associationIncludes = [];
         let hasInfo = parseInt(queryString.info) ? true : false;
-
         if (hasInfo) {
             associationIncludes = [
                 {
@@ -602,44 +606,47 @@ exports.get = {
         try {
             Projects.findOne({
                 include: associationIncludes,
-                where: { id: id }
+                where: { id: id, isActive: 1, isDeleted: 0 }
             }).then(async res => {
-                const responseObj = res.toJSON();
-                let projectUserMembers = [];
-                let memberList = [];
+                if (res) {
+                    const responseObj = res.toJSON();
+                    let projectUserMembers = [];
+                    let memberList = [];
+                    if (hasInfo) {
+                        projectUserMembers = _(responseObj.members)
+                            .map(o => {
+                                return o.userTypeLinkId;
+                            })
+                            .filter(o => {
+                                return o != null;
+                            })
+                            .uniq()
+                            .value();
+                        memberList = await Users.findAll({
+                            where: {
+                                id: projectUserMembers
+                            },
+                            attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
+                        }).map(o => {
+                            const userResponse = o.toJSON();
+                            return {
+                                ...userResponse,
+                                member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
+                                    return userResponse.id == userTypeLinkId;
+                                }).id
+                            };
+                        });
+                    }
 
-                if (hasInfo) {
-                    projectUserMembers = _(responseObj.members)
-                        .map(o => {
-                            return o.userTypeLinkId;
-                        })
-                        .filter(o => {
-                            return o != null;
-                        })
-                        .uniq()
-                        .value();
-                    memberList = await Users.findAll({
-                        where: {
-                            id: projectUserMembers
-                        },
-                        attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
-                    }).map(o => {
-                        const userResponse = o.toJSON();
-                        return {
-                            ...userResponse,
-                            member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
-                                return userResponse.id == userTypeLinkId;
-                            }).id
-                        };
-                    });
+                    const resToReturn = {
+                        ...responseObj,
+                        projectManagerId: hasInfo && responseObj.projectManager.length > 0 ? responseObj.projectManager[0].userTypeLinkId : "",
+                        members: memberList
+                    };
+                    cb({ status: true, data: resToReturn });
+                } else {
+                    cb({ status: true }); // TO HANDLE STATUS CODE
                 }
-
-                const resToReturn = {
-                    ...responseObj,
-                    projectManagerId: hasInfo && responseObj.projectManager.length > 0 ? responseObj.projectManager[0].userTypeLinkId : "",
-                    members: memberList
-                };
-                cb({ status: true, data: resToReturn });
             });
         } catch (err) {
             cb({ status: false, error: err });

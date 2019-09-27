@@ -37,8 +37,12 @@ export default class ProjectDetails extends React.Component {
         const { match, dispatch } = { ...this.props };
         const projectId = match.params.projectId;
         getData(`/api/project/detail/${projectId}?info=${1}`, {}, c => {
-            dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            if (c.status === 200 && c.data) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
+                dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            } else {
+                window.location.href = "/account#/pageNotFound";
+            }
         });
     }
     render() {

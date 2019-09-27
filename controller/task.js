@@ -33,6 +33,12 @@ const Op = Sequelize.Op;
 
 const associationStack = [
     {
+        model: Projects,
+        as: "task_project",
+        required: true,
+        where: { isDeleted: 0, isActive: 1 }
+    },
+    {
         model: Tag,
         as: "tag_task",
         required: false,
@@ -164,6 +170,9 @@ const associationStack = [
                 model: Projects,
                 as: "project",
                 required: false,
+                // where:{
+                //     isDeleted : 0
+                // },
                 include: [
                     {
                         model: Members,
@@ -214,6 +223,12 @@ const associationStack = [
 exports.get = {
     index: async (req, cb) => {
         const associationArray = [
+            {
+                model: Projects,
+                as: "task_project",
+                required: true,
+                where: { isDeleted: 0, isActive: 1 }
+            },
             {
                 model: Members,
                 as: "task_members",
@@ -664,7 +679,9 @@ exports.get = {
         const queryString = req.query;
         const associationArray = _.cloneDeep(associationStack);
         const whereObj = {
-            id: req.params.id
+            id: req.params.id,
+            isDeleted: 0,
+            isActive: 1
         };
 
         if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {

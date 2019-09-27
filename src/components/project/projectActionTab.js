@@ -34,7 +34,7 @@ export default class ProjectActionTab extends React.Component {
                 fetchUrl += `&projectProgress=${projectProgress}`;
             }
             if (typeId === "Innactive/Archived") {
-                fetchUrl += `&isActive=0&isDeleted=1&projectType=${projectType}`;
+                fetchUrl += `&isDeleted=1&projectType=${projectType}`;
             } else {
                 fetchUrl += `&isActive=1`;
             }

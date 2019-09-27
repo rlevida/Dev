@@ -65,17 +65,17 @@ export default class ProjectList extends React.Component {
     getNextResult() {
         const { project, dispatch, loggedUser } = { ...this.props };
         const { Count, List, Filter } = project;
-        const { typeId, projectType, projectProgress } = { ...Filter};
+        const { typeId, projectType, projectProgress } = { ...Filter };
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        let fetchUrl = `/api/project?page=${Count.current_page + 1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&dueDate=${dueDateMoment}`;
+        let fetchUrl = `/api/project?page=${Count.current_page + 1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&dueDate=${dueDateMoment}&typeId=${typeId}`;
 
         if (projectProgress) {
             fetchUrl += `&projectProgress=${projectProgress}`;
         }
         if (typeId === "Innactive/Archived") {
-            fetchUrl += `&isActive=0&isDeleted=1&projectType=${projectType}`;
+            fetchUrl += `&isDeleted=1&projectType=${projectType}`;
         } else {
-            fetchUrl += `&isActive=1&typeId=${typeId}`;
+            fetchUrl += `&isActive=1&isDeleted=0`;
         }
 
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
@@ -95,9 +95,10 @@ export default class ProjectList extends React.Component {
         const { dispatch } = { ...this.props };
 
         getData(`/api/project/detail/${params.id}?info=${1}`, {}, c => {
-            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
-            dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
-            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+            console.log(c);
+            // dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
+            // dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+            // dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
         });
     }
 
