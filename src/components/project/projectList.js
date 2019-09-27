@@ -95,10 +95,13 @@ export default class ProjectList extends React.Component {
         const { dispatch } = { ...this.props };
 
         getData(`/api/project/detail/${params.id}?info=${1}`, {}, c => {
-            console.log(c);
-            // dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
-            // dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
-            // dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+            if (c.data) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
+                dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+            } else {
+                window.location.href = "/account#/pageNotFound";
+            }
         });
     }
 
