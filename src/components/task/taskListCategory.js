@@ -175,6 +175,16 @@ export default class TaskListCategory extends React.Component {
             fetchUrl += `&assigned=${Filter.taskAssigned}`;
         }
 
+        if (date === "Succeeding month") {
+            const weekFrom = moment()
+                    .add("days", 1)
+                    .format("YYYY-MM-DD"),
+                weekTo = moment()
+                    .endOf("week")
+                    .format("YYYY-MM-DD");
+            fetchUrl += `&weekDate=${JSON.stringify({ opt: "notBetween", value: [weekFrom, weekTo] })}`;
+        }
+
         getData(fetchUrl, {}, c => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
         });

@@ -333,7 +333,7 @@ exports.get = {
                                 attributes: ["type"]
                             }
                         ],
-                        attributes: ["id", "color"]
+                        attributes: ["id", "color", "project"]
                     }
                 ]
             }
@@ -342,6 +342,7 @@ exports.get = {
         const limit = typeof queryString.limit != "undefined" ? parseInt(queryString.limit) : 10;
         const status = typeof queryString.status != "undefined" ? JSON.parse(queryString.status) : "";
         let dueDate = "";
+        let weekDate = "";
 
         if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
             if (Array.isArray(queryString.dueDate.value)) {
@@ -358,6 +359,12 @@ exports.get = {
                 dueDate = JSON.parse(queryString.dueDate);
             }
         }
+
+        if (typeof queryString.weekDate !== "undefined" && queryString.weekDate !== "") {
+            weekDate = JSON.parse(queryString.weekDate);
+        }
+
+        console.log(weekDate !== "");
 
         const whereObj = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
@@ -392,27 +399,67 @@ exports.get = {
                 : {}),
             ...(dueDate != "" && typeof queryString.view == "undefined"
                 ? {
-                      dueDate:
-                          queryString.dueDate == "null"
-                              ? null
-                              : {
-                                    ...(dueDate != "" && Array.isArray(dueDate)
-                                        ? {
-                                              [Sequelize.Op.or]: dueDate
-                                          }
-                                        : dueDate != "" && Array.isArray(dueDate.value)
-                                        ? {
-                                              [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                                  return moment(o, "YYYY-MM-DD")
-                                                      .utc()
-                                                      .format("YYYY-MM-DD HH:mm");
-                                              })
-                                          }
-                                        : {
-                                              [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
-                                          }),
-                                    [Sequelize.Op.not]: null
-                                }
+                      [Sequelize.Op.and]: [
+                          {
+                              dueDate:
+                                  queryString.dueDate == "null"
+                                      ? null
+                                      : {
+                                            ...(dueDate != "" && Array.isArray(dueDate)
+                                                ? {
+                                                      [Sequelize.Op.or]: dueDate
+                                                  }
+                                                : dueDate != "" && Array.isArray(dueDate.value)
+                                                ? {
+                                                      [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                                          return moment(o, "YYYY-MM-DD")
+                                                              .utc()
+                                                              .format("YYYY-MM-DD HH:mm");
+                                                      })
+                                                  }
+                                                : {
+                                                      [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
+                                                  })
+
+                                            // [Sequelize.Op.not]: null,
+                                        }
+                          },
+                          {
+                              dueDate: {
+                                  [Op.gte]: "2019-10-01"
+                                  // [Sequelize.Op[weekDate.opt]]: _.map(weekDate.value, o => {
+                                  //     return moment(o, "YYYY-MM-DD")
+                                  //         .utc()
+                                  //         .format("YYYY-MM-DD HH:mm");
+                                  // })
+                              }
+                          },
+                          {
+                              dueDate: {
+                                  [Op.lte]: "2019-10-05"
+                              }
+                          }
+                          //   {
+                          //       ...(weekDate !== ""
+                          //           ? {
+                          //                 [Sequelize.Op.and]: [
+                          //                     {
+                          //                         dueDate: { [Op.gte]: "2019-10-01"
+                          //                             // [Sequelize.Op[weekDate.opt]]: _.map(weekDate.value, o => {
+                          //                             //     return moment(o, "YYYY-MM-DD")
+                          //                             //         .utc()
+                          //                             //         .format("YYYY-MM-DD HH:mm");
+                          //                             // })
+                          //                         },
+                          //                         dueDate:{
+                          //                             [Op.lte]: "2019-10-05"
+                          //                         }
+                          //                     }
+                          //                 ]
+                          //             }
+                          //           : {})
+                          //   }
+                      ]
                   }
                 : {}),
             ...(typeof queryString.view != "undefined" && queryString.view == "calendar"
@@ -441,6 +488,21 @@ exports.get = {
                 : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {})
         };
+
+        if (weekDate) {
+            console.log(
+                _.map(weekDate.value, o => {
+                    return moment(o, "YYYY-MM-DD")
+                        .utc()
+                        .format("YYYY-MM-DD HH:mm");
+                })
+            );
+            console.log(`---------------`);
+            console.log(weekDate);
+            console.log(dueDate);
+            console.log(whereObj);
+            console.log(`---------------`);
+        }
 
         if (typeof queryString.type == "undefined" && (typeof queryString.assigned != "undefined" && queryString.assigned != "")) {
             whereObj[Sequelize.Op.and] = {
