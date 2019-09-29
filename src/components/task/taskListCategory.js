@@ -175,7 +175,7 @@ export default class TaskListCategory extends React.Component {
             fetchUrl += `&assigned=${Filter.taskAssigned}`;
         }
 
-        if (date === "Succeeding month") {
+        if (date === "Succeeding month" || date === "This month") {
             const weekFrom = moment()
                     .add("days", 1)
                     .format("YYYY-MM-DD"),
@@ -358,8 +358,12 @@ export default class TaskListCategory extends React.Component {
         const taskList = _.filter(task.List, o => {
             const { dueDate } = o;
             const given = moment(dueDate).local();
-            const current = moment().startOf("day");
-
+            const weekDate = moment.weekdays().map((e, i) => {
+                return moment()
+                    .day(i)
+                    .format("YYYY-MM-DD");
+            });
+            const isInWeek = weekDate.indexOf(given.format("YYYY-MM-DD")) > -1;
             switch (date) {
                 case "Today":
                     return given.isSameOrBefore(moment().endOf("day"));
@@ -368,15 +372,9 @@ export default class TaskListCategory extends React.Component {
                     return given.isAfter(moment().endOf("day")) && given.isBefore(moment().endOf("week"));
                     break;
                 case "This month":
-                    return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month"));
+                    return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month")) && !isInWeek;
                     break;
                 case "Succeeding month":
-                    const weekDate = moment.weekdays().map((e, i) => {
-                        return moment()
-                            .day(i)
-                            .format("YYYY-MM-DD");
-                    });
-                    const isInWeek = weekDate.indexOf(given.format("YYYY-MM-DD")) > -1;
                     return given.isAfter(moment().endOf("month")) && given.isBefore(moment().endOf("year")) && !isInWeek;
                     break;
                 default:
