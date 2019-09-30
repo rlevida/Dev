@@ -1470,7 +1470,7 @@ td {
 }
 
 .flex-row {
-    display: inline-flex;
+    display: flex;
     -webkit-flex-direction: row;
     flex-direction: row;
     width: 100%;
@@ -1504,13 +1504,13 @@ td {
     max-width: 100px;
     margin: 0 auto;
     margin-top: 25px;
-    margin-bottom: 50px;
+    margin-bottom: 25px;
 }
 
 #content {
     padding-top: 25px;
     padding-bottom: 50px;
-    padding-left: 25px;
+    padding-left: 325px;
     padding-right: 25px;
     max-width: 1500px;
     margin: 0 auto;
@@ -2544,6 +2544,13 @@ textarea::-webkit-scrollbar-thumb {
 
 .project-image-wrapper strong{
     font-size: 16px;
+}
+
+.project-title-wrapper {
+    font-size: 15px;
+    float: left;
+    margin: -30px 0 0 -473px;
+    color: dimgrey;
 }
 
 .project-info-picture {
@@ -3656,12 +3663,27 @@ td .display-flex {
 
 #projectList {
     background-color: #fff;
-//     overflow-x: scroll;
-//     overflow-x: hidden;
+    //     overflow-x: scroll;
+    //     overflow-x: hidden;
 }
 #projectActionTab {
     z-index: 1;
     background-color: #fff;
     padding: 20px;
-    width:100%
+    width: 100%;
+}
+
+#main-menu {
+    top: 0;
+    position: fixed;
+    z-index: 1;
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
+    overflow-x: scroll;
+    overflow-x: hidden;
+    max-width: 300px;
+}
+
+#main-nav-bar {
+    padding-left: 300px;
 }

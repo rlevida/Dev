@@ -43,6 +43,14 @@ class Main extends React.Component {
     showLeft() {
         const { showLeft, showRight } = { ...this.state };
         this.setState({ showLeft: !showLeft, showRight: !showRight });
+        if (showLeft) {
+            document.getElementById("content").style.paddingLeft = "25px";
+            document.getElementById("main-nav-bar").style.paddingLeft = "0px";
+        }
+        if (showRight) {
+            document.getElementById("content").style.paddingLeft = "325px";
+            document.getElementById("main-nav-bar").style.paddingLeft = "300px";
+        }
     }
     componentDidMount() {
         const self = this;
@@ -326,7 +334,7 @@ class Main extends React.Component {
         return (
             <div class={showLeft ? "flex-row" : ""} id="main-container">
                 {showLeft && (
-                    <div class="menu-bar flex-col">
+                    <div id="main-menu" class="menu-bar flex-col">
                         <div class="site-logo">
                             <img src="/images/cloudcfo-flogo.png" class="img-responsive" />
                         </div>
@@ -344,7 +352,7 @@ class Main extends React.Component {
                 <div class="flex-col content-div">
                     <div class={(this.state.miniSideMenu == "true" ? "sidebar-left-mini" : "") + ""} id="wrap">
                         <header class="head shadow-dark-div">
-                            <div class="main-bar">
+                            <div id="main-nav-bar" class="main-bar">
                                 <div class={`${showLeft ? "hide" : "toggle-menu"} item`}>
                                     <a onClick={() => this.showLeft()} class="text-white">
                                         <i class="fa fa-bars" aria-hidden="true" />
@@ -373,6 +381,9 @@ class Main extends React.Component {
                                         })}
                                     </div>
                                 )}
+                                <div class="project-title-wrapper">
+                                    <strong>{project.Selected.project}</strong>
+                                </div>
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link" id="bell">
                                         {this.props.location.pathname !== "/notification" && (

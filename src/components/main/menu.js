@@ -95,7 +95,7 @@ class Component extends React.Component {
     }
     render() {
         const { pages, current_page = "", project, loggedUser } = { ...this.props };
-        const projectTypes = ["Client", ...loggedUser.data.userType !== "External" ? ["Internal", "Private"] : []];
+        const projectTypes = ["Client", ...(loggedUser.data.userType !== "External" ? ["Internal", "Private"] : [])];
         return (
             <div>
                 <ul id="menu">
@@ -131,11 +131,12 @@ class Component extends React.Component {
                                                                 {_.map(project.Category[o].list, (e, i) => {
                                                                     return (
                                                                         <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
-                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50">
+                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50" title={e.project}>
                                                                                 <span>
                                                                                     <i class="fa fa-square mr10" style={{ color: e.color }} />
                                                                                 </span>
-                                                                                {e.project}
+                                                                                {e.project.substring(0, 20)}
+                                                                                {e.project.length > 20 ? "..." : ""}
                                                                             </a>
                                                                         </li>
                                                                     );
