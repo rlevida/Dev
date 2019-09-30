@@ -17,13 +17,14 @@ export default class ProjectActionTab extends React.Component {
         super(props);
 
         this.setDropDown = this.setDropDown.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
-            const { typeId, projectType, projectProgress } = this.props.project.Filter;
+            const { typeId, projectType, projectProgress, search } = this.props.project.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
             let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
 
@@ -38,6 +39,9 @@ export default class ProjectActionTab extends React.Component {
             } else {
                 fetchUrl += `&isActive=1`;
             }
+            if (search) {
+                fetchUrl += `&project=${search}`;
+            }
 
             getData(fetchUrl, {}, c => {
                 dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
@@ -50,7 +54,10 @@ export default class ProjectActionTab extends React.Component {
         const { dispatch } = this.props;
         dispatch({ type: "SET_PROJECT_FILTER", filter: { [name]: e } });
     }
-
+    handleChange(e) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_PROJECT_FILTER", filter: { [e.target.name]: e.target.value } });
+    }
     render() {
         const { type, project, dispatch, loggedUser } = this.props;
         const { Filter } = { ...project };
@@ -87,10 +94,11 @@ export default class ProjectActionTab extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            {project.Filter.typeId === "Innactive/Archived" ? (
-                                <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} />
+                            <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search" onChange={e => this.handleChange(e)} />
+                           {project.Filter.typeId === "Innactive/Archived" ? (
+                                <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} label="Select Project Type" />
                             ) : (
-                                <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} />
+                                <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} label="Select Status" />
                             )}
                             {loggedUser.data.userRole <= 4 && (
                                 <a
