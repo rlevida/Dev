@@ -65,7 +65,7 @@ export default class ProjectActionTab extends React.Component {
         const projectProcessOptions = [{ id: "All", name: "All" }, { id: "On Time", name: "On Time" }, { id: "Issues", name: "Issues" }];
         const projectTypeOptions = [{ id: 1, name: "Client" }, { id: 2, name: "Internal" }, { id: 3, name: "Private" }];
         return (
-            <div class="container-fluid filter mb20">
+            <div class="container-fluid filter">
                 <div class="row content-row">
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">

@@ -10,7 +10,7 @@ const { TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink,
 exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
-        const limit = 5;
+        const limit = 10;
         let associationArray = [
             {
                 model: Type,

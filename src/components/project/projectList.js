@@ -34,8 +34,59 @@ export default class ProjectList extends React.Component {
     }
 
     componentDidMount() {
+        let self = this;
         this.fetchProject();
         this.fetchFormField();
+
+        window.onload = function() {
+            self.projectActionButtonResize();
+            self.projectListResize();
+            self.handleScrolled();
+        };
+
+        window.onresize = function() {
+            self.projectActionButtonResize();
+            self.projectListResize();
+            self.handleScrolled();
+        };
+    }
+
+    handleScrolled() {
+        let self = this;
+        let scrolledDiv = document.getElementById("projectList");
+        scrolledDiv.onscroll = function() {
+            self.porjectTableHeader(scrolledDiv.scrollTop);
+        };
+    }
+    porjectTableHeader(scroll) {
+        if (scroll > 0) {
+            document.getElementById("thead2").style.position = "fixed";
+            document.getElementById("thead2").style.zIndex = 1;
+            document.getElementById("thead2").style.backgroundColor = "#fff";
+            const element = document.getElementById("thead1");
+            if (element) {
+                const tag = element.getElementsByTagName("th");
+                _.map(tag, (e, i) => {
+                    const eleStyle = document.getElementsByClassName(`tdWidth${i + 1}`)[i].getBoundingClientRect();
+                    document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
+                });
+            }
+        } else {
+            document.getElementById("thead2").style.position = "";
+        }
+    }
+
+    projectActionButtonResize() {
+        let element = document.getElementById("projectActionTab");
+        let element2 = document.getElementById("projectList").getBoundingClientRect();
+        element.style.width = `${element2.width}px`;
+    }
+    projectListResize() {
+        let element = document.getElementById("projectList");
+        let element2 = document.getElementById("main-container").getBoundingClientRect();
+        element.style.maxHeight = `${element2.height * 0.63}px`;
+        element.style.overflowX = "scroll";
+        element.style.overflowX = "hidden";
     }
 
     fetchProject() {
@@ -127,30 +178,36 @@ export default class ProjectList extends React.Component {
         const lastPage = typeof project.Count.last_page != "undefined" ? project.Count.last_page : 1;
 
         return (
-            <div>
+            <div id="">
                 <div class="row">
                     {project.FormActive == "List" && (
                         <div class="col-lg-12">
-                            <div class="card">
-                                <div class="mb20 bb">
-                                    <ProjectActionTab />
-                                </div>
+                            <div id="projectActionTab">
+                                <ProjectActionTab />
+                            </div>
+                            <div class="mt90" id="projectList">
                                 <div class={(project.Loading == "RETRIEVING" && project.List.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
                                     {project.List.length > 0 && (
                                         <table>
                                             <thead>
-                                                <tr>
-                                                    <th scope="col" class="td-left">
+                                                <tr id="thead2">
+                                                    <th id="th1" class="td-left">
                                                         Project Name
                                                     </th>
-                                                    {/* <th scope="col">Status</th> */}
-                                                    {/* {/* <th scope="col">Updates</th> */}
-                                                    <th scope="col">Workstreams</th>
-                                                    <th scope="col">Completion</th>
-                                                    <th scope="col">Members</th>
-                                                    <th scope="col">Actions</th>
+                                                    <th id="th2">Workstreams</th>
+                                                    <th id="th3">Completion</th>
+                                                    <th id="th4">Members</th>
+                                                    <th id="th5">Actions</th>
+                                                </tr>
+                                                <tr id="thead1" style={{ display: "none" }}>
+                                                    <th class="td-left">Project Name</th>
+                                                    <th id="test123">Workstreams</th>
+                                                    <th>Completion</th>
+                                                    <th>Members</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
+
                                             <tbody>
                                                 {_.map(project.List, (projectElem, index) => {
                                                     const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted, team } = { ...projectElem };
@@ -175,7 +232,7 @@ export default class ProjectList extends React.Component {
                                                     ];
                                                     return (
                                                         <tr key={index}>
-                                                            <td data-label="Project Name" class="td-left table-name">
+                                                            <td data-label="Project Name" class={`td-left table-name tdWidth${index}`}>
                                                                 <p class="mb0">
                                                                     <span>{this.renderStatus(completion_rate)}</span>
                                                                     {/* {numberOfTasks > 0 && isDeleted == 0 && <span>{this.renderStatus({ workstream, render_type: "icon" })}</span>} */}
@@ -236,9 +293,13 @@ export default class ProjectList extends React.Component {
                                                                     </div>
                                                                 </ReactTooltip>
                                                             </td> */}
-                                                            <td data-label="Workstreams">{workstream.length}</td>
-                                                            <td data-label="Completion">{completionRate > 0 && <p class={`m0 ${completionRate == 100 ? "text-green" : ""}`}>{completionRate.toFixed(2) + "%"}</p>}</td>
-                                                            <td data-label="Members">
+                                                            <td className={`tdWidth${index + 2}`} data-label="Workstreams">
+                                                                {workstream.length}
+                                                            </td>
+                                                            <td className={`tdWidth${index + 3}`} data-label="Completion">
+                                                                {completionRate > 0 && <p class={`m0 ${completionRate == 100 ? "text-green" : ""}`}>{completionRate.toFixed(2) + "%"}</p>}
+                                                            </td>
+                                                            <td className={`tdWidth${index + 4}`} data-label="Members">
                                                                 <div class="display-flex">
                                                                     {_.map(_.take(memberList, 2), ({ name, avatar }, index) => {
                                                                         return (
@@ -267,7 +328,10 @@ export default class ProjectList extends React.Component {
                                                                     )}
                                                                 </div>
                                                             </td>
-                                                            <td data-label="Actions" class={loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (type.type == "Private" || type.type == "Internal")) ? "" : "hide"}>
+                                                            <td
+                                                                data-label="Actions"
+                                                                class={loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (type.type == "Private" || type.type == "Internal")) ? `tdWidth${index + 5}` : `tdWidth${index + 5}`}
+                                                            >
                                                                 {isDeleted == 0 && (
                                                                     <div>
                                                                         <a href="javascript:void(0);" onClick={() => this.handleEdit(projectElem)} class="btn btn-action">
