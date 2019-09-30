@@ -33,65 +33,50 @@ export default class ProjectList extends React.Component {
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
-    componentDidUpdate(){
-        let self = this;
-        self.projectActionButtonResize();
-        self.projectListResize();
-        self.handleScrolled();
-    }
     componentWillMount() {
         let self = this;
         this.fetchProject();
         this.fetchFormField();
 
-        window.onload = function() {
-            self.projectActionButtonResize();
-            self.projectListResize();
-            self.handleScrolled();
-        };
+        window.onscroll = function() {
+            let actionTabElement = document.getElementById("projectActionTab");
+            let tableElement = document.getElementById("projectTable").getBoundingClientRect()
+            const actionTableBound = actionTabElement.getBoundingClientRect();
 
-        window.onresize = function() {
-            self.projectActionButtonResize();
-            self.projectListResize();
-            self.handleScrolled();
-        };
-    }
-    handleScrolled() {
-        let self = this;
-        let scrolledDiv = document.getElementById("projectList");
-        scrolledDiv.onscroll = function() {
-            self.porjectTableHeader(scrolledDiv.scrollTop);
-        };
-    }
-
-    porjectTableHeader(scroll) {
-        if (scroll > 0) {
-            document.getElementById("thead2").style.position = "fixed";
-            document.getElementById("thead2").style.zIndex = 1;
-            document.getElementById("thead2").style.backgroundColor = "#fff";
-            const element = document.getElementById("thead1");
-            if (element) {
-                const tag = element.getElementsByTagName("th");
-                _.map(tag, (e, i) => {
-                    const eleStyle = document.getElementsByClassName(`tdWidth${i + 1}`)[i].getBoundingClientRect();
-                    document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
-                });
+            const actionTabletop = actionTableBound.top;
+            if (actionTabletop + actionTableBound.height > 0 && document.documentElement.scrollTop - actionTableBound.height < 0) {
+                actionTabElement.style.position = "";
+                actionTabElement.style.width = `${tableElement.width}px`;
             }
-        } else {
-            document.getElementById("thead2").style.position = "";
-        }
-    }
+            if (actionTabletop + actionTableBound.height < 0 && document.documentElement.scrollTop > 0) {
+                actionTabElement.style.position = "fixed";
+                actionTabElement.style.zIndex = "1";
+                actionTabElement.style.top = "0";
+                actionTabElement.style.width = `${tableElement.width}px`;
+            }
 
-    projectActionButtonResize() {
-        let element = document.getElementById("projectActionTab");
-        let element2 = document.getElementById("projectList").getBoundingClientRect();
-        element.style.width = `${element2.width}px`;
-    }
-    projectListResize() {
-        let element = document.getElementById("projectList");
-        let element2 = document.getElementById("main-container").getBoundingClientRect();
-        element.style.maxHeight = `${element2.height * 0.63}px`;
-      
+            let tableHeader = document.getElementById("thead2");
+            const tableHeaderBound = tableHeader.getBoundingClientRect();
+            const tableHeaderBoundTop = tableHeaderBound.top;
+
+            if (tableHeaderBoundTop + tableHeaderBound.height < 0 && document.documentElement.scrollTop > 0) {
+                document.getElementById("thead2").style.position = "fixed";
+                document.getElementById("thead2").style.top = `80px`;
+                document.getElementById("thead2").style.zIndex = 1;
+                document.getElementById("thead2").style.backgroundColor = "#fff";
+                const element = document.getElementById("thead1");
+                if (element) {
+                    const tag = element.getElementsByTagName("th");
+                    _.map(tag, (e, i) => {
+                        const eleStyle = document.getElementsByClassName(`tdWidth${i + 1}`)[i].getBoundingClientRect();
+                        document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
+                    });
+                }
+            } 
+            if(tableHeaderBoundTop + tableHeaderBound.height > 0 && document.documentElement.scrollTop - 80 < 0) {
+                document.getElementById("thead2").style.position = "";
+            }
+        };
     }
 
     fetchProject() {
@@ -190,10 +175,10 @@ export default class ProjectList extends React.Component {
                             <div id="projectActionTab">
                                 <ProjectActionTab />
                             </div>
-                            <div class="mt90" id="projectList">
+                            <div id="projectList">
                                 <div class={(project.Loading == "RETRIEVING" && project.List.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
                                     {project.List.length > 0 && (
-                                        <table>
+                                        <table id="projectTable">
                                             <thead>
                                                 <tr id="thead2">
                                                     <th id="th1" class="td-left">
