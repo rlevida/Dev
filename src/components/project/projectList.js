@@ -33,7 +33,13 @@ export default class ProjectList extends React.Component {
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
-    componentDidMount() {
+    componentDidUpdate(){
+        let self = this;
+        self.projectActionButtonResize();
+        self.projectListResize();
+        self.handleScrolled();
+    }
+    componentWillMount() {
         let self = this;
         this.fetchProject();
         this.fetchFormField();
@@ -50,7 +56,6 @@ export default class ProjectList extends React.Component {
             self.handleScrolled();
         };
     }
-
     handleScrolled() {
         let self = this;
         let scrolledDiv = document.getElementById("projectList");
@@ -58,6 +63,7 @@ export default class ProjectList extends React.Component {
             self.porjectTableHeader(scrolledDiv.scrollTop);
         };
     }
+
     porjectTableHeader(scroll) {
         if (scroll > 0) {
             document.getElementById("thead2").style.position = "fixed";
@@ -85,8 +91,7 @@ export default class ProjectList extends React.Component {
         let element = document.getElementById("projectList");
         let element2 = document.getElementById("main-container").getBoundingClientRect();
         element.style.maxHeight = `${element2.height * 0.63}px`;
-        element.style.overflowX = "scroll";
-        element.style.overflowX = "hidden";
+      
     }
 
     fetchProject() {
