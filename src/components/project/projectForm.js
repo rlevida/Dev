@@ -445,7 +445,7 @@ export default class ProjectForm extends React.Component {
                                             required={true}
                                             options={projectManagerOptions}
                                             onInputChange={this.setProjetLeadList}
-                                            selected={typeof project.Selected.projectManagerId == "undefined" ? "" : project.Selected.projectManagerId}
+                                            selected={typeof project.Selected.typeId && project.Selected.typeId === 3 ? loggedUser.data.id : typeof project.Selected.projectManagerId == "undefined" ? "" : project.Selected.projectManagerId}
                                             placeholder={"Search and select project lead"}
                                             onChange={e => {
                                                 this.setDropDown("projectManagerId", e == null ? "" : e.value);
@@ -466,6 +466,7 @@ export default class ProjectForm extends React.Component {
                                                     </div>
                                                 );
                                             }}
+                                            disabled ={typeof project.Selected.typeId && project.Selected.typeId === 3}
                                             isClearable={users.SelectList.length > 0}
                                         />
                                     </div>
