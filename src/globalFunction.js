@@ -242,7 +242,7 @@ var postData = (exports.postData = function(url, data, cb) {
             cb(res);
         })
         .catch(err => {
-            cb(err);
+            cb(err.response);
         });
 });
 
@@ -253,7 +253,7 @@ var getData = (exports.getData = function(url, data, cb) {
             cb(res);
         })
         .catch(err => {
-            console.error(err);
+            cb(err.response);
         });
 });
 
