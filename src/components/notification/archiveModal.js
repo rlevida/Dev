@@ -22,7 +22,7 @@ class ArchiveModal extends React.Component {
     archiveNotification() {
         const { dispatch, loggedUser, notification } = { ...this.props };
         const { Selected } = { ...notification };
-
+        
         putData(`/api/notification/${Selected.archiveType === "all" ? "archiveAll" : "archive"}/${Selected.id}?page=1&usersId=${loggedUser.data.id}`, { isArchived: 1 }, c => {
             if (Selected.archiveType === "all") {
                 dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });

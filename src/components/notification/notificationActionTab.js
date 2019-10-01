@@ -49,14 +49,12 @@ class NotificationActionTab extends React.Component {
         const { dispatch, notification } = this.props;
         const { Filter } = { ...notification };
         dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationCount: 0 });
-        dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { ...Filter, [name]: e } })
+        dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { ...Filter, [name]: e } });
     }
 
     archiveAll() {
-        const { dispatch, notification } = { ...this.props }
-        const { List } = { ...notification };
-        const notificationIds = List.map((e) => { return e.id });
-        dispatch({ type: "SET_NOTIFICATION_SELECTED", Selected: { id: notificationIds, archiveType: 'all' } });
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_NOTIFICATION_SELECTED", Selected: {  archiveType: "all" } });
     }
 
     render() {
@@ -89,7 +87,7 @@ class NotificationActionTab extends React.Component {
                                         Mark all as read
                                     </span>
                                 </a>
-                                <a class="btn btn-default mr10" data-toggle="modal" data-target="#archiveModal">
+                                <a class="btn btn-default mr10" data-toggle="modal" data-target="#archiveModal" onClick={() => this.archiveAll()}>
                                     <span>
                                         <i class="fa fa-archive mr10" aria-hidden="true"></i>
                                         Archive all
