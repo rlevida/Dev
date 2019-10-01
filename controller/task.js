@@ -36,7 +36,7 @@ const associationStack = [
         model: Projects,
         as: "task_project",
         required: true,
-        where: { isDeleted: 0, isActive: 1 }
+        where: { isActive: 1 }
     },
     {
         model: Tag,
@@ -227,7 +227,7 @@ exports.get = {
                 model: Projects,
                 as: "task_project",
                 required: true,
-                where: { isDeleted: 0, isActive: 1 }
+                where: { isActive: 1 }
             },
             {
                 model: Members,

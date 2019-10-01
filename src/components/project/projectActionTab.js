@@ -34,8 +34,8 @@ export default class ProjectActionTab extends React.Component {
             if (projectProgress) {
                 fetchUrl += `&projectProgress=${projectProgress}`;
             }
-            if (typeId === "Inactive/Archived") {
-                fetchUrl += `&isDeleted=1&projectType=${projectType}`;
+            if (typeId === "Inactive") {
+                fetchUrl += `&isActive=0&projectType=${projectType}`;
             } else {
                 fetchUrl += `&isActive=1`;
             }
@@ -93,8 +93,8 @@ export default class ProjectActionTab extends React.Component {
                                 );
                             })}
                             <div class="flex-col">
-                                <a class={project.Filter.typeId === "Inactive/Archived" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Inactive/Archived")}>
-                                    Inactive/Archived
+                                <a class={project.Filter.typeId === "Inactive" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Inactive")}>
+                                Inactive
                                 </a>
                             </div>
                         </div>
@@ -102,7 +102,7 @@ export default class ProjectActionTab extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
                             <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search" onChange={e => this.handleChange(e)} />
-                            {project.Filter.typeId === "Inactive/Archived" ? (
+                            {project.Filter.typeId === "Inactive" ? (
                                 <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} label="Select Project Type" />
                             ) : (
                                 <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} label="Select Status" />

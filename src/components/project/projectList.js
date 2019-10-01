@@ -117,8 +117,8 @@ export default class ProjectList extends React.Component {
         if (projectProgress) {
             fetchUrl += `&projectProgress=${projectProgress}`;
         }
-        if (typeId === "Inactive/Archived") {
-            fetchUrl += `&isDeleted=1&projectType=${projectType}`;
+        if (typeId === "Inactive") {
+            fetchUrl += `&isActive=0&projectType=${projectType}`;
         } else {
             fetchUrl += `&isActive=1&isDeleted=0`;
         }
@@ -143,7 +143,7 @@ export default class ProjectList extends React.Component {
     handleEdit(params) {
         const { dispatch } = { ...this.props };
 
-        getData(`/api/project/detail/${params.id}?info=${1}`, {}, c => {
+        getData(`/api/project/detail/${params.id}?info=${1}&action=edit`, {}, c => {
             if (c.data) {
                 dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...params, ...c.data } });
                 dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
@@ -341,16 +341,16 @@ export default class ProjectList extends React.Component {
                                                                         <a href="javascript:void(0);" onClick={() => this.handleEdit(projectElem)} class="btn btn-action">
                                                                             <span class="glyphicon glyphicon-pencil" title="EDIT" />
                                                                         </a>
-                                                                        <a href="javascript:void(0);" onClick={e => this.handleArchive(projectElem)} class={projectElem.allowedDelete == 0 ? "hide" : "btn btn-action"}>
+                                                                        {/* <a href="javascript:void(0);" onClick={e => this.handleArchive(projectElem)} class={projectElem.allowedDelete == 0 ? "hide" : "btn btn-action"}>
                                                                             <span class="fa fa-trash" title="DELETE" />
-                                                                        </a>
+                                                                        </a> */}
                                                                     </div>
                                                                 )}
-                                                                {isDeleted == 1 && (
+                                                                {/* {isDeleted == 1 && (
                                                                     <a href="javascript:void(0);" onClick={() => this.handleUnarchive(projectElem)} class="btn btn-action">
                                                                         <span class="fa fa-window-restore" title="RESTORE" />
                                                                     </a>
-                                                                )}
+                                                                )} */}
                                                             </td>
                                                         </tr>
                                                     );

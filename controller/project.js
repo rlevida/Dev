@@ -114,8 +114,8 @@ exports.get = {
             ...(typeof queryString.id != "undefined" && queryString.id != "" ? { id: queryString.id.split(",") } : {}),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
-            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" && queryString.typeId !== "Inactive/Archived" ? { typeId: queryString.typeId } : {}),
-            ...(typeof queryString.projectType != "undefined" && queryString.projectType != "" && queryString.typeId === "Inactive/Archived" ? { typeId: queryString.projectType } : {}),
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" && queryString.typeId !== "Inactive" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.projectType != "undefined" && queryString.projectType != "" && queryString.typeId === "Inactive" ? { typeId: queryString.projectType } : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {}),
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.project != "undefined" && queryString.project != ""
@@ -177,7 +177,7 @@ exports.get = {
                 }
             ];
         }
-        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" && queryString.typeId !== "Inactive/Archived") {
+        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" && queryString.typeId !== "Inactive") {
             switch (queryString.projectProgress) {
                 case "All":
                     whereObj["isDeleted"] = [0];
@@ -234,9 +234,8 @@ exports.get = {
             }
         }
 
-        if (queryString.typeId === "Inactive/Archived") {
-            whereObj["isDeleted"] = [0, 1];
-            whereObj["isActive"] = [0, 1];
+        if (queryString.typeId === "Inactive") {
+            whereObj["isActive"] = [0];
         }
 
         async.parallel(
@@ -602,11 +601,10 @@ exports.get = {
                 }
             ];
         }
-
         try {
             Projects.findOne({
                 include: associationIncludes,
-                where: { id: id, isActive: 1, isDeleted: 0 }
+                where: { id: id, ...(queryString.action && queryString.action === "edit" ? {} : { isActive: 1 }) }
             }).then(async res => {
                 if (res) {
                     const responseObj = res.toJSON();

@@ -24,6 +24,7 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" });
+        dispatch({ type: "SET_PROJECT_FILTER", filter: { projectProgress: "All", projectNameSort: "asc", projectType: 1, typeId: 1 } });
         this.unlisten();
     }
 
