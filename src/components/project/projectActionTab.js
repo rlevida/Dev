@@ -65,14 +65,21 @@ export default class ProjectActionTab extends React.Component {
     render() {
         const { type, project, dispatch, loggedUser } = this.props;
         const { Filter } = { ...project };
-        const projectTypes = _(type.List)
-            .filter(o => {
-                return o.linkType == "project";
-            })
-            .map(o => {
-                return { id: o.id, name: o.type };
-            })
-            .value();
+        const projectTypes = [
+            ...(loggedUser.data.userType !== "External" ? [{ id: "", name: "All" }] : []),
+            ..._(type.List)
+                .filter(o => {
+                    if (loggedUser.data.userType == "External") {
+                        return o.linkType == "project" && o.type === "Client";
+                    } else {
+                        return o.linkType == "project";
+                    }
+                })
+                .map(o => {
+                    return { id: o.id, name: o.type };
+                })
+                .value()
+        ];
         const projectProcessOptions = [{ id: "All", name: "All" }, { id: "On Time", name: "On Time" }, { id: "Issues", name: "Issues" }];
         const projectTypeOptions = [{ id: 1, name: "Client" }, { id: 2, name: "Internal" }, { id: 3, name: "Private" }];
         const sortOptions = [{ id: "completionRate-desc", name: "Highest to Lowest" }, { id: "completionRate-asc", name: "Lowest to Highest" }, { id: "project-asc", name: "A to Z" }, { id: "project-desc", name: "Z to A" }];
@@ -104,9 +111,10 @@ export default class ProjectActionTab extends React.Component {
                         <div class="button-action">
                             <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search Project Name" onChange={e => this.handleChange(e)} />
                             <DropDown multiple={false} required={false} options={sortOptions} selected={Filter.sort} onChange={e => this.setDropDown("sort", e.value)} label="Sort by:" />
-                            {project.Filter.typeId === "Inactive" ? (
+                            {project.Filter.typeId === "Inactive" && loggedUser.data.userType !== "External" && (
                                 <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} label="Select Project Type" />
-                            ) : (
+                            )}
+                            {project.Filter.typeId !== "Inactive" && (
                                 <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} label="Select Status" />
                             )}
                             {loggedUser.data.userRole <= 4 && (

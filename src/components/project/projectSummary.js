@@ -88,7 +88,7 @@ export default class List extends React.Component {
     }
 
     renderStatus({ delayed_task, tasks_due_today, completed }) {
-        const color = delayed_task.count > 0 ? "text-red" : tasks_due_today.count > 0 ? "text-yellow" : completed.count > 0 ? "text-green" : "hide";
+        const color = delayed_task.count > 0 ? "text-red" : tasks_due_today.count > 0 ? "text-yellow" : completed.count > 0 ? "text-green" : "text-light-grey";
         return <span class={`fa fa-circle mb0 mr5 ${color}`} />;
     }
 
