@@ -241,7 +241,7 @@ exports.put = {
         }
     },
     archive: (req, cb) => {
-        const id = req.params.id.split(",");
+        const id = req.params.id;
         const body = req.body;
         const queryString = req.query;
         const limit = 10;
@@ -291,17 +291,64 @@ exports.put = {
             cb({ status: false, error: err });
         }
     },
+    archiveAll: (req, cb) => {
+        const body = req.body;
+        const queryString = req.query;
+        const limit = 10;
+        const notificationStack = _.cloneDeep(NotificationInclude);
+        const whereObj = {
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "" ? { usersId: parseInt(queryString.usersId) } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "" ? { isRead: queryString.isRead } : {}),
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: queryString.isArchived } : { isArchived: 0 })
+        };
+
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            order: [["dateUpdated", "DESC"], ["isRead", "DESC"]]
+        };
+
+        try {
+            Notification.update(body, { where: { isArchived: 0 } }).then(res => {
+                async.parallel(
+                    {
+                        count: parallelCallback => {
+                            Notification.findAndCountAll({
+                                ...options,
+                                where: whereObj
+                            }).then(res => {
+                                const pageData = {
+                                    total_count: res.count,
+                                    ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
+                                };
+                                parallelCallback(null, pageData);
+                            });
+                        },
+                        result: parallelCallback => {
+                            Notification.findAll({
+                                ...options,
+                                where: whereObj,
+                                include: notificationStack
+                            }).then(res => {
+                                parallelCallback(null, res);
+                            });
+                        }
+                    },
+                    (err, results) => {
+                        cb({ status: true, data: results });
+                    }
+                );
+            });
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
+    },
     markAllAsRead: (req, cb) => {
         try {
             const queryString = req.query;
             const notificationStack = _.cloneDeep(NotificationInclude);
-            const whereObj = {
-                ...(typeof queryString.usersId !== "undefined" && queryString.usersId !== "" ? { usersId: parseInt(queryString.usersId) } : {}),
-                ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : {}),
-                ...(typeof queryString.isRead !== "undefined" && queryString.isRead !== "" ? { isRead: queryString.isRead } : {}),
-                ...(typeof queryString.isArchived !== "undefined" && queryString.isArchived !== "" ? { isArchived: queryString.isArchived } : {})
-            };
-            Notification.update({ isRead: 1 }, { where: { usersId: req.params.id } }).then(ret => {
+
+            Notification.update({ isRead: 1 }, { where: { usersId: req.params.id, isArchived: 0 } }).then(ret => {
                 let limit = 10;
                 const options = {
                     offset: limit * 1 - limit,
