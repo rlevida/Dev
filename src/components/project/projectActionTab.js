@@ -75,12 +75,11 @@ export default class ProjectActionTab extends React.Component {
             .value();
         const projectProcessOptions = [{ id: "All", name: "All" }, { id: "On Time", name: "On Time" }, { id: "Issues", name: "Issues" }];
         const projectTypeOptions = [{ id: 1, name: "Client" }, { id: 2, name: "Internal" }, { id: 3, name: "Private" }];
-        const projectNameSortOptions = [{ id: "asc", name: "A to Z" }, { id: "desc", name: "Z to A" }];
-        const projectCompletionRateSortOptions = [{ id: "desc", name: "Highest to Lowest" }, { id: "asc", name: "Lowest to Highest" }];
+        const sortOptions = [{ id: "completionRate-desc", name: "Highest to Lowest" }, { id: "completionRate-asc", name: "Lowest to Highest" }, { id: "project-asc", name: "A to Z" }, { id: "project-desc", name: "Z to A" }];
 
         return (
             <div class="container-fluid filter">
-                <div class="row content-row">
+                <div class="row mt10">
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">
                             {_.map(projectTypes, (projectType, index) => {
@@ -94,14 +93,17 @@ export default class ProjectActionTab extends React.Component {
                             })}
                             <div class="flex-col">
                                 <a class={project.Filter.typeId === "Inactive" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Inactive")}>
-                                Inactive
+                                    Inactive
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                </div>
+                <div class="row content-row">
+                    <div class="col-md-12 col-sm-12 col-xs-12 pd0">
                         <div class="button-action">
-                            <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search" onChange={e => this.handleChange(e)} />
+                            <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search Project Name" onChange={e => this.handleChange(e)} />
+                            <DropDown multiple={false} required={false} options={sortOptions} selected={Filter.sort} onChange={e => this.setDropDown("sort", e.value)} label="Sort by:" />
                             {project.Filter.typeId === "Inactive" ? (
                                 <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} label="Select Project Type" />
                             ) : (
@@ -121,23 +123,6 @@ export default class ProjectActionTab extends React.Component {
                                     </span>
                                 </a>
                             )}
-                        </div>
-                    </div>
-                </div>
-                <div class="row content-row mt10">
-                    <div class="col-md-6 col-sm-6 col-xs12 pd0"></div>
-                    <div class="col-md-6 col-sm-6 col-xs12 pd0">
-                        <div style={{ display: "flex" }}>
-                            <DropDown multiple={false} required={false} options={projectNameSortOptions} selected={Filter.projectNameSort} onChange={e => this.setDropDown("projectNameSort", e.value)} label="Sort by: Project Name ( A to Z, Z to A)" />
-                            <DropDown
-                                multiple={false}
-                                required={false}
-                                options={projectCompletionRateSortOptions}
-                                selected={Filter.completionRateSort}
-                                onChange={e => this.setDropDown("completionRateSort", e ? e.value : null)}
-                                isClearable={true}
-                                label="Completion ( Highest to Lowest, Lowest to Highest)"
-                            />
                         </div>
                     </div>
                 </div>

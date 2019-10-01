@@ -41,7 +41,7 @@ export default class ProjectDetails extends React.Component {
                 dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             } else {
-                window.location.href = "/account#/pageNotFound";
+                window.location.href = "/account#/inactive-project";
             }
         });
     }

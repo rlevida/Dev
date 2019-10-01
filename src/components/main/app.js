@@ -13,6 +13,7 @@ import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
 import notAvailable from "../notAvailable";
+import inactiveProject from "../inactiveProject";
 import Notification from "../notification";
 
 let keyTimer = "";
@@ -305,6 +306,12 @@ class Main extends React.Component {
                 label: "Notification",
                 path_name: "notification",
                 component: Notification,
+                show_menu: false
+            },
+            {
+                label: "",
+                path_name: "inactive-project",
+                component: inactiveProject,
                 show_menu: false
             }
         ];
