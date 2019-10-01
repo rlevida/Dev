@@ -5,6 +5,7 @@ export default function reducer(
         Count: {},
         Filter: {
             projectProgress: "All",
+            projectNameSort: "asc",
             projectType: 1,
             typeId: 1
         },

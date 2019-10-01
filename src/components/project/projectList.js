@@ -40,7 +40,7 @@ export default class ProjectList extends React.Component {
 
         window.onscroll = function() {
             let actionTabElement = document.getElementById("projectActionTab");
-            let tableElement = document.getElementById("projectTable").getBoundingClientRect()
+            let tableElement = document.getElementById("projectTable").getBoundingClientRect();
             const actionTableBound = actionTabElement.getBoundingClientRect();
 
             const actionTabletop = actionTableBound.top;
@@ -61,7 +61,7 @@ export default class ProjectList extends React.Component {
 
             if (tableHeaderBoundTop + tableHeaderBound.height < 0 && document.documentElement.scrollTop > 0) {
                 document.getElementById("thead2").style.position = "fixed";
-                document.getElementById("thead2").style.top = `80px`;
+                document.getElementById("thead2").style.top = `${actionTableBound.height}px`;
                 document.getElementById("thead2").style.zIndex = 1;
                 document.getElementById("thead2").style.backgroundColor = "#fff";
                 const element = document.getElementById("thead1");
@@ -72,8 +72,8 @@ export default class ProjectList extends React.Component {
                         document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
                     });
                 }
-            } 
-            if(tableHeaderBoundTop + tableHeaderBound.height > 0 && document.documentElement.scrollTop - 80 < 0) {
+            }
+            if (tableHeaderBoundTop + tableHeaderBound.height > 0 && document.documentElement.scrollTop - actionTableBound.height < 0) {
                 document.getElementById("thead2").style.position = "";
             }
         };
@@ -85,7 +85,11 @@ export default class ProjectList extends React.Component {
 
         try {
             getData(fetchUrl, {}, c => {
-                dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
+                const list = c.data.result.map(e => {
+                    const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
+                    return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
+                });
+                dispatch({ type: "SET_PROJECT_LIST", list: list, count: c.data.count });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             });
         } catch (err) {
@@ -113,7 +117,7 @@ export default class ProjectList extends React.Component {
         if (projectProgress) {
             fetchUrl += `&projectProgress=${projectProgress}`;
         }
-        if (typeId === "Innactive/Archived") {
+        if (typeId === "Inactive/Archived") {
             fetchUrl += `&isDeleted=1&projectType=${projectType}`;
         } else {
             fetchUrl += `&isActive=1&isDeleted=0`;
@@ -122,7 +126,11 @@ export default class ProjectList extends React.Component {
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
 
         getData(fetchUrl, {}, c => {
-            dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count });
+            const list = c.data.result.map(e => {
+                const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
+                return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
+            });
+            dispatch({ type: "SET_PROJECT_LIST", list: List.concat(list), count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         });
     }
@@ -164,9 +172,16 @@ export default class ProjectList extends React.Component {
 
     render() {
         const { project, loggedUser } = this.props;
+        const { Filter } = { ...project };
         const currentPage = typeof project.Count.current_page != "undefined" ? project.Count.current_page : 1;
         const lastPage = typeof project.Count.last_page != "undefined" ? project.Count.last_page : 1;
-
+        let projectList = project.List;
+        if (Filter.projectNameSort || Filter.completionRateSort) {
+            projectList = _.orderBy(project.List, ["project"], [Filter.projectNameSort]);
+        }
+        if (Filter.completionRateSort) {
+            projectList = _.orderBy(projectList, ["completionRate"], [Filter.completionRateSort]);
+        }
         return (
             <div id="">
                 <div class="row">
@@ -176,8 +191,8 @@ export default class ProjectList extends React.Component {
                                 <ProjectActionTab />
                             </div>
                             <div id="projectList">
-                                <div class={(project.Loading == "RETRIEVING" && project.List.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
-                                    {project.List.length > 0 && (
+                                <div class={(project.Loading == "RETRIEVING" && projectList.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
+                                    {projectList.length > 0 && (
                                         <table id="projectTable">
                                             <thead>
                                                 <tr id="thead2">
@@ -199,9 +214,8 @@ export default class ProjectList extends React.Component {
                                             </thead>
 
                                             <tbody>
-                                                {_.map(project.List, (projectElem, index) => {
-                                                    const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted, team } = { ...projectElem };
-                                                    const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
+                                                {_.map(projectList, (projectElem, index) => {
+                                                    const { id, project, workstream, members, numberOfTasks, completion_rate, type, isDeleted, team, completionRate } = { ...projectElem };
                                                     const memberList = [
                                                         ..._.map(members, ({ firstName, lastName, avatar }) => {
                                                             return {
@@ -344,13 +358,13 @@ export default class ProjectList extends React.Component {
                                             </tbody>
                                         </table>
                                     )}
-                                    {project.Loading == "RETRIEVING" && project.List.length > 0 && <Loading />}
+                                    {project.Loading == "RETRIEVING" && projectList.length > 0 && <Loading />}
                                     {currentPage != lastPage && project.Loading != "RETRIEVING" && (
                                         <p class="mb0 text-center">
                                             <a onClick={() => this.getNextResult()}>Load More Projects</a>
                                         </p>
                                     )}
-                                    {project.List.length == 0 && project.Loading != "RETRIEVING" && !_.isEmpty(project.Count) && (
+                                    {projectList.length == 0 && project.Loading != "RETRIEVING" && !_.isEmpty(project.Count) && (
                                         <p class="mb0 text-center">
                                             <strong>No Records Found</strong>
                                         </p>

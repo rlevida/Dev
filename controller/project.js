@@ -106,6 +106,7 @@ exports.get = {
 
         const options = {
             include: associationArray,
+            order: [["project", "ASC"]],
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {})
         };
 
@@ -113,8 +114,8 @@ exports.get = {
             ...(typeof queryString.id != "undefined" && queryString.id != "" ? { id: queryString.id.split(",") } : {}),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
-            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" && queryString.typeId !== "Innactive/Archived" ? { typeId: queryString.typeId } : {}),
-            ...(typeof queryString.projectType != "undefined" && queryString.projectType != "" && queryString.typeId === "Innactive/Archived" ? { typeId: queryString.projectType } : {}),
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" && queryString.typeId !== "Inactive/Archived" ? { typeId: queryString.typeId } : {}),
+            ...(typeof queryString.projectType != "undefined" && queryString.projectType != "" && queryString.typeId === "Inactive/Archived" ? { typeId: queryString.projectType } : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {}),
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.project != "undefined" && queryString.project != ""
@@ -127,7 +128,6 @@ exports.get = {
                   }
                 : {})
         };
-
 
         if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
             const userTeam = await UsersTeam.findAll({
@@ -177,7 +177,7 @@ exports.get = {
                 }
             ];
         }
-        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" && queryString.typeId !== "Innactive/Archived") {
+        if (typeof queryString.projectProgress != "undefined" && queryString.projectProgress != "" && queryString.typeId !== "Inactive/Archived") {
             switch (queryString.projectProgress) {
                 case "All":
                     whereObj["isDeleted"] = [0];
@@ -234,7 +234,7 @@ exports.get = {
             }
         }
 
-        if (queryString.typeId === "Innactive/Archived") {
+        if (queryString.typeId === "Inactive/Archived") {
             whereObj["isDeleted"] = [0, 1];
             whereObj["isActive"] = [0, 1];
         }

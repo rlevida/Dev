@@ -34,7 +34,7 @@ export default class ProjectActionTab extends React.Component {
             if (projectProgress) {
                 fetchUrl += `&projectProgress=${projectProgress}`;
             }
-            if (typeId === "Innactive/Archived") {
+            if (typeId === "Inactive/Archived") {
                 fetchUrl += `&isDeleted=1&projectType=${projectType}`;
             } else {
                 fetchUrl += `&isActive=1`;
@@ -44,7 +44,11 @@ export default class ProjectActionTab extends React.Component {
             }
 
             getData(fetchUrl, {}, c => {
-                dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
+                const list = c.data.result.map(e => {
+                    const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
+                    return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
+                });
+                dispatch({ type: "SET_PROJECT_LIST", list: list, count: c.data.count });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
             });
         }
@@ -71,6 +75,9 @@ export default class ProjectActionTab extends React.Component {
             .value();
         const projectProcessOptions = [{ id: "All", name: "All" }, { id: "On Time", name: "On Time" }, { id: "Issues", name: "Issues" }];
         const projectTypeOptions = [{ id: 1, name: "Client" }, { id: 2, name: "Internal" }, { id: 3, name: "Private" }];
+        const projectNameSortOptions = [{ id: "asc", name: "A to Z" }, { id: "desc", name: "Z to A" }];
+        const projectCompletionRateSortOptions = [{ id: "desc", name: "Highest to Lowest" }, { id: "asc", name: "Lowest to Highest" }];
+
         return (
             <div class="container-fluid filter">
                 <div class="row content-row">
@@ -86,8 +93,8 @@ export default class ProjectActionTab extends React.Component {
                                 );
                             })}
                             <div class="flex-col">
-                                <a class={project.Filter.typeId === "Innactive/Archived" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Innactive/Archived")}>
-                                    Innactive/Archived
+                                <a class={project.Filter.typeId === "Inactive/Archived" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Inactive/Archived")}>
+                                    Inactive/Archived
                                 </a>
                             </div>
                         </div>
@@ -95,7 +102,7 @@ export default class ProjectActionTab extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
                             <input type="text" value={Filter.search} name="search" class="form-control mr10" placeholder="Search" onChange={e => this.handleChange(e)} />
-                           {project.Filter.typeId === "Innactive/Archived" ? (
+                            {project.Filter.typeId === "Inactive/Archived" ? (
                                 <DropDown multiple={false} required={false} options={projectTypeOptions} selected={Filter.projectType} onChange={e => this.setDropDown("projectType", e.value)} label="Select Project Type" />
                             ) : (
                                 <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} label="Select Status" />
@@ -114,6 +121,23 @@ export default class ProjectActionTab extends React.Component {
                                     </span>
                                 </a>
                             )}
+                        </div>
+                    </div>
+                </div>
+                <div class="row content-row mt10">
+                    <div class="col-md-6 col-sm-6 col-xs12 pd0"></div>
+                    <div class="col-md-6 col-sm-6 col-xs12 pd0">
+                        <div style={{ display: "flex" }}>
+                            <DropDown multiple={false} required={false} options={projectNameSortOptions} selected={Filter.projectNameSort} onChange={e => this.setDropDown("projectNameSort", e.value)} label="Sort by: Project Name ( A to Z, Z to A)" />
+                            <DropDown
+                                multiple={false}
+                                required={false}
+                                options={projectCompletionRateSortOptions}
+                                selected={Filter.completionRateSort}
+                                onChange={e => this.setDropDown("completionRateSort", e ? e.value : null)}
+                                isClearable={true}
+                                label="Completion ( Highest to Lowest, Lowest to Highest)"
+                            />
                         </div>
                     </div>
                 </div>
