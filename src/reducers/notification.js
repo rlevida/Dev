@@ -7,7 +7,8 @@ export default function reducer(
         Count: {},
         Filter: {
             isArchived: 0,
-            isDeleted: 0
+            isDeleted: 0,
+            isActive: 1
         },
         NotificationCount: 0,
         NotificationBellIsOpen: false,
@@ -46,7 +47,7 @@ export default function reducer(
         case "SET_NOTIFICATION_BELL": {
             return { ...state, NotificationBellIsOpen: action.notificationBellIsOpen };
         }
-        case "REMOVE_NOTIFICATION_FROM_LIST": {
+        case "REMOVE_NOTIFICATION": {
             const tempList = state.List.filter(e => {
                 return e.id !== action.id;
             });

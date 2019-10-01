@@ -67,12 +67,6 @@ class Main extends React.Component {
             }
         });
 
-        $("#bell").on("hidden.bs.dropdown", () => {
-            const { dispatch } = { ...self.props };
-            setTimeout(() => {
-                dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationBellIsOpen: false });
-            }, 200);
-        });
     }
     componentWillMount() {
         const { dispatch, user, location } = this.props;
@@ -179,7 +173,6 @@ class Main extends React.Component {
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser, notification } = { ...this.props };
         const { taskId, workstreamId, projectId } = { ...notif };
-
         if (!notif.isRead) {
             putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
                 dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });

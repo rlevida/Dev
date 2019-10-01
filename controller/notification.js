@@ -84,6 +84,9 @@ const NotificationInclude = [
         model: Projects,
         as: "project_notification",
         required: true,
+        where: {
+            isActive: 1
+        },
         include: [
             {
                 model: Type,
@@ -244,10 +247,10 @@ exports.put = {
         const limit = 10;
         const notificationStack = _.cloneDeep(NotificationInclude);
         const whereObj = {
-            ...(typeof queryString.usersId !== "undefined" && queryString.usersId !== "" ? { usersId: parseInt(queryString.usersId) } : {}),
-            ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : {}),
-            ...(typeof queryString.isRead !== "undefined" && queryString.isRead !== "" ? { isRead: queryString.isRead } : {}),
-            ...(typeof queryString.isArchived !== "undefined" && queryString.isArchived !== "" ? { isArchived: queryString.isArchived } : {})
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "" ? { usersId: parseInt(queryString.usersId) } : {}),
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "" ? { isRead: queryString.isRead } : {}),
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: queryString.isArchived } : { isArchived: 0 })
         };
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
@@ -310,7 +313,7 @@ exports.put = {
                         count: parallelCallback => {
                             Notification.findAndCountAll({
                                 ...options,
-                                where: whereObj
+                                where: { usersId: req.params.id, isDeleted: 0, isArchived: 0, isArchived: 0 }
                             }).then(res => {
                                 const pageData = {
                                     total_count: res.count,
@@ -322,7 +325,7 @@ exports.put = {
                         result: parallelCallback => {
                             Notification.findAll({
                                 ...options,
-                                where: whereObj,
+                                where: { usersId: req.params.id, isDeleted: 0, isArchived: 0, isArchived: 0 },
                                 include: notificationStack
                             }).then(res => {
                                 parallelCallback(null, res);

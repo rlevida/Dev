@@ -23,9 +23,11 @@ class ArchiveModal extends React.Component {
         const { dispatch, loggedUser, notification } = { ...this.props };
         const { Selected } = { ...notification };
         putData(`/api/notification/archive/${Selected.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, c => {
-            const { count, result } = { ...c.data };
-            dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });
-            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            if (Selected.archiveType === "all") {
+                dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {} });
+            } else {
+                dispatch({ type: "REMOVE_NOTIFICATION", id: Selected.id });
+            }
             showToast("success", "Successfully Archived.");
             $(`#archiveModal`).modal("hide");
         });
@@ -48,7 +50,7 @@ class ArchiveModal extends React.Component {
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
-                                        <button class="btn btn-danger" type="button" onClick={this.archiveNotification}>
+                                        <button class="btn btn-danger" type="button" onClick={() => this.archiveNotification()}>
                                             Yes
                                         </button>
                                     </div>
