@@ -239,14 +239,18 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { project, type, workstream } = { ...this.props };
+        const { project, type, workstream, loggedUser } = { ...this.props };
         const currentPage = typeof project.Count.current_page != "undefined" ? project.Count.current_page : 1;
         const lastPage = typeof project.Count.last_page != "undefined" ? project.Count.last_page : 1;
         const projectTypes = [
-            ...[{ id: "", name: "All" }],
+            ...(loggedUser.data.userType !== "External" ? [{ id: "", name: "All" }] : []),
             ..._(type.List)
                 .filter(o => {
-                    return o.linkType == "project";
+                    if (loggedUser.data.userType == "External") {
+                        return o.linkType == "project" && o.type === "Client";
+                    } else {
+                        return o.linkType == "project";
+                    }
                 })
                 .map(o => {
                     return { id: o.id, name: o.type };
