@@ -117,7 +117,7 @@ export default class ProjectActionTab extends React.Component {
                             {project.Filter.typeId !== "Inactive" && (
                                 <DropDown multiple={false} required={false} options={projectProcessOptions} selected={Filter.projectProgress} onChange={e => this.setDropDown("projectProgress", e.value)} label="Select Status" />
                             )}
-                            {loggedUser.data.userRole <= 4 && (
+                            {loggedUser.data.userRole <= 4 && project.Filter.typeId !== "Inactive" && (
                                 <a
                                     class="btn btn-default"
                                     onClick={e => {

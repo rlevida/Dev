@@ -1155,10 +1155,7 @@ exports.post = {
                 }).then(res => {
                     if (res.length) {
                         cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
-                        // d.projectNameCount = res[0].projectNameCount + 1
-                        // nextThen()
                     } else {
-                        // d.projectNameCount = 0
                         nextThen();
                     }
                 });
@@ -1196,15 +1193,30 @@ exports.post = {
                         usersType: "users",
                         userTypeLinkId: d.projectManagerId,
                         memberType: "responsible"
+                    },
+                    {
+                        ...(result.typeId === 3
+                            ? {
+                                  linkId: result.id,
+                                  linkType: "project",
+                                  memberType: "assignedTo",
+                                  userTypeLinkId: d.projectManagerId,
+                                  usersType: "users"
+                              }
+                            : {})
                     }
                 ]).then(res => {
                     Members.findAll({
                         where: {
-                            linkId: result.id,
-                            linkType: "project",
-                            usersType: "users",
-                            userTypeLinkId: d.projectManagerId,
-                            memberType: "project manager"
+                            [Op.or]: [
+                                {
+                                    linkId: result.id,
+                                    linkType: "project",
+                                    usersType: "users",
+                                    userTypeLinkId: d.projectManagerId,
+                                    memberType: "project manager"
+                                },
+                            ]
                         },
                         include: [
                             {

@@ -40,39 +40,42 @@ export default class ProjectList extends React.Component {
         this.fetchFormField();
 
         window.onscroll = function() {
-            let actionTabElement = document.getElementById("projectActionTab");
             let element = document.getElementById("projectTable");
-            let tableElement = element.getBoundingClientRect();
-            const actionTableBound = actionTabElement.getBoundingClientRect();
+            if (element) {
+                let actionTabElement = document.getElementById("projectActionTab");
 
-            const actionTabletop = actionTableBound.top;
-            if (actionTabletop + actionTableBound.height > 0 && document.documentElement.scrollTop - 80 < 0) {
-                actionTabElement.style.position = "";
-                actionTabElement.style.width = `${tableElement.width + 40}px`;
-                scrolled = false;
-            }
-            if (actionTabletop + actionTableBound.height + 40 < 0 && document.documentElement.scrollTop > 0) {
-                actionTabElement.style.position = "fixed";
-                actionTabElement.style.zIndex = "1";
-                actionTabElement.style.top = "0";
-                scrolled = true;
-            }
+                let tableElement = element.getBoundingClientRect();
+                const actionTableBound = actionTabElement.getBoundingClientRect();
 
-            if (scrolled) {
-                document.getElementById("thead2").style.position = "fixed";
-                document.getElementById("thead2").style.top = `${actionTableBound.height}px`;
-                document.getElementById("thead2").style.zIndex = 1;
-                document.getElementById("thead2").style.backgroundColor = "#fff";
-                const element = document.getElementById("thead1");
-                if (element) {
-                    const tag = element.getElementsByTagName("th");
-                    _.map(tag, (e, i) => {
-                        const eleStyle = document.getElementsByClassName(`tdWidth${i + 1}`)[i].getBoundingClientRect();
-                        document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
-                    });
+                const actionTabletop = actionTableBound.top;
+                if (actionTabletop + actionTableBound.height > 0 && document.documentElement.scrollTop - 80 < 0) {
+                    actionTabElement.style.position = "";
+                    actionTabElement.style.width = `${tableElement.width + 40}px`;
+                    scrolled = false;
                 }
-            } else {
-                document.getElementById("thead2").style.position = "";
+                if (actionTabletop + actionTableBound.height + 40 < 0 && document.documentElement.scrollTop > 0) {
+                    actionTabElement.style.position = "fixed";
+                    actionTabElement.style.zIndex = "1";
+                    actionTabElement.style.top = "0";
+                    scrolled = true;
+                }
+
+                if (scrolled) {
+                    document.getElementById("thead2").style.position = "fixed";
+                    document.getElementById("thead2").style.top = `${actionTableBound.height}px`;
+                    document.getElementById("thead2").style.zIndex = 1;
+                    document.getElementById("thead2").style.backgroundColor = "#fff";
+                    const element = document.getElementById("thead1");
+                    if (element) {
+                        const tag = element.getElementsByTagName("th");
+                        _.map(tag, (e, i) => {
+                            const eleStyle = document.getElementsByClassName(`tdWidth${i + 1}`)[i].getBoundingClientRect();
+                            document.getElementById(`th${i + 1}`).style.minWidth = `${eleStyle.width - 2}px`;
+                        });
+                    }
+                } else {
+                    document.getElementById("thead2").style.position = "";
+                }
             }
         };
     }

@@ -31,6 +31,8 @@ export default class ProjectDetails extends React.Component {
         }
     }
     componentDidMount() {
+        const { dispatch } = { ...this.props }
+        dispatch({ type: "SET_PROJECT_FILTER", filter: { ["typeId"]: 1 } });
         this.fetchProjectDetails();
     }
     fetchProjectDetails() {

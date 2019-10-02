@@ -168,7 +168,7 @@ export default class ProjectForm extends React.Component {
     }
 
     setDropDown(name, value) {
-        const { dispatch, project, members } = this.props;
+        const { dispatch, project, members, loggedUser } = this.props;
         const Selected = Object.assign({}, project.Selected);
 
         if (name == "projectManagerId" && value != "") {
@@ -179,6 +179,9 @@ export default class ProjectForm extends React.Component {
                 dispatch({ type: "SET_PROJECT_MANAGER_ID", id: name });
                 dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList });
             }
+        }
+        if (name == "typeId" && value === 3) {
+            Selected["projectManagerId"] = loggedUser.data.id;
         }
         Selected[name] = value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected });
@@ -240,7 +243,7 @@ export default class ProjectForm extends React.Component {
     }
 
     fetchProjetLeadList(options) {
-        const { dispatch } = this.props;
+        const { dispatch, loggedUser } = this.props;
         let fetchUrl = "/api/user?page=1&isDeleted=0&type=teamLead";
 
         if (typeof options != "undefined" && options != "") {
@@ -248,11 +251,16 @@ export default class ProjectForm extends React.Component {
         }
 
         getData(fetchUrl, {}, c => {
-            const projectLeadList = _(c.data.result)
+            let projectLeadList = _(c.data.result)
                 .map(e => {
                     return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar };
                 })
                 .value();
+
+            let hasLoggedUser = _.find(projectLeadList, { id: loggedUser.data.id });
+            if (!hasLoggedUser && loggedUser.data.userRole <= 3) {
+                projectLeadList.push({ id: loggedUser.data.id, name: `${loggedUser.data.firstName} ${loggedUser.data.lastName}`, image: loggedUser.data.avatar });
+            }
             dispatch({ type: "SET_USER_SELECT_LIST", List: projectLeadList });
         });
     }
@@ -466,7 +474,7 @@ export default class ProjectForm extends React.Component {
                                                     </div>
                                                 );
                                             }}
-                                            disabled ={typeof project.Selected.typeId && project.Selected.typeId === 3}
+                                            disabled={typeof project.Selected.typeId && project.Selected.typeId === 3}
                                             isClearable={users.SelectList.length > 0}
                                         />
                                     </div>
