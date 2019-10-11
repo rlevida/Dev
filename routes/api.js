@@ -2,7 +2,7 @@ var express = require("express");
 var router = express();
 const models = require("../modelORM");
 var path = require("path");
-const { Document, Session, Projects } = models;
+const { Document, Session, Members, Users, UsersRole, Roles } = models;
 
 (async = require("async")), (_ = require("lodash"));
 
@@ -14,8 +14,35 @@ const { Document, Session, Projects } = models;
 router.use(function(req, res, next) {
     let token = req.body.Token ? req.body.Token : req.params.Token ? req.params.Token : req.query.Token ? req.query.Token : req.cookies["app.sid"] ? req.cookies["app.sid"] : "";
     try {
-        Session.findOne({ where: { session: token } }).then(ret => {
+        Session.findOne({
+            where: { session: token },
+            include: [
+                {
+                    model: Users,
+                    as: "user",
+                    include: [
+                        {
+                            model: Members,
+                            as: "user_projects",
+                            where: { usersType: "users", linkType: "project" },
+                            required: true
+                        },
+                        {
+                            model: UsersRole,
+                            as: "user_role",
+                            include: [
+                                {
+                                    model: Roles,
+                                    as: "role"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }).then(ret => {
             if (ret) {
+                req.user = ret.toJSON().user;
                 req.query.auth = {};
                 req.query.auth.yourToken = token;
                 req.query.auth.userId = ret.toJSON().userId;

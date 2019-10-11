@@ -76,19 +76,18 @@ class Component extends React.Component {
         }
     }
     handleFetchProjectCategory({ category, page, initialLoad }) {
-        const { loggedUser, dispatch, project } = { ...this.props };
+        const { dispatch, project } = { ...this.props };
         if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
-            const requestUrl = `/api/project/getByType?userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
-            let typeId = 0;
+            let requestUrl = `/api/project/getByType?page=${page}`;
             if (category === "Client") {
-                typeId = 1;
+                requestUrl += `&typeId=${1}`;
             } else if (category === "Internal") {
-                typeId = 2;
+                requestUrl +=`&typeId=${2}`;
             } else if (category === "Private") {
-                typeId = 3;
+                requestUrl +=`&typeId=${3}`;
             }
             dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
-            getData(`${requestUrl}&typeId=${typeId}&page=${page}&isActive=1`, {}, c => {
+            getData(requestUrl, {}, c => {
                 dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
             });
         }

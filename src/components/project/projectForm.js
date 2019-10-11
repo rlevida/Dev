@@ -225,7 +225,7 @@ export default class ProjectForm extends React.Component {
             data.append("project_id", project.Selected.id);
         });
 
-        postData(`/api/project/upload`, data, c => {
+        postData(`/api/project/upload?projectId=${project.Selected.id}`, data, c => {
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
             dispatch({ type: "SET_DOCUMENT_FILES", Files: "" });
             dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...Selected, picture: c.data } });

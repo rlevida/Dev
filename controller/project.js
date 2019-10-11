@@ -5,7 +5,79 @@ const Sequelize = require("sequelize");
 const _ = require("lodash");
 const Op = Sequelize.Op;
 const models = require("../modelORM");
-const { TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
+const { Session, TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
+
+async function projectAuth(authObj) {
+    const sessionWhereObj = {
+        ...(authObj.token ? { session: authObj.token } : {})
+    };
+    const result = await Session.findOne({
+        where: sessionWhereObj,
+        include: [
+            {
+                model: Users,
+                as: "user",
+                include: [
+                    {
+                        model: Members,
+                        as: "user_projects",
+                        where: { usersType: "users", linkType: "project" },
+                        required: false,
+                        include: [
+                            {
+                                model: Projects,
+                                as: "memberProject",
+                                required: true,
+                                where: { isDeleted: 0, isActive: 1 }
+                            }
+                        ]
+                    },
+                    {
+                        model: UsersRole,
+                        as: "user_role",
+                        include: [
+                            {
+                                model: Roles,
+                                as: "role"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }).then(async ret => {
+        let hasAccess = false;
+
+        if (ret) {
+            const { user } = { ...ret.toJSON() };
+            switch (authObj.action) {
+                case "get":
+                    if (user.user_role[0].roleId > 3) {
+                        if (authObj.projectId) {
+                            hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+                        }
+                    } else {
+                        hasAccess = true;
+                    }
+                    break;
+                case "post":
+                    if (user.user_role[0].roleId === 3 && authObj.projectId) {
+                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+                    } else if (authObj.projectId && user.user_role[0].roleId > 4) {
+                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+                    } else if (user.user_role[0].roleId < 3) {
+                        hasAccess = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return hasAccess;
+    });
+    return result;
+}
 
 exports.get = {
     index: async (req, cb) => {
@@ -518,11 +590,18 @@ exports.get = {
             }
         );
     },
-    getById: (req, cb) => {
-        const id = req.params.id;
-        const queryString = req.query;
-        let associationIncludes = [];
-        let hasInfo = parseInt(queryString.info) ? true : false;
+    getById: async (req, cb) => {
+        const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.params.id, action: "get" });
+        if (!hasAccess) {
+            cb({ status: false, error: "Unauthorized Access" });
+            return;
+        }
+
+        const id = req.params.id,
+            queryString = req.query;
+        let associationIncludes = [],
+            hasInfo = parseInt(queryString.info) ? true : false;
+
         if (hasInfo) {
             associationIncludes = [
                 {
@@ -652,694 +731,417 @@ exports.get = {
     },
     getByType: async (req, cb) => {
         const queryString = req.query;
-        const limit = 5;
-        const options = {
-            include: [
-                {
-                    model: Type,
-                    as: "type",
-                    required: false,
-                    attributes: ["type"]
-                }
-            ],
-            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {})
-        };
-        const whereObj = {
-            ...{ isDeleted: 0 },
-            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
-        };
+        if (queryString.typeId && req.user && req.user.user_role[0].roleId) {
+            const userId = req.user.id;
+            const userRole = req.user.user_role[0].roleId;
+            const limit = 5;
+            const options = {
+                include: [
+                    {
+                        model: Type,
+                        as: "type",
+                        required: false,
+                        attributes: ["type"]
+                    }
+                ],
+                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {})
+            };
+            const whereObj = {
+                ...{ isDeleted: 0 },
+                ...{ isActive: 1 },
+                ...(typeof queryString.typeId != "undefined" && queryString.typeId != "" ? { typeId: parseInt(queryString.typeId) } : {})
+            };
 
-        if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
-            const userTeam = await UsersTeam.findAll({
-                where: {
-                    usersId: queryString.userId
+            if (typeof userId != "undefined" && userId != "" && (typeof userRole != "undefined" && userRole >= 3)) {
+                const userTeam = await UsersTeam.findAll({
+                    where: {
+                        usersId: userId
+                    }
+                }).map(res => {
+                    return res.toJSON();
+                });
+                const projectMembers = await Members.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                usersType: "users",
+                                userTypeLinkId: userId,
+                                linkType: "project"
+                            },
+                            {
+                                usersType: "team",
+                                userTypeLinkId: _.map(userTeam, o => {
+                                    return o.teamId;
+                                }),
+                                linkType: "project"
+                            }
+                        ]
+                    }
+                }).map(res => {
+                    return res.toJSON();
+                });
+
+                if (userRole > 4 && typeof queryString.typeId == "undefined") {
+                    whereObj["typeId"] = 1;
                 }
-            }).map(res => {
-                return res.toJSON();
-            });
-            const projectMembers = await Members.findAll({
-                where: {
-                    [Op.or]: [
-                        {
-                            usersType: "users",
-                            userTypeLinkId: queryString.userId,
-                            linkType: "project"
-                        },
-                        {
-                            usersType: "team",
-                            userTypeLinkId: _.map(userTeam, o => {
-                                return o.teamId;
-                            }),
-                            linkType: "project"
+
+                whereObj[Sequelize.Op.or] = [
+                    {
+                        id: _(projectMembers)
+                            .uniqBy("linkId")
+                            .map(o => {
+                                return o.linkId;
+                            })
+                            .value()
+                    },
+                    {
+                        createdBy: userId
+                    }
+                ];
+            }
+
+            async.parallel(
+                {
+                    count: function(callback) {
+                        try {
+                            Projects.findAndCountAll({ where: whereObj }).then(response => {
+                                const pageData = {
+                                    total_count: response.count,
+                                    ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? parseInt(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
+                                };
+                                callback(null, pageData);
+                            });
+                        } catch (err) {
+                            callback(err);
                         }
-                    ]
-                }
-            }).map(res => {
-                return res.toJSON();
-            });
-
-            if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
-                whereObj["typeId"] = 1;
-            }
-
-            whereObj[Sequelize.Op.or] = [
-                {
-                    id: _(projectMembers)
-                        .uniqBy("linkId")
-                        .map(o => {
-                            return o.linkId;
-                        })
-                        .value()
+                    },
+                    result: function(callback) {
+                        try {
+                            Projects.findAll({
+                                ...options,
+                                where: whereObj
+                            }).then(res => {
+                                callback(null, res);
+                            });
+                        } catch (err) {
+                            callback(err);
+                        }
+                    }
                 },
-                {
-                    createdBy: queryString.userId
+                (err, results) => {
+                    if (err) {
+                        cb({ status: false, message: "Something went wrong." });
+                    } else {
+                        cb({ status: true, data: { ...results } });
+                    }
                 }
-            ];
+            );
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
         }
-
-        async.parallel(
-            {
-                count: function(callback) {
-                    try {
-                        Projects.findAndCountAll({ where: whereObj }).then(response => {
-                            const pageData = {
-                                total_count: response.count,
-                                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: response.count > 0 ? parseInt(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {})
-                            };
-                            callback(null, pageData);
-                        });
-                    } catch (err) {
-                        callback(err);
-                    }
-                },
-                result: function(callback) {
-                    try {
-                        Projects.findAll({
-                            ...options,
-                            where: whereObj
-                        }).then(res => {
-                            callback(null, res);
-                        });
-                    } catch (err) {
-                        callback(err);
-                    }
-                }
-            },
-            (err, results) => {
-                if (err) {
-                    cb({ status: false, message: "Something went wrong." });
-                } else {
-                    cb({ status: true, data: { ...results } });
-                }
-            }
-        );
     },
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;
 
-        const limit = 10;
-        const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {})
-        };
-        const whereObj = {
-            ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
-                ? {
-                      linkType: queryString.linkType
-                  }
-                : {}),
-            ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
-                ? {
-                      linkId: queryString.linkId
-                  }
-                : {}),
-            ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
-                ? {
-                      usersType: queryString.usersType
-                  }
-                : {}),
-            isDeleted: 0
-        };
+        if (queryString.linkType && queryString.linkId) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: queryString.linkId, action: "get" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
 
-        try {
-            const memberList = await Members.findAll({
-                where: whereObj
-            }).map(o => {
-                return o.toJSON();
-            });
+            const whereObj = {
+                linkType: queryString.linkType,
+                linkId: queryString.linkId,
+                ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
+                    ? {
+                          usersType: queryString.usersType
+                      }
+                    : {}),
+                isDeleted: 0
+            };
 
-            const userMembers = _.filter(memberList, o => {
-                return o.usersType == "users";
-            });
-            const teamMembers = _.filter(memberList, o => {
-                return o.usersType == "team";
-            });
-            async.parallel(
-                {
-                    users: parallelCallback => {
-                        const userIds = _.map(userMembers, o => {
-                            return o.userTypeLinkId;
-                        });
-                        parallelCallback(null, userIds);
-                    },
-                    team_users: parallelCallback => {
-                        const teamIds = _.map(teamMembers, o => {
-                            return o.userTypeLinkId;
-                        });
-                        async.parallel(
-                            {
-                                team_leaders: parallelCallback => {
-                                    Teams.findAll({
-                                        where: {
-                                            id: teamIds
-                                        }
-                                    })
-                                        .map(o => {
-                                            return o.toJSON();
-                                        })
-                                        .then(res => {
-                                            const teamLeadUserIds = _.map(res, o => {
-                                                return o.teamLeaderId;
-                                            });
-                                            parallelCallback(null, teamLeadUserIds);
-                                        });
-                                },
-                                team_members: parallelCallback => {
-                                    UsersTeam.findAll({
-                                        where: {
-                                            teamId: teamIds
-                                        }
-                                    })
-                                        .map(o => {
-                                            return o.toJSON();
-                                        })
-                                        .then(res => {
-                                            const teamUserIds = _.map(res, o => {
-                                                return o.usersId;
-                                            });
-                                            parallelCallback(null, teamUserIds);
-                                        });
-                                }
-                            },
-                            (err, res) => {
-                                const returnStack = [...res.team_leaders, ...res.team_members];
-                                parallelCallback(null, returnStack);
-                            }
-                        );
-                    }
-                },
-                async (err, results) => {
-                    let userMemberIds = _.uniq([...results.users, ...results.team_users]);
-                    if ((typeof queryString.project_type != "undefined" && queryString.project_type != "") || (typeof queryString.memberType != "undefined" && queryString.memberType != "")) {
-                        userMemberIds = await UsersRole.findAll({
-                            where: {
-                                ...((typeof queryString.project_type != "undefined" && queryString.project_type == "Client") || (typeof queryString.memberType != "undefined" && queryString.memberType == "approver")
-                                    ? {
-                                          roleId: {
-                                              [Op.notIn]: [4, 6]
-                                          }
-                                      }
-                                    : {}),
-                                ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
-                                    ? {
-                                          roleId: {
-                                              [Op.lte]: 4
-                                          }
-                                      }
-                                    : {}),
-                                ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Client" && typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
-                                    ? {
-                                          roleId: {
-                                              [Op.lte]: 3
-                                          }
-                                      }
-                                    : {}),
-                                usersId: userMemberIds
-                            }
-                        }).map(o => {
-                            const { usersId } = o.toJSON();
-                            return usersId;
-                        });
-                    }
-                    Users.findAll({
-                        where: {
-                            id: userMemberIds,
-                            ...(typeof queryString.memberName != "undefined" && queryString.memberName != ""
-                                ? {
-                                      [Op.or]: [
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          }),
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          }),
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          })
-                                      ]
-                                  }
-                                : {}),
-                            ...(typeof queryString.userType != "undefined" && queryString.userType != ""
-                                ? {
-                                      userType: queryString.userType
-                                  }
-                                : {})
+            try {
+                const memberList = await Members.findAll({
+                    where: whereObj
+                }).map(o => {
+                    return o.toJSON();
+                });
+
+                const userMembers = _.filter(memberList, o => {
+                    return o.usersType == "users";
+                });
+                const teamMembers = _.filter(memberList, o => {
+                    return o.usersType == "team";
+                });
+                async.parallel(
+                    {
+                        users: parallelCallback => {
+                            const userIds = _.map(userMembers, o => {
+                                return o.userTypeLinkId;
+                            });
+                            parallelCallback(null, userIds);
                         },
-                        include: [
-                            {
-                                model: Teams,
-                                as: "team_as_teamLeader",
-                                where: {
-                                    isDeleted: 0
-                                },
-                                required: false
-                            },
-                            {
-                                model: UsersRole,
-                                as: "user_role",
-                                include: [
-                                    {
-                                        model: Roles,
-                                        as: "role"
-                                    }
-                                ],
-                                required: false
-                            },
-                            {
-                                model: UsersTeam,
-                                as: "users_team",
-                                where: {
-                                    isDeleted: 0
-                                },
-                                include: [
-                                    {
-                                        model: Teams,
-                                        as: "team",
-                                        where: {
-                                            isDeleted: 0
-                                        }
-                                    }
-                                ],
-                                required: false
-                            }
-                        ]
-                    })
-                        .map(o => {
-                            const responseObj = o.toJSON();
-                            const userTeams = _.map(responseObj.users_team, o => {
-                                return o.team;
+                        team_users: parallelCallback => {
+                            const teamIds = _.map(teamMembers, o => {
+                                return o.userTypeLinkId;
                             });
-                            const teamArray = [...userTeams, ...responseObj.team_as_teamLeader];
-                            const memberByTeam = _.filter(teamArray, o => {
-                                const checkIndex = _.findIndex(teamMembers, teamMember => {
-                                    return teamMember.userTypeLinkId == o.id;
-                                });
-                                return checkIndex >= 0;
-                            });
-                            return {
-                                ...responseObj,
-                                team: _.uniqBy(teamArray, o => {
-                                    return o.id;
-                                }),
-                                memberByTeam
-                            };
-                        })
-                        .then(res => {
-                            cb({
-                                status: true,
-                                data: res
-                            });
-                        });
-                }
-            );
-        } catch (err) {
-            cb({
-                status: false,
-                error: err
-            });
-        }
-    },
-    getProjectTeams: (req, cb) => {
-        const queryString = req.query;
-        const whereObj = {
-            ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
-                ? {
-                      linkType: queryString.linkType
-                  }
-                : {}),
-            ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
-                ? {
-                      linkId: queryString.linkId
-                  }
-                : {}),
-            ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
-                ? {
-                      usersType: queryString.usersType
-                  }
-                : {})
-        };
-
-        try {
-            Members.findAll({
-                where: whereObj,
-                include: [
-                    {
-                        model: Teams,
-                        as: "team",
-                        include: [
-                            {
-                                model: Users,
-                                as: "teamLeader"
-                            },
-                            {
-                                model: UsersTeam,
-                                as: "users_team",
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: "user",
-                                        include: [
-                                            {
-                                                model: UsersRole,
-                                                as: "user_role",
-                                                include: [
-                                                    {
-                                                        model: Roles,
-                                                        as: "role"
-                                                    }
-                                                ]
-                                            },
-                                            {
-                                                model: UsersTeam,
-                                                as: "team",
-                                                include: [
-                                                    {
-                                                        model: Teams,
-                                                        as: "team"
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }).then(res => {
-                cb({
-                    status: true,
-                    data: res
-                });
-            });
-        } catch (err) {
-            cb({
-                status: false,
-                error: err
-            });
-        }
-    },
-    status: (req, cb) => {
-        const queryString = req.query;
-
-        try {
-            sequelize
-                .query(
-                    `
-            SELECT
-            tb.typeId,
-            Active,
-            type,
-            linkType,
-            taskStatus.Issues,
-            taskStatus.OnTrack
-            FROM
-                (
-                SELECT
-                    typeId,
-                    SUM(IF(isActive = "1", 1, 0)) AS Active
-                FROM
-                    project
-                GROUP BY
-                    typeId
-            ) AS tb
-            LEFT JOIN type ON tb.typeId = type.id
-            LEFT JOIN(
-                SELECT
-                    typeId,
-                    SUM(Issues) AS Issues,
-                    SUM(OnTrack) AS OnTrack
-                FROM
-                    (
-                    SELECT
-                        typeId,
-                        projectId,
-                        IF(Issues > 0, 1, 0) AS Issues,
-                        IF(Issues > 0, 0, IF(OnTrack > 0, 1, 0)) AS OnTrack
-                    FROM
-                        project
-                    LEFT JOIN(
-                        SELECT
-                            projectId,
-                            SUM(IF(dueDate >= :date, 1, 0)) AS OnTrack,
-                            SUM(
-                                IF(
-                                    dueDate < :date AND duedate > "1970-01-01", 1, 0)
-                                ) AS Issues
-                            FROM
-                                task
-                            WHERE
-                                (
-                                STATUS
-                                    <> "Completed" OR
-                                STATUS IS NULL
-                            ) AND isActive = 1
-                        GROUP BY
-                            projectId
-                            ) AS tbTask
-                        ON
-                            project.id = tbTask.projectId) AS tbpt
-                        GROUP BY
-                            typeId
-                    ) AS taskStatus
-                ON
-                    tb.typeId = taskStatus.typeId
-            `,
-                    {
-                        replacements: {
-                            date: moment(queryString.date, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm")
-                        },
-                        type: sequelize.QueryTypes.SELECT
-                    }
-                )
-                .then(response => {
-                    cb({ status: true, data: response });
-                });
-        } catch (err) {
-            callback(err);
-        }
-    }
-};
-
-exports.post = {
-    index: (req, cb) => {
-        let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png", color: typeof req.body.color !== "undefined" ? req.body.color : "#fff" };
-        sequence
-            .create()
-            .then(nextThen => {
-                Projects.findAll({
-                    where: { project: d.project },
-                    order: [["projectNameCount", "DESC"]]
-                }).then(res => {
-                    if (res.length) {
-                        cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
-                    } else {
-                        nextThen();
-                    }
-                });
-            })
-            .then(nextThen => {
-                Projects.create(d).then(res => {
-                    nextThen(res);
-                });
-            })
-            .then((nextThen, result) => {
-                const workstreamData = {
-                    projectId: result.dataValues.id,
-                    workstream: "Default Workstream",
-                    typeId: 4,
-                    color: "#7ed321"
-                };
-
-                Workstream.create(workstreamData).then(res => {
-                    nextThen({ project_result: result.toJSON(), workstream_result: res.toJSON() });
-                });
-            })
-            .then((nextThen, { project_result, workstream_result }) => {
-                let result = project_result;
-                Members.bulkCreate([
-                    {
-                        linkId: result.id,
-                        linkType: "project",
-                        usersType: "users",
-                        userTypeLinkId: d.projectManagerId,
-                        memberType: "project manager"
-                    },
-                    {
-                        linkId: workstream_result.id,
-                        linkType: "workstream",
-                        usersType: "users",
-                        userTypeLinkId: d.projectManagerId,
-                        memberType: "responsible"
-                    },
-                    {
-                        ...(result.typeId === 3
-                            ? {
-                                  linkId: result.id,
-                                  linkType: "project",
-                                  memberType: "assignedTo",
-                                  userTypeLinkId: d.projectManagerId,
-                                  usersType: "users"
-                              }
-                            : {})
-                    }
-                ]).then(res => {
-                    Members.findAll({
-                        where: {
-                            [Op.or]: [
+                            async.parallel(
                                 {
-                                    linkId: result.id,
-                                    linkType: "project",
-                                    usersType: "users",
-                                    userTypeLinkId: d.projectManagerId,
-                                    memberType: "project manager"
-                                },
-                            ]
-                        },
-                        include: [
-                            {
-                                model: Users,
-                                as: "user",
-                                include: [
-                                    {
-                                        model: UsersRole,
-                                        as: "user_role",
-                                        include: [
-                                            {
-                                                model: Roles,
-                                                as: "role"
+                                    team_leaders: parallelCallback => {
+                                        Teams.findAll({
+                                            where: {
+                                                id: teamIds
                                             }
-                                        ]
+                                        })
+                                            .map(o => {
+                                                return o.toJSON();
+                                            })
+                                            .then(res => {
+                                                const teamLeadUserIds = _.map(res, o => {
+                                                    return o.teamLeaderId;
+                                                });
+                                                parallelCallback(null, teamLeadUserIds);
+                                            });
                                     },
-                                    {
-                                        model: UsersTeam,
-                                        as: "team"
+                                    team_members: parallelCallback => {
+                                        UsersTeam.findAll({
+                                            where: {
+                                                teamId: teamIds
+                                            }
+                                        })
+                                            .map(o => {
+                                                return o.toJSON();
+                                            })
+                                            .then(res => {
+                                                const teamUserIds = _.map(res, o => {
+                                                    return o.usersId;
+                                                });
+                                                parallelCallback(null, teamUserIds);
+                                            });
                                     }
-                                ]
-                            }
-                        ]
-                    })
-                        .map(mapObject => {
-                            return mapObject.toJSON();
+                                },
+                                (err, res) => {
+                                    const returnStack = [...res.team_leaders, ...res.team_members];
+                                    parallelCallback(null, returnStack);
+                                }
+                            );
+                        }
+                    },
+                    async (err, results) => {
+                        let userMemberIds = _.uniq([...results.users, ...results.team_users]);
+                        if ((typeof queryString.project_type != "undefined" && queryString.project_type != "") || (typeof queryString.memberType != "undefined" && queryString.memberType != "")) {
+                            userMemberIds = await UsersRole.findAll({
+                                where: {
+                                    ...((typeof queryString.project_type != "undefined" && queryString.project_type == "Client") || (typeof queryString.memberType != "undefined" && queryString.memberType == "approver")
+                                        ? {
+                                              roleId: {
+                                                  [Op.notIn]: [4, 6]
+                                              }
+                                          }
+                                        : {}),
+                                    ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
+                                        ? {
+                                              roleId: {
+                                                  [Op.lte]: 4
+                                              }
+                                          }
+                                        : {}),
+                                    ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Client" && typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
+                                        ? {
+                                              roleId: {
+                                                  [Op.lte]: 3
+                                              }
+                                          }
+                                        : {}),
+                                    usersId: userMemberIds
+                                }
+                            }).map(o => {
+                                const { usersId } = o.toJSON();
+                                return usersId;
+                            });
+                        }
+                        Users.findAll({
+                            where: {
+                                id: userMemberIds,
+                                ...(typeof queryString.memberName != "undefined" && queryString.memberName != ""
+                                    ? {
+                                          [Op.or]: [
+                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
+                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                              }),
+                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
+                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                              }),
+                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
+                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                              })
+                                          ]
+                                      }
+                                    : {}),
+                                ...(typeof queryString.userType != "undefined" && queryString.userType != ""
+                                    ? {
+                                          userType: queryString.userType
+                                      }
+                                    : {})
+                            },
+                            include: [
+                                {
+                                    model: Teams,
+                                    as: "team_as_teamLeader",
+                                    where: {
+                                        isDeleted: 0
+                                    },
+                                    required: false
+                                },
+                                {
+                                    model: UsersRole,
+                                    as: "user_role",
+                                    include: [
+                                        {
+                                            model: Roles,
+                                            as: "role"
+                                        }
+                                    ],
+                                    required: false
+                                },
+                                {
+                                    model: UsersTeam,
+                                    as: "users_team",
+                                    where: {
+                                        isDeleted: 0
+                                    },
+                                    include: [
+                                        {
+                                            model: Teams,
+                                            as: "team",
+                                            where: {
+                                                isDeleted: 0
+                                            }
+                                        }
+                                    ],
+                                    required: false
+                                }
+                            ]
                         })
-                        .then(findRes => {
-                            nextThen(result, findRes);
-                        });
+                            .map(o => {
+                                const responseObj = o.toJSON();
+                                const userTeams = _.map(responseObj.users_team, o => {
+                                    return o.team;
+                                });
+                                const teamArray = [...userTeams, ...responseObj.team_as_teamLeader];
+                                const memberByTeam = _.filter(teamArray, o => {
+                                    const checkIndex = _.findIndex(teamMembers, teamMember => {
+                                        return teamMember.userTypeLinkId == o.id;
+                                    });
+                                    return checkIndex >= 0;
+                                });
+                                return {
+                                    ...responseObj,
+                                    team: _.uniqBy(teamArray, o => {
+                                        return o.id;
+                                    }),
+                                    memberByTeam
+                                };
+                            })
+                            .then(res => {
+                                cb({
+                                    status: true,
+                                    data: res
+                                });
+                            });
+                    }
+                );
+            } catch (err) {
+                cb({
+                    status: false,
+                    error: err
                 });
-            })
-            .then((nextThen, project, members) => {
-                Projects.findOne({
-                    where: { id: project.id },
+            }
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
+    },
+    getProjectTeams: async (req, cb) => {
+        const queryString = req.query;
+
+        if (queryString.linkType && queryString.linkId) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: queryString.linkId, action: "get" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
+
+            const whereObj = {
+                ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
+                    ? {
+                          linkType: queryString.linkType
+                      }
+                    : {}),
+                ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
+                    ? {
+                          linkId: queryString.linkId
+                      }
+                    : {}),
+                ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
+                    ? {
+                          usersType: queryString.usersType
+                      }
+                    : {})
+            };
+
+            try {
+                Members.findAll({
+                    where: whereObj,
                     include: [
                         {
-                            model: Type,
-                            as: "type",
-                            required: false
-                        },
-                        {
-                            model: Members,
-                            as: "projectManager",
-                            where: {
-                                memberType: "project manager"
-                            },
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskActive",
-                            attributes: [],
-                            required: false
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskOverDue",
-                            where: {
-                                dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
-                                status: {
-                                    [Op.or]: {
-                                        [Op.not]: "Completed",
-                                        [Op.eq]: null
-                                    }
+                            model: Teams,
+                            as: "team",
+                            include: [
+                                {
+                                    model: Users,
+                                    as: "teamLeader"
+                                },
+                                {
+                                    model: UsersTeam,
+                                    as: "users_team",
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user",
+                                            include: [
+                                                {
+                                                    model: UsersRole,
+                                                    as: "user_role",
+                                                    include: [
+                                                        {
+                                                            model: Roles,
+                                                            as: "role"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    model: UsersTeam,
+                                                    as: "team",
+                                                    include: [
+                                                        {
+                                                            model: Teams,
+                                                            as: "team"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
-                            },
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskDueToday",
-                            where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskDueToday.dueDate")), "=", moment().format("YYYY-MM-DD 00:00:00")),
-                            required: false,
-                            attributes: []
+                            ]
                         }
                     ]
                 }).then(res => {
-                    cb({ status: true, data: { project: { ...res.toJSON(), projectManagerId: d.projectManagerId }, members: members } });
-                });
-            });
-    },
-    projectMember: (req, cb) => {
-        let d = req.body;
-        const queryString = req.query;
-        let projectType = queryString.projectType;
-
-        if (d.data.usersType == "users") {
-            try {
-                Members.create(req.body.data).then(res => {
-                    Members.findOne({
-                        where: d.data,
-                        include: [
-                            {
-                                model: Users,
-                                as: "user",
-                                include: [
-                                    {
-                                        model: UsersRole,
-                                        as: "user_role",
-                                        include: [
-                                            {
-                                                model: Roles,
-                                                as: "role"
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        model: UsersTeam,
-                                        as: "team"
-                                    }
-                                ]
-                            }
-                        ]
-                    }).then(findRes => {
-                        cb({
-                            status: true,
-                            data: [findRes]
-                        });
+                    cb({
+                        status: true,
+                        data: res
                     });
-                    return null;
                 });
             } catch (err) {
                 cb({
@@ -1348,280 +1150,93 @@ exports.post = {
                 });
             }
         } else {
-            async.waterfall(
-                [
-                    function(callback) {
-                        try {
-                            UsersTeam.findAll({
-                                where: {
-                                    teamId: d.data.userTypeLinkId
-                                },
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: "user"
-                                    }
-                                ]
-                            })
-                                .map(res => {
-                                    return { id: res.usersId, userType: res.user.toJSON().userType };
-                                })
-                                .then(res => {
-                                    callback(null, res);
-                                });
-                        } catch (err) {
-                            callback(err);
-                        }
-                    },
-                    function(users, callback) {
-                        try {
-                            if (projectType && projectType === "Internal") {
-                                const isExternalUser = _.find(users, { userType: "External" });
-                                if (isExternalUser) {
-                                    cb({
-                                        status: true,
-                                        data: {
-                                            hasError: true,
-                                            message: "Unable to add team, Please make sure the members of this team are Internal users only"
-                                        }
-                                    });
-                                } else {
-                                    const usersId = users.map(({ id }) => {
-                                        return id;
-                                    });
-                                    callback(null, usersId);
-                                }
-                            } else {
-                                const usersId = users.map(({ id }) => {
-                                    return id;
-                                });
-                                callback(null, usersId);
-                            }
-                        } catch (err) {
-                            callback(err);
-                        }
-                    },
-                    function(userIds, callback) {
-                        try {
-                            Members.update(
-                                { isDeleted: 1 },
-                                {
-                                    where: {
-                                        userTypeLinkId: userIds,
-                                        usersType: "users",
-                                        linkType: "project",
-                                        linkId: d.data.linkId
-                                    }
-                                }
-                            ).then(res => {
-                                callback(null, res);
-                                return null;
-                            });
-                        } catch (err) {
-                            callback(err);
-                        }
-                    },
-                    function(usersIds, callback) {
-                        try {
-                            Members.create(req.body.data).then(res => {
-                                callback(null, res.dataValues.id);
-                                return null;
-                            });
-                        } catch (err) {
-                            callback(err);
-                        }
-                    },
-                    function(teamId, callback) {
-                        try {
-                            Members.findOne({
-                                where: {
-                                    id: teamId
-                                },
-                                include: [
-                                    {
-                                        model: Teams,
-                                        as: "team",
-                                        include: [
-                                            {
-                                                model: Users,
-                                                as: "teamLeader"
-                                            },
-                                            {
-                                                model: UsersTeam,
-                                                as: "users_team",
-                                                include: [
-                                                    {
-                                                        model: Users,
-                                                        as: "user",
-                                                        include: [
-                                                            {
-                                                                model: UsersRole,
-                                                                as: "user_role",
-                                                                include: [
-                                                                    {
-                                                                        model: Roles,
-                                                                        as: "role"
-                                                                    }
-                                                                ]
-                                                            },
-                                                            {
-                                                                model: UsersTeam,
-                                                                as: "team"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }).then(findRes => {
-                                callback(null, findRes);
-                                return null;
-                            });
-                        } catch (err) {
-                            callback(err);
-                        }
-                    }
-                ],
-                function(err, result) {
-                    if (err != null) {
-                        cb({
-                            status: false,
-                            error: err
-                        });
-                    } else {
-                        cb({
-                            status: true,
-                            data: [result]
-                        });
-                    }
-                }
-            );
+            cb({ status: false, error: "Unauthorized Access" });
         }
-    },
-    upload: (req, cb) => {
-        const formidable = global.initRequire("formidable");
-        const func = global.initFunc();
-        let form = new formidable.IncomingForm();
-        let files = [];
-        let type = "project_pictures";
-        let projectId = "";
-        form.multiples = false;
-        files.push(
-            new Promise((resolve, reject) => {
-                form.on("field", function(name, field) {
-                    projectId = field;
-                }).on("file", function(field, file) {
-                    const date = new Date();
-                    const Id = func.generatePassword(date.getTime() + file.name, "attachment");
-                    const filename = Id + file.name.replace(/[^\w.]|_/g, "_");
-                    func.uploadFile(
-                        {
-                            file: file,
-                            form: type,
-                            filename: filename
-                        },
-                        response => {
-                            if (response.Message == "Success") {
-                                resolve({
-                                    filename: filename,
-                                    origin: file.name,
-                                    Id: Id,
-                                    projectId
-                                });
-                            } else {
-                                reject();
-                            }
-                        }
-                    );
-                });
-            })
-        );
-
-        Promise.all(files).then(e => {
-            if (e.length > 0) {
-                const { filename, projectId } = e[0];
-                const url = global.AWSLink + global.environment + "/project_pictures/" + filename;
-                Projects.update({ picture: url }, { where: { id: projectId } }).then(res => {
-                    cb({ status: true, data: global.AWSLink + global.environment + "/project_pictures/" + filename });
-                });
-            } else {
-                cb({ status: false, data: [] });
-            }
-        });
-        // log any errors that occur
-        form.on("error", function(err) {
-            cb({ status: false, error: "Upload error. Please try again later." });
-        });
-        form.parse(req);
     }
 };
 
-exports.put = {
-    index: (req, cb) => {
-        const dataToSubmit = req.body;
-        const id = req.params.id;
+exports.post = {
+    index: async (req, cb) => {
+        let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png", color: typeof req.body.color !== "undefined" ? req.body.color : "#fff" };
+        if (req.body.project && req.body.projectManagerId && req.body.typeId && req.body.color) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], action: "post" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
 
-        sequence
-            .create()
-            .then(nextThen => {
-                Projects.findAll({
-                    raw: true,
-                    where: { project: dataToSubmit.project },
-                    order: [["projectNameCount", "DESC"]]
-                }).then(res => {
-                    if (res.length) {
-                        let existingData = res.filter(f => f.id == id);
-                        if (existingData.length == 0) {
-                            dataToSubmit.projectNameCount = c.data[0].projectNameCount + 1;
+            sequence
+                .create()
+                .then(nextThen => {
+                    Projects.findAll({
+                        where: { project: d.project },
+                        order: [["projectNameCount", "DESC"]]
+                    }).then(res => {
+                        if (res.length) {
+                            cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
+                        } else {
+                            nextThen();
                         }
-                        nextThen();
-                    } else {
-                        dataToSubmit.projectNameCount = 0;
-                        nextThen();
-                    }
-                });
-            })
-            .then(nextThen => {
-                Projects.update(_.omit(dataToSubmit, ["updatedBy"]), {
-                    where: { id: id }
-                }).then(res => {
-                    nextThen(res);
-                });
-            })
-            .then(async (nextThen, result) => {
-                const currentProjectManager = await Members.findOne({
-                    where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
-                }).then(o => {
-                    return o.toJSON();
-                });
+                    });
+                })
+                .then(nextThen => {
+                    Projects.create(d).then(res => {
+                        nextThen(res);
+                    });
+                })
+                .then((nextThen, result) => {
+                    const workstreamData = {
+                        projectId: result.dataValues.id,
+                        workstream: "Default Workstream",
+                        typeId: 4,
+                        color: "#7ed321"
+                    };
 
-                if (dataToSubmit.projectManagerId != currentProjectManager.userTypeLinkId) {
-                    await Members.update(
-                        { memberType: "assignedTo" },
+                    Workstream.create(workstreamData).then(res => {
+                        nextThen({ project_result: result.toJSON(), workstream_result: res.toJSON() });
+                    });
+                })
+                .then((nextThen, { project_result, workstream_result }) => {
+                    let result = project_result;
+                    Members.bulkCreate([
                         {
-                            where: {
-                                linkType: "project",
-                                linkId: id,
-                                usersType: "users",
-                                userTypeLinkId: currentProjectManager.userTypeLinkId,
-                                memberType: "project manager"
-                            }
+                            linkId: result.id,
+                            linkType: "project",
+                            usersType: "users",
+                            userTypeLinkId: d.projectManagerId,
+                            memberType: "project manager"
+                        },
+                        {
+                            linkId: workstream_result.id,
+                            linkType: "workstream",
+                            usersType: "users",
+                            userTypeLinkId: d.projectManagerId,
+                            memberType: "responsible"
+                        },
+                        {
+                            ...(result.typeId === 3
+                                ? {
+                                      linkId: result.id,
+                                      linkType: "project",
+                                      memberType: "assignedTo",
+                                      userTypeLinkId: d.projectManagerId,
+                                      usersType: "users"
+                                  }
+                                : {})
                         }
-                    );
-                }
-                Members.destroy({
-                    where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
-                }).then(res => {
-                    nextThen(result);
-                });
-            })
-            .then((nextThen, result) => {
-                if (dataToSubmit.projectManagerId != "") {
-                    Members.create({ linkType: "project", linkId: id, usersType: "users", memberType: "project manager", userTypeLinkId: dataToSubmit.projectManagerId }).then(res => {
+                    ]).then(res => {
                         Members.findAll({
-                            where: { id: res.dataValues.id },
+                            where: {
+                                [Op.or]: [
+                                    {
+                                        linkId: result.id,
+                                        linkType: "project",
+                                        usersType: "users",
+                                        userTypeLinkId: d.projectManagerId,
+                                        memberType: "project manager"
+                                    }
+                                ]
+                            },
                             include: [
                                 {
                                     model: Users,
@@ -1629,7 +1244,117 @@ exports.put = {
                                     include: [
                                         {
                                             model: UsersRole,
-                                            as: "user_role"
+                                            as: "user_role",
+                                            include: [
+                                                {
+                                                    model: Roles,
+                                                    as: "role"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            model: UsersTeam,
+                                            as: "team"
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                            .map(mapObject => {
+                                return mapObject.toJSON();
+                            })
+                            .then(findRes => {
+                                nextThen(result, findRes);
+                            });
+                    });
+                })
+                .then((nextThen, project, members) => {
+                    Projects.findOne({
+                        where: { id: project.id },
+                        include: [
+                            {
+                                model: Type,
+                                as: "type",
+                                required: false
+                            },
+                            {
+                                model: Members,
+                                as: "projectManager",
+                                where: {
+                                    memberType: "project manager"
+                                },
+                                required: false,
+                                attributes: []
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskActive",
+                                attributes: [],
+                                required: false
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskOverDue",
+                                where: {
+                                    dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
+                                    status: {
+                                        [Op.or]: {
+                                            [Op.not]: "Completed",
+                                            [Op.eq]: null
+                                        }
+                                    }
+                                },
+                                required: false,
+                                attributes: []
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskDueToday",
+                                where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskDueToday.dueDate")), "=", moment().format("YYYY-MM-DD 00:00:00")),
+                                required: false,
+                                attributes: []
+                            }
+                        ]
+                    }).then(res => {
+                        cb({ status: true, data: { project: { ...res.toJSON(), projectManagerId: d.projectManagerId }, members: members } });
+                    });
+                });
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
+    },
+    projectMember: async (req, cb) => {
+        const queryString = req.query;
+        const { usersType, userTypeLinkId, linkType, linkId, memberType } = { ...req.body };
+
+        if (usersType && userTypeLinkId && linkType && linkId && memberType && queryString.projectType) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: linkId, action: "post" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
+
+            let projectType = queryString.projectType;
+
+            if (usersType == "users") {
+                try {
+                    Members.create(req.body).then(res => {
+                        Members.findOne({
+                            where: req.body,
+                            include: [
+                                {
+                                    model: Users,
+                                    as: "user",
+                                    include: [
+                                        {
+                                            model: UsersRole,
+                                            as: "user_role",
+                                            include: [
+                                                {
+                                                    model: Roles,
+                                                    as: "role"
+                                                }
+                                            ]
                                         },
                                         {
                                             model: UsersTeam,
@@ -1639,58 +1364,387 @@ exports.put = {
                                 }
                             ]
                         }).then(findRes => {
-                            nextThen(findRes);
+                            cb({
+                                status: true,
+                                data: [findRes]
+                            });
                         });
+                        return null;
+                    });
+                } catch (err) {
+                    cb({
+                        status: false,
+                        error: err
+                    });
+                }
+            } else {
+                async.waterfall(
+                    [
+                        function(callback) {
+                            try {
+                                UsersTeam.findAll({
+                                    where: {
+                                        teamId: userTypeLinkId
+                                    },
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: "user"
+                                        }
+                                    ]
+                                })
+                                    .map(res => {
+                                        return { id: res.usersId, userType: res.user.toJSON().userType };
+                                    })
+                                    .then(res => {
+                                        callback(null, res);
+                                    });
+                            } catch (err) {
+                                callback(err);
+                            }
+                        },
+                        function(users, callback) {
+                            try {
+                                if (projectType && projectType === "Internal") {
+                                    const isExternalUser = _.find(users, { userType: "External" });
+                                    if (isExternalUser) {
+                                        cb({
+                                            status: true,
+                                            data: {
+                                                hasError: true,
+                                                message: "Unable to add team, Please make sure the members of this team are Internal users only"
+                                            }
+                                        });
+                                    } else {
+                                        const usersId = users.map(({ id }) => {
+                                            return id;
+                                        });
+                                        callback(null, usersId);
+                                    }
+                                } else {
+                                    const usersId = users.map(({ id }) => {
+                                        return id;
+                                    });
+                                    callback(null, usersId);
+                                }
+                            } catch (err) {
+                                callback(err);
+                            }
+                        },
+                        function(userIds, callback) {
+                            try {
+                                Members.update(
+                                    { isDeleted: 1 },
+                                    {
+                                        where: {
+                                            userTypeLinkId: userIds,
+                                            usersType: "users",
+                                            linkType: "project",
+                                            linkId: linkId
+                                        }
+                                    }
+                                ).then(res => {
+                                    callback(null, res);
+                                    return null;
+                                });
+                            } catch (err) {
+                                callback(err);
+                            }
+                        },
+                        function(usersIds, callback) {
+                            try {
+                                Members.create(req.body.data).then(res => {
+                                    callback(null, res.dataValues.id);
+                                    return null;
+                                });
+                            } catch (err) {
+                                callback(err);
+                            }
+                        },
+                        function(teamId, callback) {
+                            try {
+                                Members.findOne({
+                                    where: {
+                                        id: teamId
+                                    },
+                                    include: [
+                                        {
+                                            model: Teams,
+                                            as: "team",
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: "teamLeader"
+                                                },
+                                                {
+                                                    model: UsersTeam,
+                                                    as: "users_team",
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: "user",
+                                                            include: [
+                                                                {
+                                                                    model: UsersRole,
+                                                                    as: "user_role",
+                                                                    include: [
+                                                                        {
+                                                                            model: Roles,
+                                                                            as: "role"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    model: UsersTeam,
+                                                                    as: "team"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }).then(findRes => {
+                                    callback(null, findRes);
+                                    return null;
+                                });
+                            } catch (err) {
+                                callback(err);
+                            }
+                        }
+                    ],
+                    function(err, result) {
+                        if (err != null) {
+                            cb({
+                                status: false,
+                                error: err
+                            });
+                        } else {
+                            cb({
+                                status: true,
+                                data: [result]
+                            });
+                        }
+                    }
+                );
+            }
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
+    },
+    upload: async (req, cb) => {
+        if (req.query.projectId) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.query.projectId, action: "post" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
+
+            const formidable = global.initRequire("formidable");
+            const func = global.initFunc();
+            let form = new formidable.IncomingForm();
+            let files = [];
+            let type = "project_pictures";
+            let projectId = "";
+
+            form.multiples = false;
+            files.push(
+                new Promise((resolve, reject) => {
+                    form.on("field", function(name, field) {
+                        projectId = field;
+                    }).on("file", function(field, file) {
+                        const date = new Date();
+                        const Id = func.generatePassword(date.getTime() + file.name, "attachment");
+                        const filename = Id + file.name.replace(/[^\w.]|_/g, "_");
+                        func.uploadFile(
+                            {
+                                file: file,
+                                form: type,
+                                filename: filename
+                            },
+                            response => {
+                                if (response.Message == "Success") {
+                                    resolve({
+                                        filename: filename,
+                                        origin: file.name,
+                                        Id: Id,
+                                        projectId
+                                    });
+                                } else {
+                                    reject();
+                                }
+                            }
+                        );
+                    });
+                })
+            );
+
+            Promise.all(files).then(e => {
+                if (e.length > 0) {
+                    const { filename, projectId } = e[0];
+                    const url = global.AWSLink + global.environment + "/project_pictures/" + filename;
+                    Projects.update({ picture: url }, { where: { id: projectId } }).then(res => {
+                        cb({ status: true, data: global.AWSLink + global.environment + "/project_pictures/" + filename });
                     });
                 } else {
-                    nextThen([]);
+                    cb({ status: false, data: [] });
                 }
-            })
-            .then((nextThen, members) => {
-                Projects.findOne({
-                    where: { id: id },
-                    include: [
-                        {
-                            model: Type,
-                            as: "type",
-                            required: false
-                        },
-                        {
-                            model: Members,
-                            as: "projectManager",
-                            where: {
-                                memberType: "project manager"
-                            },
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskActive",
-                            attributes: [],
-                            required: false
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskOverDue",
-                            where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskOverDue.dueDate")), "<", moment().format("YYYY-MM-DD 00:00:00")),
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: "taskDueToday",
-                            where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskDueToday.dueDate")), "=", moment().format("YYYY-MM-DD 00:00:00")),
-                            required: false,
-                            attributes: []
-                        }
-                    ]
-                }).then(res => {
-                    cb({ status: true, data: { project: { ...res.toJSON() }, members: members } });
-                });
             });
+            // log any errors that occur
+            form.on("error", function(err) {
+                cb({ status: false, error: "Upload error. Please try again later." });
+            });
+            form.parse(req);
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
+    }
+};
+
+exports.put = {
+    index: async (req, cb) => {
+        if (req.params.id) {
+            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.params.id, action: "post" });
+            if (!hasAccess) {
+                cb({ status: false, error: "Unauthorized Access" });
+                return;
+            }
+
+            const id = req.params.id,
+                dataToSubmit = req.body;
+
+            sequence
+                .create()
+                .then(nextThen => {
+                    Projects.findAll({
+                        raw: true,
+                        where: { project: dataToSubmit.project },
+                        order: [["projectNameCount", "DESC"]]
+                    }).then(res => {
+                        if (res.length) {
+                            let existingData = res.filter(f => f.id == id);
+                            if (existingData.length == 0) {
+                                dataToSubmit.projectNameCount = c.data[0].projectNameCount + 1;
+                            }
+                            nextThen();
+                        } else {
+                            dataToSubmit.projectNameCount = 0;
+                            nextThen();
+                        }
+                    });
+                })
+                .then(nextThen => {
+                    Projects.update(_.omit(dataToSubmit, ["updatedBy"]), {
+                        where: { id: id }
+                    }).then(res => {
+                        nextThen(res);
+                    });
+                })
+                .then(async (nextThen, result) => {
+                    const currentProjectManager = await Members.findOne({
+                        where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
+                    }).then(o => {
+                        return o.toJSON();
+                    });
+
+                    if (dataToSubmit.projectManagerId != currentProjectManager.userTypeLinkId) {
+                        await Members.update(
+                            { memberType: "assignedTo" },
+                            {
+                                where: {
+                                    linkType: "project",
+                                    linkId: id,
+                                    usersType: "users",
+                                    userTypeLinkId: currentProjectManager.userTypeLinkId,
+                                    memberType: "project manager"
+                                }
+                            }
+                        );
+                    }
+                    Members.destroy({
+                        where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
+                    }).then(res => {
+                        nextThen(result);
+                    });
+                })
+                .then((nextThen, result) => {
+                    if (dataToSubmit.projectManagerId != "") {
+                        Members.create({ linkType: "project", linkId: id, usersType: "users", memberType: "project manager", userTypeLinkId: dataToSubmit.projectManagerId }).then(res => {
+                            Members.findAll({
+                                where: { id: res.dataValues.id },
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: "user",
+                                        include: [
+                                            {
+                                                model: UsersRole,
+                                                as: "user_role"
+                                            },
+                                            {
+                                                model: UsersTeam,
+                                                as: "team"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }).then(findRes => {
+                                nextThen(findRes);
+                            });
+                        });
+                    } else {
+                        nextThen([]);
+                    }
+                })
+                .then((nextThen, members) => {
+                    Projects.findOne({
+                        where: { id: id },
+                        include: [
+                            {
+                                model: Type,
+                                as: "type",
+                                required: false
+                            },
+                            {
+                                model: Members,
+                                as: "projectManager",
+                                where: {
+                                    memberType: "project manager"
+                                },
+                                required: false,
+                                attributes: []
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskActive",
+                                attributes: [],
+                                required: false
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskOverDue",
+                                where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskOverDue.dueDate")), "<", moment().format("YYYY-MM-DD 00:00:00")),
+                                required: false,
+                                attributes: []
+                            },
+                            {
+                                model: Tasks,
+                                as: "taskDueToday",
+                                where: Sequelize.where(Sequelize.fn("date", Sequelize.col("taskDueToday.dueDate")), "=", moment().format("YYYY-MM-DD 00:00:00")),
+                                required: false,
+                                attributes: []
+                            }
+                        ]
+                    }).then(res => {
+                        cb({ status: true, data: { project: { ...res.toJSON() }, members: members } });
+                    });
+                });
+        } else {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
     },
-    archive: (req, cb) => {
+    archive: async (req, cb) => {
         const dataToSubmit = req.body;
         const id = req.params.id;
 

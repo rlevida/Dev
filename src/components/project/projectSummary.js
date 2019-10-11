@@ -66,7 +66,7 @@ export default class List extends React.Component {
         const { dispatch, project, loggedUser } = { ...this.props };
         const { typeId, projectStatus } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, c => {
             const projectList = page == 1 ? c.data.result : [...project.List, ...c.data.result];
