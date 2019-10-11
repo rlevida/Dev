@@ -136,6 +136,11 @@ export default class ProjectForm extends React.Component {
                                 return user;
                             })
                         });
+                        dispatch({
+                            type: "SET_PROJECT_CATEGORY",
+                            data: { list: [...project.Category[c.data.project.type.type].list, ...[c.data.project]], count: project.Category[c.data.project.type.type].count },
+                            category: c.data.project.type.type
+                        });
                     }
                 });
             } else {

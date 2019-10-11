@@ -77,7 +77,7 @@ class Component extends React.Component {
     }
     handleFetchProjectCategory({ category, page, initialLoad }) {
         const { dispatch, project } = { ...this.props };
-        if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
+        if ((initialLoad && project.Category[category].list.length < 5) || !initialLoad) {
             let requestUrl = `/api/project/getByType?page=${page}`;
             if (category === "Client") {
                 requestUrl += `&typeId=${1}`;
@@ -127,7 +127,7 @@ class Component extends React.Component {
                                                                 </a>
                                                             </li>
                                                             <ul class="dropdown-menu ml20 mb0">
-                                                                {_.map(project.Category[o].list, (e, i) => {
+                                                                {_.map(_.uniqBy(project.Category[o].list, "id"), (e, i) => {
                                                                     return (
                                                                         <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
                                                                             <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50" title={e.project}>
