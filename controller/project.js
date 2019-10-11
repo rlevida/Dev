@@ -52,20 +52,18 @@ async function projectAuth(authObj) {
             const { user } = { ...ret.toJSON() };
             switch (authObj.action) {
                 case "get":
-                    if (user.user_role[0].roleId > 3) {
-                        if (authObj.projectId) {
-                            hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                        }
+                    if (user.user_role[0].roleId > 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
+                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
                     } else {
                         hasAccess = true;
                     }
                     break;
                 case "post":
-                    if (user.user_role[0].roleId === 3 && authObj.projectId) {
+                    if (user.user_role[0].roleId === 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
                         hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                    } else if (authObj.projectId && user.user_role[0].roleId > 4) {
+                    } else if (user.user_role[0].roleId > 4 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
                         hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                    } else if (user.user_role[0].roleId < 3) {
+                    } else if (user.user_role[0].roleId <= 4) {
                         hasAccess = true;
                     }
                     break;
@@ -1163,20 +1161,30 @@ exports.post = {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
             }
-
             sequence
                 .create()
                 .then(nextThen => {
-                    Projects.findAll({
-                        where: { project: d.project },
-                        order: [["projectNameCount", "DESC"]]
-                    }).then(res => {
-                        if (res.length) {
-                            cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
-                        } else {
-                            nextThen();
-                        }
-                    });
+                    if (d.typeId !== 3) {
+                        Projects.findAll({
+                            where: { project: d.project }
+                        }).then(res => {
+                            if (res.length) {
+                                cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
+                            } else {
+                                nextThen();
+                            }
+                        });
+                    } else {
+                        Projects.findAll({
+                            where: { project: d.project, typeId: d.typeId, createdBy: d.createdBy }
+                        }).then(res => {
+                            if (res.length) {
+                                cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
+                            } else {
+                                nextThen();
+                            }
+                        });
+                    }
                 })
                 .then(nextThen => {
                     Projects.create(d).then(res => {

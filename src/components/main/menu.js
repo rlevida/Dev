@@ -82,9 +82,9 @@ class Component extends React.Component {
             if (category === "Client") {
                 requestUrl += `&typeId=${1}`;
             } else if (category === "Internal") {
-                requestUrl +=`&typeId=${2}`;
+                requestUrl += `&typeId=${2}`;
             } else if (category === "Private") {
-                requestUrl +=`&typeId=${3}`;
+                requestUrl += `&typeId=${3}`;
             }
             dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
             getData(requestUrl, {}, c => {

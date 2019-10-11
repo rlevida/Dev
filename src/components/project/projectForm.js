@@ -136,13 +136,6 @@ export default class ProjectForm extends React.Component {
                                 return user;
                             })
                         });
-                        if (project.Category[c.data.project.type.type].list.length <= 5) {
-                            dispatch({
-                                type: "SET_PROJECT_CATEGORY",
-                                data: { list: [...project.Category[c.data.project.type.type].list, ...[c.data.project]], count: project.Category[c.data.project.type.type].count },
-                                category: c.data.project.type.type
-                            });
-                        }
                     }
                 });
             } else {
@@ -451,7 +444,11 @@ export default class ProjectForm extends React.Component {
                                         </label>
                                         <DropDown
                                             required={true}
-                                            options={projectManagerOptions}
+                                            options={
+                                                typeof project.Selected.typeId && project.Selected.typeId === 3
+                                                    ? [{ id: loggedUser.data.id, name: `${loggedUser.data.firstName} ${loggedUser.data.lastName}`, image: loggedUser.data.avatar }]
+                                                    : projectManagerOptions
+                                            }
                                             onInputChange={this.setProjetLeadList}
                                             selected={typeof project.Selected.typeId && project.Selected.typeId === 3 ? loggedUser.data.id : typeof project.Selected.projectManagerId == "undefined" ? "" : project.Selected.projectManagerId}
                                             placeholder={"Search and select project lead"}
