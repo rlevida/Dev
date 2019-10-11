@@ -1624,22 +1624,36 @@ exports.put = {
             sequence
                 .create()
                 .then(nextThen => {
-                    Projects.findAll({
-                        raw: true,
-                        where: { project: dataToSubmit.project },
-                        order: [["projectNameCount", "DESC"]]
-                    }).then(res => {
-                        if (res.length) {
-                            let existingData = res.filter(f => f.id == id);
-                            if (existingData.length == 0) {
-                                dataToSubmit.projectNameCount = c.data[0].projectNameCount + 1;
+                    if (dataToSubmit.typeId !== 3) {
+                        Projects.findAll({
+                            raw: true,
+                            where: { project: dataToSubmit.project },
+                            order: [["projectNameCount", "DESC"]]
+                        }).then(res => {
+                            if (res.length) {
+                                let existingData = res.filter(f => f.id == id);
+                                if (existingData.length == 0) {
+                                    dataToSubmit.projectNameCount = res[0].projectNameCount + 1;
+                                }
+                                nextThen();
+                            } else {
+                                dataToSubmit.projectNameCount = 0;
+                                nextThen();
                             }
-                            nextThen();
-                        } else {
-                            dataToSubmit.projectNameCount = 0;
-                            nextThen();
-                        }
-                    });
+                        });
+                    } else {
+                        Projects.findAll({
+                            raw: true,
+                            where: { project: dataToSubmit.project, createdBy: dataToSubmit.updatedBy },
+                            order: [["projectNameCount", "DESC"]]
+                        }).then(res => {
+                            if (res.length) {
+                                cb({ status: true, data: { error: true, message: "Project name aleady exists." } });
+                            } else {
+                                nextThen();
+                            }
+                        });
+                    }
                 })
                 .then(nextThen => {
                     Projects.update(_.omit(dataToSubmit, ["updatedBy"]), {
