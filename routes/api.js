@@ -2,7 +2,7 @@ var express = require("express");
 var router = express();
 const models = require("../modelORM");
 var path = require("path");
-const { Document, Session, Members, Users, UsersRole, Roles } = models;
+const { Projects, Document, Session, Members, Users, UsersRole, Roles } = models;
 
 (async = require("async")), (_ = require("lodash"));
 
@@ -25,7 +25,15 @@ router.use(function(req, res, next) {
                             model: Members,
                             as: "user_projects",
                             where: { usersType: "users", linkType: "project" },
-                            required: true
+                            required: false,
+                            include: [
+                                {
+                                    model: Projects,
+                                    as: "memberProject",
+                                    required: true,
+                                    where: { isDeleted: 0, isActive: 1 }
+                                }
+                            ]
                         },
                         {
                             model: UsersRole,

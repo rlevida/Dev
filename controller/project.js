@@ -7,80 +7,44 @@ const Op = Sequelize.Op;
 const models = require("../modelORM");
 const { Session, TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
 
-async function projectAuth(authObj) {
-    const sessionWhereObj = {
-        ...(authObj.token ? { session: authObj.token } : {})
-    };
-    const result = await Session.findOne({
-        where: sessionWhereObj,
-        include: [
-            {
-                model: Users,
-                as: "user",
-                include: [
-                    {
-                        model: Members,
-                        as: "user_projects",
-                        where: { usersType: "users", linkType: "project" },
-                        required: false,
-                        include: [
-                            {
-                                model: Projects,
-                                as: "memberProject",
-                                required: true,
-                                where: { isDeleted: 0, isActive: 1 }
-                            }
-                        ]
-                    },
-                    {
-                        model: UsersRole,
-                        as: "user_role",
-                        include: [
-                            {
-                                model: Roles,
-                                as: "role"
-                            }
-                        ]
-                    }
-                ]
+function projectAuth(authObj) {
+    const { user } = { ...authObj };
+    switch (authObj.action) {
+        case "get":
+            if (user.user_role[0].roleId > 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
+                /* Check if a user is project member */
+                hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+            } else {
+                hasAccess = true;
             }
-        ]
-    }).then(async ret => {
-        let hasAccess = false;
-
-        if (ret) {
-            const { user } = { ...ret.toJSON() };
-            switch (authObj.action) {
-                case "get":
-                    if (user.user_role[0].roleId > 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
-                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                    } else {
-                        hasAccess = true;
-                    }
-                    break;
-                case "post":
-                    if (user.user_role[0].roleId === 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
-                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                    } else if (user.user_role[0].roleId > 4 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
-                        hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
-                    } else if (user.user_role[0].roleId <= 4) {
-                        hasAccess = true;
-                    }
-                    break;
-                default:
-                    break;
+            break;
+        case "post":
+            if (user.user_role[0].roleId === 3 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
+                /* Check if internal manager has access to the project */
+                hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+            } else if (user.user_role[0].roleId > 4 && typeof authObj.projectId !== "undefined" && authObj.projectId !== "undefined") {
+                /* Check if a user has an access to the project */
+                hasAccess = _.find(user.user_projects, { linkId: parseInt(authObj.projectId) }) ? true : false;
+            } else if (user.user_role[0].roleId <= 4) {
+                /* Internal users has access in creating of project */
+                hasAccess = true;
             }
-        }
-
-        return hasAccess;
-    });
-    return result;
+            break;
+        default:
+            break;
+    }
+    return hasAccess;
 }
 
 exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
         const limit = 25;
+        if (!req.user) {
+            cb({ status: false, error: "Unauthorized Access" });
+        }
+        const userId = req.user.id,
+            userRole = req.user.user_role[0].roleId;
         let associationArray = [
             {
                 model: Type,
@@ -91,65 +55,22 @@ exports.get = {
             {
                 model: Workstream,
                 as: "workstream",
-                // include: [
-                //     {
-                //         model: Tasks,
-                //         as: "taskDueToday",
-                //         where: {
-                //             dueDate: moment.utc().format("YYYY-MM-DD"),
-                //             status: "In Progress",
-                //             isDeleted: 0
-                //         },
-                //         required: false,
-                //         attributes: ["id"]
-                //     },
-                //     {
-                //         model: Tasks,
-                //         as: "taskOverDue",
-                //         where: {
-                //             dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
-                //             status: "In Progress",
-                //             isDeleted: 0
-                //         },
-                //         required: false,
-                //         attributes: ["id"]
-                //     }
-                // ],
                 attributes: ["id"]
             }
         ];
 
         if (parseInt(queryString.hasMembers)) {
-            associationArray.push(
-                {
-                    model: Members,
-                    as: "members",
-                    where: {
-                        usersType: "users",
-                        linkType: "project",
-                        isDeleted: 0
-                    },
-                    required: false,
-                    attributes: ["userTypeLinkId", "memberType"]
-                }
-                // {
-                //     model: Members,
-                //     as: "projectManager",
-                //     where: {
-                //         memberType: "project manager"
-                //     },
-                //     required: false,
-                //     // include: [
-                //     //     {
-                //     //         model: Users,
-                //     //         as: "user",
-                //     //         required: false,
-                //     //         attributes: ["id"]
-                //     //     }
-                //     // ],
-                //     attributes: ["id", "userTypeLinkId"]
-                // }
-            );
+            associationArray.push({
+                model: Members,
+                as: "members",
+                where: {
+                    usersType: "users",
+                    linkType: "project",
+                    isDeleted: 0
+                },
+                required: false,
+                attributes: ["userTypeLinkId", "memberType"]
+            });
         } else {
             associationArray.push({
                 model: DocumentLink,
@@ -198,10 +119,10 @@ exports.get = {
                 : {})
         };
 
-        if (typeof queryString.userId != "undefined" && queryString.userId != "" && (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)) {
+        if (typeof userId != "undefined" && userId != "" && (typeof userRole != "undefined" && userRole >= 3)) {
             const userTeam = await UsersTeam.findAll({
                 where: {
-                    usersId: queryString.userId
+                    usersId: userId
                 }
             }).map(res => {
                 return res.toJSON();
@@ -212,7 +133,7 @@ exports.get = {
                     [Op.or]: [
                         {
                             usersType: "users",
-                            userTypeLinkId: queryString.userId,
+                            userTypeLinkId: userId,
                             linkType: "project"
                         },
                         {
@@ -228,7 +149,7 @@ exports.get = {
                 return res.toJSON();
             });
 
-            if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
+            if (userRole > 4 && typeof queryString.typeId == "undefined") {
                 whereObj["typeId"] = 1;
             }
 
@@ -242,7 +163,7 @@ exports.get = {
                         .value()
                 },
                 {
-                    createdBy: queryString.userId
+                    createdBy: userId
                 }
             ];
         }
@@ -371,115 +292,7 @@ exports.get = {
                                     newDocuments: documentCount,
                                     members: memberList
                                 };
-
-                                // if (typeof queryString.userId != "undefined" && queryString.userId != "" && typeof queryString.updateCount == "undefined") {
-                                //     const conversationCount = new Promise(resolve => {
-                                //         Conversation.findAndCountAll({
-                                //             where: {
-                                //                 linkType: "notes",
-                                //                 id: {
-                                //                     [Op.notIn]: sequelize.literal(`(SELECT DISTINCT linkId FROM notes_last_seen WHERE userId=${queryString.userId})`)
-                                //                 },
-                                //                 linkId: {
-                                //                     [Op.in]: sequelize.literal(
-                                //                         `(SELECT DISTINCT notes.id FROM notes LEFT JOIN tag ON tag.tagTypeId = notes.id WHERE notes.projectId = ${responseObj.id} AND tag.tagType = "notes" and tag.linkType = "user" and tag.linkId=${
-                                //                             queryString.userId
-                                //                         })`
-                                //                     )
-                                //                 }
-                                //             },
-                                //             include: [
-                                //                 {
-                                //                     model: Users,
-                                //                     as: "users",
-                                //                     required: true,
-                                //                     attributes: ["id", "firstName", "lastName", "avatar"]
-                                //                 }
-                                //             ],
-                                //             distinct: true
-                                //         }).then(({ count, rows }) => {
-                                //             const resultRows = _.map(rows, o => {
-                                //                 const responseObj = o.toJSON();
-                                //                 return {
-                                //                     type: "New Messages",
-                                //                     title: responseObj.users.firstName + " " + responseObj.users.lastName,
-                                //                     sub_title: responseObj.comment,
-                                //                     image: responseObj.users.avatar,
-                                //                     date: responseObj.dateAdded
-                                //                 };
-                                //             });
-                                //             resolve({ count, result: resultRows });
-                                //         });
-                                //     });
-                                //     const documentCount = new Promise(resolve => {
-                                //         Document.findAndCountAll({
-                                //             where: {
-                                //                 folderId: null,
-                                //                 id: {
-                                //                     [Op.in]: sequelize.literal(`(SELECT DISTINCT documentId FROM document_link WHERE linkType="project" AND linkid=${responseObj.id})`)
-                                //                 }
-                                //             }
-                                //         }).then(({ count, rows }) => {
-                                //             const resultRows = _.map(rows, o => {
-                                //                 const responseObj = o.toJSON();
-                                //                 return {
-                                //                     type: "New Files",
-                                //                     title: responseObj.origin
-                                //                 };
-                                //             });
-                                //             resolve({ count, result: resultRows });
-                                //         });
-                                //     });
-                                //     const taskCount = new Promise(resolve => {
-                                //         Tasks.findAndCountAll({
-                                //             where: {
-                                //                 status: "For Approval",
-                                //                 projectId: responseObj.id,
-                                //                 approverId: queryString.userId
-                                //             },
-                                //             include: [
-                                //                 {
-                                //                     model: Members,
-                                //                     as: "task_members",
-                                //                     required: false,
-                                //                     where: { linkType: "task", isDeleted: 0 },
-                                //                     include: [
-                                //                         {
-                                //                             model: Users,
-                                //                             as: "user"
-                                //                         }
-                                //                     ]
-                                //                 }
-                                //             ],
-                                //             distinct: true
-                                //         }).then(({ count, rows }) => {
-                                //             const resultRows = _.map(rows, o => {
-                                //                 const responseObj = o.toJSON();
-                                //                 const assigned = _.find(responseObj.task_members, o => {
-                                //                     return o.memberType == "assignedTo";
-                                //                 });
-
-                                //                 return {
-                                //                     type: "Task For Approval",
-                                //                     title: responseObj.task,
-                                //                     image: typeof assigned != "undefined" ? assigned.user.avatar : "",
-                                //                     date: responseObj.dueDate
-                                //                 };
-                                //             });
-                                //             resolve({ count, result: resultRows });
-                                //         });
-                                //     });
-                                //     const updateCount = await Promise.all([conversationCount, documentCount, taskCount]);
-                                //     return _.omit(
-                                //         {
-                                //             ...resToReturn,
-                                //         },
-                                //         "projectManager",
-                                //         "document_link"
-                                //     );
-                                // } else {
                                 return _.omit(resToReturn, "projectManager", "document_link");
-                                // }
                             })
                             .then(res => {
                                 callback(null, res);
@@ -588,8 +401,7 @@ exports.get = {
         );
     },
     getById: async (req, cb) => {
-        const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.params.id, action: "get" });
-        if (!hasAccess) {
+        if (!projectAuth({ user: req.user, projectId: req.params.id, action: "get" }) || !req.params.id) {
             cb({ status: false, error: "Unauthorized Access" });
             return;
         }
@@ -840,314 +652,304 @@ exports.get = {
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;
 
-        if (queryString.linkType && queryString.linkId) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: queryString.linkId, action: "get" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
+        if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
+            cb({ status: false, error: "Unauthorized Access" });
+            return;
+        }
 
-            const whereObj = {
-                linkType: queryString.linkType,
-                linkId: queryString.linkId,
-                ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
-                    ? {
-                          usersType: queryString.usersType
-                      }
-                    : {}),
-                isDeleted: 0
-            };
+        const whereObj = {
+            linkType: queryString.linkType,
+            linkId: queryString.linkId,
+            ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
+                ? {
+                      usersType: queryString.usersType
+                  }
+                : {}),
+            isDeleted: 0
+        };
 
-            try {
-                const memberList = await Members.findAll({
-                    where: whereObj
-                }).map(o => {
-                    return o.toJSON();
-                });
+        try {
+            const memberList = await Members.findAll({
+                where: whereObj
+            }).map(o => {
+                return o.toJSON();
+            });
 
-                const userMembers = _.filter(memberList, o => {
-                    return o.usersType == "users";
-                });
-                const teamMembers = _.filter(memberList, o => {
-                    return o.usersType == "team";
-                });
-                async.parallel(
-                    {
-                        users: parallelCallback => {
-                            const userIds = _.map(userMembers, o => {
-                                return o.userTypeLinkId;
-                            });
-                            parallelCallback(null, userIds);
-                        },
-                        team_users: parallelCallback => {
-                            const teamIds = _.map(teamMembers, o => {
-                                return o.userTypeLinkId;
-                            });
-                            async.parallel(
-                                {
-                                    team_leaders: parallelCallback => {
-                                        Teams.findAll({
-                                            where: {
-                                                id: teamIds
-                                            }
-                                        })
-                                            .map(o => {
-                                                return o.toJSON();
-                                            })
-                                            .then(res => {
-                                                const teamLeadUserIds = _.map(res, o => {
-                                                    return o.teamLeaderId;
-                                                });
-                                                parallelCallback(null, teamLeadUserIds);
-                                            });
-                                    },
-                                    team_members: parallelCallback => {
-                                        UsersTeam.findAll({
-                                            where: {
-                                                teamId: teamIds
-                                            }
-                                        })
-                                            .map(o => {
-                                                return o.toJSON();
-                                            })
-                                            .then(res => {
-                                                const teamUserIds = _.map(res, o => {
-                                                    return o.usersId;
-                                                });
-                                                parallelCallback(null, teamUserIds);
-                                            });
-                                    }
-                                },
-                                (err, res) => {
-                                    const returnStack = [...res.team_leaders, ...res.team_members];
-                                    parallelCallback(null, returnStack);
-                                }
-                            );
-                        }
+            const userMembers = _.filter(memberList, o => {
+                return o.usersType == "users";
+            });
+            const teamMembers = _.filter(memberList, o => {
+                return o.usersType == "team";
+            });
+            async.parallel(
+                {
+                    users: parallelCallback => {
+                        const userIds = _.map(userMembers, o => {
+                            return o.userTypeLinkId;
+                        });
+                        parallelCallback(null, userIds);
                     },
-                    async (err, results) => {
-                        let userMemberIds = _.uniq([...results.users, ...results.team_users]);
-                        if ((typeof queryString.project_type != "undefined" && queryString.project_type != "") || (typeof queryString.memberType != "undefined" && queryString.memberType != "")) {
-                            userMemberIds = await UsersRole.findAll({
-                                where: {
-                                    ...((typeof queryString.project_type != "undefined" && queryString.project_type == "Client") || (typeof queryString.memberType != "undefined" && queryString.memberType == "approver")
-                                        ? {
-                                              roleId: {
-                                                  [Op.notIn]: [4, 6]
-                                              }
-                                          }
-                                        : {}),
-                                    ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
-                                        ? {
-                                              roleId: {
-                                                  [Op.lte]: 4
-                                              }
-                                          }
-                                        : {}),
-                                    ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Client" && typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
-                                        ? {
-                                              roleId: {
-                                                  [Op.lte]: 3
-                                              }
-                                          }
-                                        : {}),
-                                    usersId: userMemberIds
+                    team_users: parallelCallback => {
+                        const teamIds = _.map(teamMembers, o => {
+                            return o.userTypeLinkId;
+                        });
+                        async.parallel(
+                            {
+                                team_leaders: parallelCallback => {
+                                    Teams.findAll({
+                                        where: {
+                                            id: teamIds
+                                        }
+                                    })
+                                        .map(o => {
+                                            return o.toJSON();
+                                        })
+                                        .then(res => {
+                                            const teamLeadUserIds = _.map(res, o => {
+                                                return o.teamLeaderId;
+                                            });
+                                            parallelCallback(null, teamLeadUserIds);
+                                        });
+                                },
+                                team_members: parallelCallback => {
+                                    UsersTeam.findAll({
+                                        where: {
+                                            teamId: teamIds
+                                        }
+                                    })
+                                        .map(o => {
+                                            return o.toJSON();
+                                        })
+                                        .then(res => {
+                                            const teamUserIds = _.map(res, o => {
+                                                return o.usersId;
+                                            });
+                                            parallelCallback(null, teamUserIds);
+                                        });
                                 }
-                            }).map(o => {
-                                const { usersId } = o.toJSON();
-                                return usersId;
-                            });
-                        }
-                        Users.findAll({
+                            },
+                            (err, res) => {
+                                const returnStack = [...res.team_leaders, ...res.team_members];
+                                parallelCallback(null, returnStack);
+                            }
+                        );
+                    }
+                },
+                async (err, results) => {
+                    let userMemberIds = _.uniq([...results.users, ...results.team_users]);
+                    if ((typeof queryString.project_type != "undefined" && queryString.project_type != "") || (typeof queryString.memberType != "undefined" && queryString.memberType != "")) {
+                        userMemberIds = await UsersRole.findAll({
                             where: {
-                                id: userMemberIds,
-                                ...(typeof queryString.memberName != "undefined" && queryString.memberName != ""
+                                ...((typeof queryString.project_type != "undefined" && queryString.project_type == "Client") || (typeof queryString.memberType != "undefined" && queryString.memberType == "approver")
                                     ? {
-                                          [Op.or]: [
-                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
-                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                              }),
-                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
-                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                              }),
-                                              Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
-                                                  [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                              })
-                                          ]
+                                          roleId: {
+                                              [Op.notIn]: [4, 6]
+                                          }
                                       }
                                     : {}),
-                                ...(typeof queryString.userType != "undefined" && queryString.userType != ""
+                                ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
                                     ? {
-                                          userType: queryString.userType
+                                          roleId: {
+                                              [Op.lte]: 4
+                                          }
                                       }
-                                    : {})
-                            },
-                            include: [
-                                {
-                                    model: Teams,
-                                    as: "team_as_teamLeader",
-                                    where: {
-                                        isDeleted: 0
-                                    },
-                                    required: false
-                                },
-                                {
-                                    model: UsersRole,
-                                    as: "user_role",
-                                    include: [
-                                        {
-                                            model: Roles,
-                                            as: "role"
-                                        }
-                                    ],
-                                    required: false
-                                },
-                                {
-                                    model: UsersTeam,
-                                    as: "users_team",
-                                    where: {
-                                        isDeleted: 0
-                                    },
-                                    include: [
-                                        {
-                                            model: Teams,
-                                            as: "team",
-                                            where: {
-                                                isDeleted: 0
-                                            }
-                                        }
-                                    ],
-                                    required: false
-                                }
-                            ]
-                        })
-                            .map(o => {
-                                const responseObj = o.toJSON();
-                                const userTeams = _.map(responseObj.users_team, o => {
-                                    return o.team;
-                                });
-                                const teamArray = [...userTeams, ...responseObj.team_as_teamLeader];
-                                const memberByTeam = _.filter(teamArray, o => {
-                                    const checkIndex = _.findIndex(teamMembers, teamMember => {
-                                        return teamMember.userTypeLinkId == o.id;
-                                    });
-                                    return checkIndex >= 0;
-                                });
-                                return {
-                                    ...responseObj,
-                                    team: _.uniqBy(teamArray, o => {
-                                        return o.id;
-                                    }),
-                                    memberByTeam
-                                };
-                            })
-                            .then(res => {
-                                cb({
-                                    status: true,
-                                    data: res
-                                });
-                            });
+                                    : {}),
+                                ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Client" && typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
+                                    ? {
+                                          roleId: {
+                                              [Op.lte]: 3
+                                          }
+                                      }
+                                    : {}),
+                                usersId: userMemberIds
+                            }
+                        }).map(o => {
+                            const { usersId } = o.toJSON();
+                            return usersId;
+                        });
                     }
-                );
-            } catch (err) {
-                cb({
-                    status: false,
-                    error: err
-                });
-            }
-        } else {
-            cb({ status: false, error: "Unauthorized Access" });
+                    Users.findAll({
+                        where: {
+                            id: userMemberIds,
+                            ...(typeof queryString.memberName != "undefined" && queryString.memberName != ""
+                                ? {
+                                      [Op.or]: [
+                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
+                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                          }),
+                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
+                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                          }),
+                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
+                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                          })
+                                      ]
+                                  }
+                                : {}),
+                            ...(typeof queryString.userType != "undefined" && queryString.userType != ""
+                                ? {
+                                      userType: queryString.userType
+                                  }
+                                : {})
+                        },
+                        include: [
+                            {
+                                model: Teams,
+                                as: "team_as_teamLeader",
+                                where: {
+                                    isDeleted: 0
+                                },
+                                required: false
+                            },
+                            {
+                                model: UsersRole,
+                                as: "user_role",
+                                include: [
+                                    {
+                                        model: Roles,
+                                        as: "role"
+                                    }
+                                ],
+                                required: false
+                            },
+                            {
+                                model: UsersTeam,
+                                as: "users_team",
+                                where: {
+                                    isDeleted: 0
+                                },
+                                include: [
+                                    {
+                                        model: Teams,
+                                        as: "team",
+                                        where: {
+                                            isDeleted: 0
+                                        }
+                                    }
+                                ],
+                                required: false
+                            }
+                        ]
+                    })
+                        .map(o => {
+                            const responseObj = o.toJSON();
+                            const userTeams = _.map(responseObj.users_team, o => {
+                                return o.team;
+                            });
+                            const teamArray = [...userTeams, ...responseObj.team_as_teamLeader];
+                            const memberByTeam = _.filter(teamArray, o => {
+                                const checkIndex = _.findIndex(teamMembers, teamMember => {
+                                    return teamMember.userTypeLinkId == o.id;
+                                });
+                                return checkIndex >= 0;
+                            });
+                            return {
+                                ...responseObj,
+                                team: _.uniqBy(teamArray, o => {
+                                    return o.id;
+                                }),
+                                memberByTeam
+                            };
+                        })
+                        .then(res => {
+                            cb({
+                                status: true,
+                                data: res
+                            });
+                        });
+                }
+            );
+        } catch (err) {
+            cb({
+                status: false,
+                error: err
+            });
         }
     },
     getProjectTeams: async (req, cb) => {
         const queryString = req.query;
 
-        if (queryString.linkType && queryString.linkId) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: queryString.linkId, action: "get" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
-
-            const whereObj = {
-                ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
-                    ? {
-                          linkType: queryString.linkType
-                      }
-                    : {}),
-                ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
-                    ? {
-                          linkId: queryString.linkId
-                      }
-                    : {}),
-                ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
-                    ? {
-                          usersType: queryString.usersType
-                      }
-                    : {})
-            };
-
-            try {
-                Members.findAll({
-                    where: whereObj,
-                    include: [
-                        {
-                            model: Teams,
-                            as: "team",
-                            include: [
-                                {
-                                    model: Users,
-                                    as: "teamLeader"
-                                },
-                                {
-                                    model: UsersTeam,
-                                    as: "users_team",
-                                    include: [
-                                        {
-                                            model: Users,
-                                            as: "user",
-                                            include: [
-                                                {
-                                                    model: UsersRole,
-                                                    as: "user_role",
-                                                    include: [
-                                                        {
-                                                            model: Roles,
-                                                            as: "role"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    model: UsersTeam,
-                                                    as: "team",
-                                                    include: [
-                                                        {
-                                                            model: Teams,
-                                                            as: "team"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }).then(res => {
-                    cb({
-                        status: true,
-                        data: res
-                    });
-                });
-            } catch (err) {
-                cb({
-                    status: false,
-                    error: err
-                });
-            }
-        } else {
+        if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
             cb({ status: false, error: "Unauthorized Access" });
+            return;
+        }
+
+        const whereObj = {
+            ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
+                ? {
+                      linkType: queryString.linkType
+                  }
+                : {}),
+            ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
+                ? {
+                      linkId: queryString.linkId
+                  }
+                : {}),
+            ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
+                ? {
+                      usersType: queryString.usersType
+                  }
+                : {})
+        };
+
+        try {
+            Members.findAll({
+                where: whereObj,
+                include: [
+                    {
+                        model: Teams,
+                        as: "team",
+                        include: [
+                            {
+                                model: Users,
+                                as: "teamLeader"
+                            },
+                            {
+                                model: UsersTeam,
+                                as: "users_team",
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: "user",
+                                        include: [
+                                            {
+                                                model: UsersRole,
+                                                as: "user_role",
+                                                include: [
+                                                    {
+                                                        model: Roles,
+                                                        as: "role"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                model: UsersTeam,
+                                                as: "team",
+                                                include: [
+                                                    {
+                                                        model: Teams,
+                                                        as: "team"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }).then(res => {
+                cb({
+                    status: true,
+                    data: res
+                });
+            });
+        } catch (err) {
+            cb({
+                status: false,
+                error: err
+            });
         }
     }
 };
@@ -1156,7 +958,7 @@ exports.post = {
     index: async (req, cb) => {
         let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png", color: typeof req.body.color !== "undefined" ? req.body.color : "#fff" };
         if (req.body.project && req.body.projectManagerId && req.body.typeId && req.body.color) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], action: "post" });
+            const hasAccess = await projectAuth({ user: req.user, action: "post" });
             if (!hasAccess) {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
@@ -1612,7 +1414,7 @@ exports.post = {
 exports.put = {
     index: async (req, cb) => {
         if (req.params.id) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.params.id, action: "post" });
+            const hasAccess = await projectAuth({ user: req.user, projectId: req.params.id, action: "post" });
             if (!hasAccess) {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
@@ -1813,6 +1615,10 @@ exports.put = {
 
 exports.delete = {
     index: async (req, cb) => {
+        /* Temporary removed */
+        cb({ status: false, error: "Unauthorized Access" });
+        return;
+
         let d = req.params;
 
         try {
