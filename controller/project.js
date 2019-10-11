@@ -82,7 +82,7 @@ async function projectAuth(authObj) {
 exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
-        const limit = 10;
+        const limit = 25;
         let associationArray = [
             {
                 model: Type,
@@ -178,10 +178,9 @@ exports.get = {
 
         const options = {
             include: associationArray,
-            order: [["project", "ASC"]],
+            order: [queryString.sort ? queryString.sort.split("-") : ["project", "ASC"]],
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {})
         };
-
         const whereObj = {
             ...(typeof queryString.id != "undefined" && queryString.id != "" ? { id: queryString.id.split(",") } : {}),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),

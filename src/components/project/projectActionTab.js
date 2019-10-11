@@ -24,7 +24,7 @@ export default class ProjectActionTab extends React.Component {
         const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
-            const { typeId, projectType, projectProgress, search } = this.props.project.Filter;
+            const { typeId, projectType, projectProgress, search, sort } = this.props.project.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
             let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
 
@@ -41,6 +41,9 @@ export default class ProjectActionTab extends React.Component {
             }
             if (search) {
                 fetchUrl += `&project=${search}`;
+            }
+            if (sort && sort.indexOf("project") > -1) {
+                fetchUrl += `&sort=${sort}`;
             }
 
             getData(fetchUrl, {}, c => {

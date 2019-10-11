@@ -63,7 +63,6 @@ export default class ProjectList extends React.Component {
                 if (scrolled) {
                     document.getElementById("thead2").style.position = "fixed";
                     document.getElementById("thead2").style.top = `${actionTableBound.height}px`;
-                    document.getElementById("thead2").style.zIndex = 1;
                     document.getElementById("thead2").style.backgroundColor = "#fff";
                     const element = document.getElementById("thead1");
                     if (element) {
@@ -83,7 +82,6 @@ export default class ProjectList extends React.Component {
     fetchProject() {
         const { dispatch, loggedUser, project } = this.props;
         let fetchUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
-
         try {
             getData(fetchUrl, {}, c => {
                 const list = c.data.result.map(e => {
@@ -111,7 +109,7 @@ export default class ProjectList extends React.Component {
     getNextResult() {
         const { project, dispatch, loggedUser } = { ...this.props };
         const { Count, List, Filter } = project;
-        const { typeId, projectType, projectProgress } = { ...Filter };
+        const { typeId, projectType, projectProgress, sort } = { ...Filter };
         const dueDateMoment = moment().format("YYYY-MM-DD");
         let fetchUrl = `/api/project?page=${Count.current_page + 1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&dueDate=${dueDateMoment}&typeId=${typeId}`;
 
@@ -122,6 +120,10 @@ export default class ProjectList extends React.Component {
             fetchUrl += `&isActive=0&projectType=${projectType}`;
         } else {
             fetchUrl += `&isActive=1&isDeleted=0`;
+        }
+
+        if (sort && sort.indexOf("project") > -1) {
+            fetchUrl += `&sort=${sort}`;
         }
 
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
