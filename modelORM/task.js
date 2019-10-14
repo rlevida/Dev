@@ -153,6 +153,10 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "taskId",
             as: "task_notification"
         });
+        Tasks.belongsTo(models.Projects, {
+            foreignKey: "projectId",
+            as: "task_project"
+        });
     };
 
     return Tasks;

@@ -80,6 +80,10 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     Users.associate = models => {
+        Users.hasOne(models.Session, {
+            as: "user",
+            foreignKey: "usersId"
+        });
         Users.hasMany(models.Members, {
             as: "members",
             foreignKey: "userTypeLinkId"

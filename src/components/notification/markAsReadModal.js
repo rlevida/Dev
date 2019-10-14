@@ -21,7 +21,8 @@ class MarkAsReadModal extends React.Component {
 
     async markAsReadNotification() {
         const { dispatch, loggedUser } = { ...this.props };
-        putData(`/api/notification/markAllAsRead/${loggedUser.data.id}`, {}, c => {
+        let url = `/api/notification/markAllAsRead/${loggedUser.data.id}&isArchived=0`;
+        putData(url, {}, c => {
             const { count, result } = { ...c.data };
             dispatch({ type: "MARK_ALL_AS_READ", list: result, Count: count });
             showToast("success", "Successfully cleared all read notifications.");

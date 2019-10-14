@@ -70,7 +70,7 @@ export default class ProjectMemberForm extends React.Component {
                 return;
             }
         }
-        postData(`/api/project/projectMember?projectType=${project.Selected.type.type}`, { data: dataToSubmit }, c => {
+        postData(`/api/project/projectMember?projectType=${project.Selected.type.type}`, { ...dataToSubmit }, c => {
             if (c.data && c.data.hasError) {
                 showToast("error", c.data.message);
             } else {

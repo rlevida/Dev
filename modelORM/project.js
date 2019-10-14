@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     project: {
       type: DataTypes.STRING(50),
-      allowNull: true
+      allowNull: false
     },
     statusId: {
       type: DataTypes.BIGINT,

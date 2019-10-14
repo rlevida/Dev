@@ -8,7 +8,6 @@ const Op = Sequelize.Op;
 const models = require("../modelORM");
 const moment = require("moment");
 const { ActivityLogsDocument, Document, DocumentLink, DocumentRead, Members, Share, Starred, Tasks, Tag, Users, UsersNotificationSetting, UsersRole, Workstream, Notes, Notification, Type, Projects } = models;
-
 const associationFindAllStack = [
     {
         model: Tag,
@@ -100,6 +99,7 @@ const associationFindAllStack = [
         required: false
     }
 ];
+const async = require("async");
 
 exports.get = {
     index: (req, cb) => {
@@ -1078,9 +1078,9 @@ exports.post = {
             type = "upload";
         form.multiples = true;
 
-        files.push(
-            new Promise((resolve, reject) => {
-                form.on("file", function(field, file) {
+        form.on("file", function(field, file) {
+            files.push(
+                new Promise((resolve, reject) => {
                     var date = new Date();
                     var Id = func.generatePassword(date.getTime() + file.name, "attachment");
                     var filename = Id + file.name.replace(/[^\w.]|_/g, "_");
@@ -1105,23 +1105,26 @@ exports.post = {
                             }
                         }
                     );
-                });
-            })
-        );
-
-        Promise.all(files).then(e => {
-            if (e.length > 0) {
-                cb({
-                    status: true,
-                    data: e[0]
-                });
-            } else {
-                cb({
-                    status: false,
-                    data: []
-                });
-            }
+                })
+            );
         });
+
+        form.on("end", function() {
+            Promise.all(files).then(e => {
+                if (e.length > 0) {
+                    cb({
+                        status: true,
+                        data: e[0]
+                    });
+                } else {
+                    cb({
+                        status: false,
+                        data: []
+                    });
+                }
+            });
+        });
+
         // log any errors that occur
         form.on("error", function(err) {});
         // once all the files have been uploaded, send a response to the client

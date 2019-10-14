@@ -383,9 +383,6 @@ router.get('/:project/conversations/:conversations', function (req, res, next) {
     }
 });
 
-
-
-
 router.get('/:project/conversations', function (req, res, next) {
     if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
         const func = global.initFunc();

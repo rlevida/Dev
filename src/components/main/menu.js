@@ -76,26 +76,25 @@ class Component extends React.Component {
         }
     }
     handleFetchProjectCategory({ category, page, initialLoad }) {
-        const { loggedUser, dispatch, project } = { ...this.props };
-
-        if ((initialLoad && project.Category[category].list.length === 0) || !initialLoad) {
-            const requestUrl = `/api/project/getByType?userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
-            let typeId = 0;
+        const { dispatch, project } = { ...this.props };
+        if ((initialLoad && project.Category[category].list.length < 5) || !initialLoad) {
+            let requestUrl = `/api/project/getByType?page=${page}`;
             if (category === "Client") {
-                typeId = 1;
+                requestUrl += `&typeId=${1}`;
             } else if (category === "Internal") {
-                typeId = 2;
+                requestUrl += `&typeId=${2}`;
             } else if (category === "Private") {
-                typeId = 3;
+                requestUrl += `&typeId=${3}`;
             }
             dispatch({ type: "SET_PROJECT_CATEGORY", data: { ...project.Category[category], loading: "RETRIEVING" }, category: category });
-            getData(`${requestUrl}&typeId=${typeId}&page=${page}&isActive=1`, {}, c => {
+            getData(requestUrl, {}, c => {
                 dispatch({ type: "SET_PROJECT_CATEGORY", data: { list: [...project.Category[category].list, ...c.data.result], count: c.data.count, loading: "" }, category: category });
             });
         }
     }
     render() {
         const { pages, current_page = "", project, loggedUser } = { ...this.props };
+        const projectTypes = ["Client", ...(loggedUser.data.userType !== "External" ? ["Internal", "Private"] : [])];
         return (
             <div>
                 <ul id="menu">
@@ -114,7 +113,7 @@ class Component extends React.Component {
                                 </Link>
                                 {page.path_name == "projects" && (
                                     <div class="hidden-xs">
-                                        {_.map(["Client", "Internal", "Private"], (o, index) => {
+                                        {_.map(projectTypes, (o, index) => {
                                             const currentPage = typeof project.Category[o].count.current_page != "undefined" ? project.Category[o].count.current_page : 1;
                                             const lastPage = typeof project.Category[o].count.last_page != "undefined" ? project.Category[o].count.last_page : 1;
                                             return (
@@ -128,14 +127,15 @@ class Component extends React.Component {
                                                                 </a>
                                                             </li>
                                                             <ul class="dropdown-menu ml20 mb0">
-                                                                {_.map(project.Category[o].list, (e, i) => {
+                                                                {_.map(_.uniqBy(project.Category[o].list, "id"), (e, i) => {
                                                                     return (
                                                                         <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
-                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50">
+                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50" title={e.project}>
                                                                                 <span>
                                                                                     <i class="fa fa-square mr10" style={{ color: e.color }} />
                                                                                 </span>
-                                                                                {e.project}
+                                                                                {e.project.substring(0, 20)}
+                                                                                {e.project.length > 20 ? "..." : ""}
                                                                             </a>
                                                                         </li>
                                                                     );

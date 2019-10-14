@@ -66,7 +66,7 @@ export default class List extends React.Component {
         const { dispatch, project, loggedUser } = { ...this.props };
         const { typeId, projectStatus } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, c => {
             const projectList = page == 1 ? c.data.result : [...project.List, ...c.data.result];
@@ -88,7 +88,7 @@ export default class List extends React.Component {
     }
 
     renderStatus({ delayed_task, tasks_due_today, completed }) {
-        const color = delayed_task.count > 0 ? "text-red" : tasks_due_today.count > 0 ? "text-yellow" : completed.count > 0 ? "text-green" : "hide";
+        const color = delayed_task.count > 0 ? "text-red" : tasks_due_today.count > 0 ? "text-yellow" : completed.count > 0 ? "text-green" : "text-light-grey";
         return <span class={`fa fa-circle mb0 mr5 ${color}`} />;
     }
 
@@ -239,14 +239,18 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { project, type, workstream } = { ...this.props };
+        const { project, type, workstream, loggedUser } = { ...this.props };
         const currentPage = typeof project.Count.current_page != "undefined" ? project.Count.current_page : 1;
         const lastPage = typeof project.Count.last_page != "undefined" ? project.Count.last_page : 1;
         const projectTypes = [
-            ...[{ id: "", name: "All" }],
+            ...(loggedUser.data.userType !== "External" ? [{ id: "", name: "All" }] : []),
             ..._(type.List)
                 .filter(o => {
-                    return o.linkType == "project";
+                    if (loggedUser.data.userType == "External") {
+                        return o.linkType == "project" && o.type === "Client";
+                    } else {
+                        return o.linkType == "project";
+                    }
                 })
                 .map(o => {
                     return { id: o.id, name: o.type };

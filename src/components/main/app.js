@@ -13,6 +13,7 @@ import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
 import notAvailable from "../notAvailable";
+import inactiveProject from "../inactiveProject";
 import Notification from "../notification";
 
 let keyTimer = "";
@@ -43,6 +44,14 @@ class Main extends React.Component {
     showLeft() {
         const { showLeft, showRight } = { ...this.state };
         this.setState({ showLeft: !showLeft, showRight: !showRight });
+        if (showLeft) {
+            document.getElementById("content").style.paddingLeft = "25px";
+            document.getElementById("main-nav-bar").style.paddingLeft = "0px";
+        }
+        if (showRight) {
+            document.getElementById("content").style.paddingLeft = "325px";
+            document.getElementById("main-nav-bar").style.paddingLeft = "300px";
+        }
     }
     componentDidMount() {
         const self = this;
@@ -58,12 +67,6 @@ class Main extends React.Component {
             }
         });
 
-        $("#bell").on("hidden.bs.dropdown", () => {
-            const { dispatch } = { ...self.props };
-            setTimeout(() => {
-                dispatch({ type: "RESET_NOTIFICATION", List: [], Count: {}, NotificationBellIsOpen: false });
-            }, 200);
-        });
     }
     componentWillMount() {
         const { dispatch, user, location } = this.props;
@@ -170,7 +173,6 @@ class Main extends React.Component {
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser, notification } = { ...this.props };
         const { taskId, workstreamId, projectId } = { ...notif };
-
         if (!notif.isRead) {
             putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
                 dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
@@ -298,6 +300,12 @@ class Main extends React.Component {
                 path_name: "notification",
                 component: Notification,
                 show_menu: false
+            },
+            {
+                label: "",
+                path_name: "inactive-project",
+                component: inactiveProject,
+                show_menu: false
             }
         ];
         const dropdownAddLinks = [{ id: "task", label: "Task" }, { id: "project", label: "Project" }, { id: "user", label: "User" }, { id: "team", label: "Team" }];
@@ -326,7 +334,7 @@ class Main extends React.Component {
         return (
             <div class={showLeft ? "flex-row" : ""} id="main-container">
                 {showLeft && (
-                    <div class="menu-bar flex-col">
+                    <div id="main-menu" class="menu-bar flex-col">
                         <div class="site-logo">
                             <img src="/images/cloudcfo-flogo.png" class="img-responsive" />
                         </div>
@@ -344,22 +352,22 @@ class Main extends React.Component {
                 <div class="flex-col content-div">
                     <div class={(this.state.miniSideMenu == "true" ? "sidebar-left-mini" : "") + ""} id="wrap">
                         <header class="head shadow-dark-div">
-                            <div class="main-bar">
+                            <div id="main-nav-bar" class="main-bar">
                                 <div class={`${showLeft ? "hide" : "toggle-menu"} item`}>
                                     <a onClick={() => this.showLeft()} class="text-white">
                                         <i class="fa fa-bars" aria-hidden="true" />
                                     </a>
                                 </div>
                                 <div class="title item">{_.isEmpty(currentPage) == false && currentPage.label != "Projects" && <h3 style={{ textTransform: "capitalize", marginTop: 0, marginBottom: 0 }}>{currentPage.label}</h3>}</div>
-                                {showProjectMenu && (
-                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
+                                {showProjectMenu && (                                    
+                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">                                 
                                         {_.map(projectMenu, (o, index) => {
                                             return (
-                                                <div class="flex-col vh-center flex-center" key={index}>
+                                                <div class="flex-col vh-center flex-center" key={index}>                                                    
                                                     <Link to={`/projects/${project.Selected.id + o.link}`} class={`${currentProjectPage == o.label.toLowerCase() ? "active" : ""}`}>
                                                         {o.label == "Info" ? (
                                                             <div class="project-image-wrapper">
-                                                                <span title={project.Selected.project}>
+                                                                <span>
                                                                     <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
                                                                 </span>
                                                             </div>
@@ -372,6 +380,9 @@ class Main extends React.Component {
                                         })}
                                     </div>
                                 )}
+                                <div class="project-title-wrapper">
+                                    <strong>{project.Selected.project}</strong>
+                                </div>
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link" id="bell">
                                         {this.props.location.pathname !== "/notification" && (

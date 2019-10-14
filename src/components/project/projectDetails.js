@@ -31,14 +31,20 @@ export default class ProjectDetails extends React.Component {
         }
     }
     componentDidMount() {
+        const { dispatch } = { ...this.props }
+        dispatch({ type: "SET_PROJECT_FILTER", filter: { ["typeId"]: 1 } });
         this.fetchProjectDetails();
     }
     fetchProjectDetails() {
         const { match, dispatch } = { ...this.props };
         const projectId = match.params.projectId;
         getData(`/api/project/detail/${projectId}?info=${1}`, {}, c => {
-            dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            if (c.status === 200 && c.data) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
+                dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            } else {
+                window.location.href = "/account#/inactive-project";
+            }
         });
     }
     render() {
