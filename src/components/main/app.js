@@ -359,17 +359,16 @@ class Main extends React.Component {
                                     </a>
                                 </div>
                                 <div class="title item">{_.isEmpty(currentPage) == false && currentPage.label != "Projects" && <h3 style={{ textTransform: "capitalize", marginTop: 0, marginBottom: 0 }}>{currentPage.label}</h3>}</div>
-                                {showProjectMenu && (
-                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
+                                {showProjectMenu && (                                    
+                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">                                 
                                         {_.map(projectMenu, (o, index) => {
                                             return (
-                                                <div class="flex-col vh-center flex-center" key={index}>
+                                                <div class="flex-col vh-center flex-center" key={index}>                                                    
                                                     <Link to={`/projects/${project.Selected.id + o.link}`} class={`${currentProjectPage == o.label.toLowerCase() ? "active" : ""}`}>
                                                         {o.label == "Info" ? (
                                                             <div class="project-image-wrapper">
                                                                 <span>
                                                                     <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
-                                                                    <strong>{project.Selected.project}</strong>
                                                                 </span>
                                                             </div>
                                                         ) : (

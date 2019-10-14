@@ -64,6 +64,7 @@ export default class ProjectList extends React.Component {
                     document.getElementById("thead2").style.position = "fixed";
                     document.getElementById("thead2").style.top = `${actionTableBound.height}px`;
                     document.getElementById("thead2").style.backgroundColor = "#fff";
+                    document.getElementById("thead2").style.zIndex = "2";
                     const element = document.getElementById("thead1");
                     if (element) {
                         const tag = element.getElementsByTagName("th");
