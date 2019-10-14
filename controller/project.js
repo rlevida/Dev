@@ -5,7 +5,7 @@ const Sequelize = require("sequelize");
 const _ = require("lodash");
 const Op = Sequelize.Op;
 const models = require("../modelORM");
-const { Session, TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
+const { TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
 
 function projectAuth(authObj) {
     const { user } = { ...authObj };
@@ -38,11 +38,12 @@ function projectAuth(authObj) {
 
 exports.get = {
     index: async (req, cb) => {
-        const queryString = req.query;
-        const limit = 25;
         if (!req.user) {
             cb({ status: false, error: "Unauthorized Access" });
         }
+
+        const queryString = req.query;
+        const limit = 25;
         const userId = req.user.id,
             userRole = req.user.user_role[0].roleId;
         let associationArray = [
