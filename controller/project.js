@@ -1138,7 +1138,7 @@ exports.post = {
         const { usersType, userTypeLinkId, linkType, linkId, memberType } = { ...req.body };
 
         if (usersType && userTypeLinkId && linkType && linkId && memberType && queryString.projectType) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: linkId, action: "post" });
+            const hasAccess = await projectAuth({ user: req.user, projectId: linkId, action: "post" });
             if (!hasAccess) {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
@@ -1345,7 +1345,7 @@ exports.post = {
     },
     upload: async (req, cb) => {
         if (req.query.projectId) {
-            const hasAccess = await projectAuth({ token: req.cookies["app.sid"], projectId: req.query.projectId, action: "post" });
+            const hasAccess = await projectAuth({ user: req.user, projectId: req.query.projectId, action: "post" });
             if (!hasAccess) {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
