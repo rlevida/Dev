@@ -852,7 +852,7 @@ exports.post = {
                                                                 });
                                                                 const newPeriodicTaskChecklist = newPeriodicTaskId.map(o => {
                                                                     return taskObjChecklistArray.map(c => {
-                                                                        return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: o };
+                                                                        return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: o, createdBy: defaultTaskAssigned };
                                                                     });
                                                                 });
                                                                 mapCallback(null, { members: newPeriodicTaskMembers, checklist: _.flatten(newPeriodicTaskChecklist) });
