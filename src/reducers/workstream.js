@@ -22,6 +22,11 @@ export default function reducer(
         case "SET_WORKSTREAM_LIST": {
             return { ...state, List: action.list, ...(typeof action.Count != "undefined" ? { Count: action.Count } : {}) };
         }
+        case "ADD_WORKSTREAM": {
+            const List = state.List.slice();
+            List.unshift(action.data);
+            return { ...state, List: List, FormActive: "List", Selected: {} };
+        }
         case "UPDATE_WORKSTREAM_LIST": {
             const { List } = { ...state };
             const updatedList = [...List, ...action.list];
@@ -41,21 +46,18 @@ export default function reducer(
             return { ...state, SelectedId: action.SelectedId, ...(action.SelectedId.length ? { Loading: "RETRIEVING" } : {}) };
         }
         case "UPDATE_DATA_WORKSTREAM_LIST": {
-            const list = state.List.slice();
-            list.unshift(action.data);
-            return { ...state, List: list, FormActive: "List", Selected: {} };
-            // const { List } = { ...state };
-            // const copyOfList = [...List];
-            // const { data } = action;
-            // const updateindex = _.findIndex(copyOfList, { id: data.id });
+            const { List } = { ...state };
+            const copyOfList = [...List];
+            const { data } = action;
+            const updateindex = _.findIndex(copyOfList, { id: data.id });
 
-            // if (updateindex < 0) {
-            //     copyOfList.push(data);
-            // } else {
-            //     copyOfList.splice(updateindex, 1, data);
-            // }
+            if (updateindex < 0) {
+                copyOfList.push(data);
+            } else {
+                copyOfList.splice(updateindex, 1, data);
+            }
 
-            // return { ...state, List: copyOfList,  }
+            return { ...state, List: copyOfList, FormActive: "List", Selected: {} }
         }
         case "REMOVE_DELETED_WORKSTREAM_LIST": {
             const updatedList = _.filter(state.List, e => {

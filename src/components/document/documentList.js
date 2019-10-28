@@ -99,7 +99,7 @@ class DocumentList extends React.Component {
     }
 
     async getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder, match, history } = this.props;
+        const { dispatch, loggedUser, folder, match, history, document } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
 
@@ -107,6 +107,7 @@ class DocumentList extends React.Component {
             await dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
             await dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
             await dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            await dispatch({ type: "SET_SUB_FOLDERS", list: [] })
             if (getParameterByName("folder-id")) {
                 history.replace(history.location.pathname);
             }
@@ -115,7 +116,7 @@ class DocumentList extends React.Component {
         } else if (folder.Selected.id !== data.id) {
             getData(
                 `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
-                    loggedUser.data.id
+                loggedUser.data.id
                 }`,
                 {},
                 c => {
@@ -139,6 +140,7 @@ class DocumentList extends React.Component {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
                     dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
                     dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folderList });
+                    dispatch({ type: "SET_SUB_FOLDERS", list: document.SelectedFolderOptions[data.id] })
                 }
             );
         }
@@ -254,7 +256,8 @@ class DocumentList extends React.Component {
                         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
                         dispatch({ type: "SET_FOLDER_SELECTED", Selected: data });
                         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: folder.SelectedFolderName.concat([data]) });
-                        this.fetchFolderSelectList(data.id);
+                        dispatch({ type: "SET_SUB_FOLDERS", list: [...document.SubFolders, ...document.List], selectedFolderId: data.id })
+                        // this.fetchFolderSelectList(data.id);
                     }
                 }
             );
@@ -276,7 +279,7 @@ class DocumentList extends React.Component {
                 const folderOptions = _(c.data.result)
                     .map(e => {
                         const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;
-                        return { id: e.id, name: fName };
+                        return { id: e.id, name: fName, sub_folder: e.sub_folder, folderId: e.folderId };
                     })
                     .value();
                 dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
@@ -333,10 +336,10 @@ class DocumentList extends React.Component {
                 oldDocument:
                     type === "tags"
                         ? data.tagWorkstream
-                              .map(e => {
-                                  return e.label;
-                              })
-                              .join(",")
+                            .map(e => {
+                                return e.label;
+                            })
+                            .join(",")
                         : newData.origin
             }
         });
@@ -487,6 +490,9 @@ class DocumentList extends React.Component {
                                             {document.Loading === "" &&
                                                 _.orderBy(document.List, ["dateAdded"], ["desc"]).map((data, index) => {
                                                     const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
+                                                    const moveOptions = document.List.filter((folderOptions) => { return folderOptions.id != data.id }).concat(document.SubFolders).map((folderOption) => {
+                                                        return { ...folderOption, name: `${folderOption.name}${folderOption.documentNameCount > 0 ? `(${folderOption.documentNameCount})` : ""}` }
+                                                    })
                                                     return (
                                                         <tr key={index}>
                                                             <td class="document-name">
@@ -585,10 +591,10 @@ class DocumentList extends React.Component {
                                                                                         Mark as unread
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>
-                                                                                        Mark as read
+                                                                                        <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>
+                                                                                            Mark as read
                                                                                     </a>
-                                                                                )}
+                                                                                    )}
                                                                             </li>
                                                                         )}
                                                                         {document.ActiveTab === "library" && (
@@ -596,24 +602,12 @@ class DocumentList extends React.Component {
                                                                                 <a class=" dropdown dropdown-library">
                                                                                     Move to
                                                                                     <div class="dropdown-content dropdown-menu-right">
-                                                                                        {folder.SelectList.map((e, fIndex) => {
-                                                                                            if (e.id !== data.id && _.find(document.List, { id: e.id })) {
-                                                                                                if (typeof folder.Selected.id !== "undefined") {
-                                                                                                    if (e.id !== folder.Selected.id) {
-                                                                                                        return (
-                                                                                                            <span key={fIndex} onClick={() => this.moveTo(e, data)}>
-                                                                                                                {e.name}
-                                                                                                            </span>
-                                                                                                        );
-                                                                                                    }
-                                                                                                } else {
-                                                                                                    return (
-                                                                                                        <span key={fIndex} onClick={() => this.moveTo(e, data)}>
-                                                                                                            {e.name}
-                                                                                                        </span>
-                                                                                                    );
-                                                                                                }
-                                                                                            }
+                                                                                        {moveOptions.map((e, fIndex) => {
+                                                                                            return (
+                                                                                                <span key={fIndex} onClick={() => this.moveTo(e, data)}>
+                                                                                                    {e.name}
+                                                                                                </span>
+                                                                                            );
                                                                                         })}
                                                                                     </div>
                                                                                 </a>

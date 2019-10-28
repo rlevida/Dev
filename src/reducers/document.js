@@ -16,7 +16,9 @@ export default function reducer(
         SelectedFields: [],
         LastSelectedIndex: -1,
         SelectedFieldsDragging: [],
-        uploadType: null
+        uploadType: null,
+        SubFolders: [],
+        SelectedFolderOptions: {},
     },
     action
 ) {
@@ -109,6 +111,11 @@ export default function reducer(
                 );
             });
             return { ...state, List: list };
+        }
+        case "SET_SUB_FOLDERS": {
+            return {
+                ...state, SubFolders: action.list, SelectedFolderOptions: { ...state.SelectedFolderOptions, [action.selectedFolderId]: action.list }
+            }
         }
         case "CLEAR_DOCUMENT": {
             return { ...state, List: [], Selected: {} };
