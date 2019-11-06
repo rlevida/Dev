@@ -46,6 +46,7 @@ export default class Component extends React.Component {
     async handleSubmit(e) {
         let { Login } = this.props;
         e.preventDefault();
+
         if (Login.username == "" || Login.password == "") {
             showToast("error", "Username and password is required.", 360000);
             return;
@@ -55,18 +56,21 @@ export default class Component extends React.Component {
             showToast("error", "User does not exist.", 360000);
             return;
         }
-        // if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
-        //     showToast("error", "Please confirm your not a robot.", 360000);
-        //     return;
-        // }
+
+        if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
+            showToast("error", "Please confirm your not a robot.", 360000);
+            return;
+        }
+
         showToast("success", "Logging in, please wait ...", 360000);
+
         localStorage.setItem("username", Login.username);
         localStorage.setItem("rememberMe", Login.rememberMe);
 
         postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, c => {
-            console.log(c.data)
             if (c.data.status) {
                 if (c.data.userDetails.termsAndConditions === 0) {
+                    toastr.remove();
                     this.getTermsAndConditions(c.data.userDetails);
                 } else if (c.data.userDetails.projectId.length > 1 || c.data.userDetails.userRole <= 4) {
                     window.location.replace("/");
@@ -80,11 +84,11 @@ export default class Component extends React.Component {
     }
 
     getTermsAndConditions(userDetails) {
-        getData(`/api/termsAndConditions`, {}, getTermsAndConditionsResponse => {
+        getData(`/termsAndConditions`, {}, getTermsAndConditionsResponse => {
             try {
                 if (getTermsAndConditionsResponse.data && getTermsAndConditionsResponse.data.termsAndConditions) {
                     const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
-                    this.setState({ termsAndConditions: termsAndConditions, userDetails: userDetails })
+                    this.setState({ termsAndConditions: termsAndConditions })
                     $(`#termsAndCondition`).modal("show");
                 }
             } catch (err) {
@@ -102,7 +106,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const { termsAndConditions, userDetails } = { ...this.state }
+        const { termsAndConditions } = { ...this.state }
         let { Login, dispatch } = this.props;
         let captchaUI = null;
         if (process.env.NODE_ENV != "development") {
@@ -144,7 +148,7 @@ export default class Component extends React.Component {
                     </form>
                 </div>
                 <ForgotPassword type={"client"} />
-                <TermsAndConditionsModal termsAndConditions={termsAndConditions} userDetails={userDetails} />
+                <TermsAndConditionsModal termsAndConditions={termsAndConditions} ipAddress={this.state.yourIp} />
             </div>
         );
     }

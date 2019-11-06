@@ -335,8 +335,6 @@ exports.post = {
                     cb({ status: false, message: "Incorrect username/password." });
                 }
 
-
-
                 // manage password hash here
                 var inputPassword = func.generatePassword(body.password, user.salt);
                 if (user.password == inputPassword) {
@@ -345,7 +343,6 @@ exports.post = {
                         const TokenGenerator = require("uuid-token-generator");
                         req.cookies["app.sid"] = new TokenGenerator(256).generate();
                     }
-                    console.log(user.termsAndConditions)
                     if (user.termsAndConditions == 0) {
                         nextThen(user)
                     } else {

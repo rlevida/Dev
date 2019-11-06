@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { putData } from "../../globalFunction";
+import { postData } from "../../globalFunction";
 import { Editor } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { EditorState, convertFromRaw } from 'draft-js';
@@ -8,6 +8,7 @@ import { EditorState, convertFromRaw } from 'draft-js';
 @connect((store) => {
     return {
         loggedUser: store.loggedUser,
+        Login: store.login
     }
 })
 class TermsAndConditions extends React.Component {
@@ -20,8 +21,9 @@ class TermsAndConditions extends React.Component {
         this.handleClose = this.handleClose.bind(this)
     }
     handleSubmit() {
-        const { userDetails } = { ...this.props }
-        putData(`/api/user/termsAndConditions/${userDetails.id}`, { termsAndConditions: 1 }, () => {
+        const { Login, ipAddress } = { ...this.props }
+        postData(`/termsAndConditions`, { ...Login, termsAndConditions: 1, ipAddress }, (termsAndConditionsResponse) => {
+            const { userDetails } = { ...termsAndConditionsResponse.data }
             if (userDetails.projectId.length > 1 || userDetails.userRole <= 4) {
                 window.location.replace("/");
             } else {
@@ -30,7 +32,8 @@ class TermsAndConditions extends React.Component {
         })
     }
     handleClose() {
-        window.location.replace("/");
+        this.setState({ accept: false })
+        $(`#termsAndCondition`).modal("hide");
     }
 
     render() {

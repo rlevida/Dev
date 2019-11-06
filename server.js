@@ -31,6 +31,7 @@ var auth = require("./routes/auth");
 var forgot = require("./routes/forgotPassword");
 var createPassword = require("./routes/createPassword");
 var api = require("./routes/api");
+var termsAndConditions = require("./routes/termsAndConditions")
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use(function (req, res, next) {
 app.use("/api", api);
 app.use("/forgotPassword", forgot);
 app.use("/createPassword", createPassword);
+app.use("/termsAndConditions", termsAndConditions)
 app.use("/auth", auth);
 app.use("/", index);
 
