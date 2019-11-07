@@ -41,12 +41,16 @@ class TermsAndConditions extends React.Component {
         const { termsAndConditions } = { ...this.props }
         return (
             <div class="modal fade delete-modal" id="termsAndCondition">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
+                <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                    <div class="modal-content br10">
                         <div class="modal-body">
+                            <h1>Terms and Conditions</h1>
                             {typeof termsAndConditions !== "undefined" &&
-                                <div>
-                                    <Editor editorState={EditorState.createWithContent(convertFromRaw(JSON.parse(termsAndConditions)))} readOnly toolbarHidden={true} />
+                                <div class="mt20 terms-and-conditions">
+                                    <Editor
+                                        editorState={EditorState.createWithContent(convertFromRaw(JSON.parse(termsAndConditions)))}
+                                        readOnly toolbarHidden={true}
+                                    />
                                     <div class="d-flex-between mt20">
                                         <label class="custom-checkbox">
                                             <input
@@ -59,15 +63,14 @@ class TermsAndConditions extends React.Component {
                                             I have read and agree to the Terms and Conditions and Privacy Policy
                                         </label>
                                     </div>
-                                    <div class="d-flex-between mt20">
-                                        <button type="button" class="btn btn-primary m0" onClick={this.handleClose}>Close</button>
-                                        {accept &&
-                                            <button type="button" class="btn btn-primary m0" onClick={this.handleSubmit}>Submit</button>
-                                        }
-                                    </div>
                                 </div>
                             }
-
+                            <div class="d-flex-between mt20 w100">
+                                <button type="button" class="btn btn-violet m0" onClick={this.handleClose}>Close</button>
+                                {accept &&
+                                    <button type="button" class="btn btn-violet m0" onClick={this.handleSubmit}>Submit</button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
