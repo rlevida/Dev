@@ -41,8 +41,13 @@ exports.get = {
 exports.post = {
     index: async (req, cb) => {
         try {
-            const { termsAndConditions } = { ...req.body };
+            const { termsAndConditions, reset } = { ...req.body };
             const termsAndCondtionsCreateResult = await TermsAndCondtions.create({ termsAndConditions });
+            if (reset) {
+                if (reset) {
+                    await Users.update({ termsAndConditions: -0 }, { where: { termsAndConditions: 1 } });
+                }
+            }
             cb({ status: true, data: termsAndCondtionsCreateResult });
         } catch (error) {
             cb({ status: false, error: error })
@@ -266,8 +271,11 @@ exports.put = {
     index: async (req, cb) => {
         try {
             const { id } = { ...req.params }
-            const { termsAndConditions } = { ...req.body };
+            const { termsAndConditions, reset } = { ...req.body };
             const termsAndConditionsUpdateResult = await TermsAndCondtions.update({ termsAndConditions: termsAndConditions }, { where: { id } });
+            if (reset) {
+                await Users.update({ termsAndConditions: -0 }, { where: { termsAndConditions: 1 } });
+            }
             cb({ status: true, data: termsAndConditionsUpdateResult });
         } catch (error) {
             cb({ status: false, error: error })

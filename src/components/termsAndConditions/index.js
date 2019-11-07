@@ -15,6 +15,7 @@ export default class Component extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            reset: false,
             formData: {
                 editorState: EditorState.createEmpty()
             }
@@ -49,12 +50,12 @@ export default class Component extends React.Component {
     }
 
     handleSubmit() {
-        const { formData } = { ...this.state }
+        const { formData, reset } = { ...this.state }
         const { id, editorState } = { ...formData }
         const rawDraftContentState = JSON.stringify(convertToRaw(editorState.getCurrentContent()));
         if (id) {
             try {
-                putData(`/api/termsAndConditions/${id}`, { termsAndConditions: rawDraftContentState }, updateTermsAndConditionsResponse => {
+                putData(`/api/termsAndConditions/${id}`, { termsAndConditions: rawDraftContentState, reset }, () => {
                     showToast('success', "Successfully updated.");
                 })
             } catch (error) {
@@ -63,8 +64,8 @@ export default class Component extends React.Component {
             }
         } else {
             try {
-                postData(`/api/termsAndConditions`, { termsAndConditions: rawDraftContentState }, createTermsAndConditionsResponse => {
-                    showToast('success', "Successfully created.");
+                postData(`/api/termsAndConditions`, { termsAndConditions: rawDraftContentState, reset }, () => {
+                    showToast('success', "Successfully updated.");
                 })
             } catch (err) {
                 showToast('error', 'Something went wrong. Please try again.')
@@ -72,8 +73,9 @@ export default class Component extends React.Component {
         }
     }
 
+
     render() {
-        const { editorState } = { ...this.state.formData }
+        const { editorState, reset } = { ...this.state.formData }
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -90,8 +92,8 @@ export default class Component extends React.Component {
                             <label class="custom-checkbox">
                                 <input
                                     type="checkbox"
-                                    checked={false}
-                                    onChange={() => { }}
+                                    checked={reset}
+                                    onChange={() => { this.setState({ reset: !this.state.reset }) }}
                                     onClick={f => () => { }}
                                 />
                                 <span class="checkmark" />
