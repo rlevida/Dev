@@ -57,7 +57,55 @@ exports.get = {
                 model: Workstream,
                 as: "workstream",
                 attributes: ["id"]
-            }
+            },
+            {
+                model: Members,
+                as: "projectManager",
+                where: {
+                    memberType: "project manager"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        required: false,
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ],
+                attributes: ["id", "userTypeLinkId"]
+            },
+            {
+                model: Members,
+                as: "team",
+                where: {
+                    usersType: "team",
+                    linkType: "project",
+                    isDeleted: 0
+                },
+                required: false,
+                include: [
+                    {
+                        model: Teams,
+                        as: "team",
+                        required: false,
+                        include: [
+                            {
+                                model: UsersTeam,
+                                as: "users_team",
+                                required: false,
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: "user",
+                                        required: false
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
         ];
 
         if (parseInt(queryString.hasMembers)) {
@@ -111,15 +159,14 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.project != "undefined" && queryString.project != ""
                 ? {
-                      [Sequelize.Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("project")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.project}%`)
-                          })
-                      ]
-                  }
+                    [Sequelize.Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("project")), {
+                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.project}%`)
+                        })
+                    ]
+                }
                 : {})
         };
-
         if (typeof userId != "undefined" && userId != "" && (typeof userRole != "undefined" && userRole >= 3)) {
             const userTeam = await UsersTeam.findAll({
                 where: {
@@ -198,8 +245,8 @@ exports.get = {
                                 task
                             ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                             WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm")}"
+                                    .utc()
+                                    .format("YYYY-MM-DD HH:mm")}"
                             AND (task.status != "Completed" OR task.status IS NULL) AND task.isDeleted = 0
                             )`)
                         }
@@ -215,8 +262,8 @@ exports.get = {
                             task
                         ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                         WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
-                            .utc()
-                            .format("YYYY-MM-DD HH:mm")}"
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")}"
                         AND (task.status != "Completed" OR task.status IS NULL) AND task.isDeleted = 0
                     )`)
                     };
@@ -231,7 +278,7 @@ exports.get = {
 
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Projects.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -244,7 +291,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Projects.findAll({
                             ...options,
@@ -281,7 +328,7 @@ exports.get = {
 
                                 let projectManagerId = "";
 
-                                if (responseObj.members) {
+                                if (responseObj.members.length > 0) {
                                     projectManagerId = responseObj.members.filter(e => {
                                         return e.memberType === "project manager";
                                     })[0].userTypeLinkId;
@@ -329,10 +376,10 @@ exports.get = {
                                 projectId: projectIds,
                                 ...(typeof queryString.dueDate != "undefined" && queryString.dueDate != ""
                                     ? {
-                                          dueDate: {
-                                              [Op.between]: [startMonth, endMonth]
-                                          }
-                                      }
+                                        dueDate: {
+                                            [Op.between]: [startMonth, endMonth]
+                                        }
+                                    }
                                     : {})
                             },
                             attributes: [
@@ -342,10 +389,10 @@ exports.get = {
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.dueDate < "' +
-                                            moment(dueDate, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'
+                                        moment(dueDate, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'
                                     ),
                                     "issues"
                                 ],
@@ -353,10 +400,10 @@ exports.get = {
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.dueDate = "' +
-                                            moment(dueDate, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'
+                                        moment(dueDate, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'
                                     ),
                                     "due_today"
                                 ]
@@ -612,7 +659,7 @@ exports.get = {
 
             async.parallel(
                 {
-                    count: function(callback) {
+                    count: function (callback) {
                         try {
                             Projects.findAndCountAll({ where: whereObj }).then(response => {
                                 const pageData = {
@@ -625,7 +672,7 @@ exports.get = {
                             callback(err);
                         }
                     },
-                    result: function(callback) {
+                    result: function (callback) {
                         try {
                             Projects.findAll({
                                 ...options,
@@ -663,8 +710,8 @@ exports.get = {
             linkId: queryString.linkId,
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
                 ? {
-                      usersType: queryString.usersType
-                  }
+                    usersType: queryString.usersType
+                }
                 : {}),
             isDeleted: 0
         };
@@ -743,24 +790,24 @@ exports.get = {
                             where: {
                                 ...((typeof queryString.project_type != "undefined" && queryString.project_type == "Client") || (typeof queryString.memberType != "undefined" && queryString.memberType == "approver")
                                     ? {
-                                          roleId: {
-                                              [Op.notIn]: [4, 6]
-                                          }
-                                      }
+                                        roleId: {
+                                            [Op.notIn]: [4, 6]
+                                        }
+                                    }
                                     : {}),
                                 ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
                                     ? {
-                                          roleId: {
-                                              [Op.lte]: 4
-                                          }
-                                      }
+                                        roleId: {
+                                            [Op.lte]: 4
+                                        }
+                                    }
                                     : {}),
                                 ...(typeof queryString.project_type != "undefined" && queryString.project_type == "Client" && typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
                                     ? {
-                                          roleId: {
-                                              [Op.lte]: 3
-                                          }
-                                      }
+                                        roleId: {
+                                            [Op.lte]: 3
+                                        }
+                                    }
                                     : {}),
                                 usersId: userMemberIds
                             }
@@ -774,23 +821,23 @@ exports.get = {
                             id: userMemberIds,
                             ...(typeof queryString.memberName != "undefined" && queryString.memberName != ""
                                 ? {
-                                      [Op.or]: [
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          }),
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          }),
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
-                                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
-                                          })
-                                      ]
-                                  }
+                                    [Op.or]: [
+                                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
+                                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                        }),
+                                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
+                                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                        }),
+                                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
+                                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.memberName}%`)
+                                        })
+                                    ]
+                                }
                                 : {}),
                             ...(typeof queryString.userType != "undefined" && queryString.userType != ""
                                 ? {
-                                      userType: queryString.userType
-                                  }
+                                    userType: queryString.userType
+                                }
                                 : {})
                         },
                         include: [
@@ -878,18 +925,18 @@ exports.get = {
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
                 ? {
-                      linkType: queryString.linkType
-                  }
+                    linkType: queryString.linkType
+                }
                 : {}),
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != ""
                 ? {
-                      linkId: queryString.linkId
-                  }
+                    linkId: queryString.linkId
+                }
                 : {}),
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
                 ? {
-                      usersType: queryString.usersType
-                  }
+                    usersType: queryString.usersType
+                }
                 : {})
         };
 
@@ -1026,12 +1073,12 @@ exports.post = {
                         {
                             ...(result.typeId === 3
                                 ? {
-                                      linkId: result.id,
-                                      linkType: "project",
-                                      memberType: "assignedTo",
-                                      userTypeLinkId: d.projectManagerId,
-                                      usersType: "users"
-                                  }
+                                    linkId: result.id,
+                                    linkType: "project",
+                                    memberType: "assignedTo",
+                                    userTypeLinkId: d.projectManagerId,
+                                    usersType: "users"
+                                }
                                 : {})
                         }
                     ]).then(res => {
@@ -1143,7 +1190,7 @@ exports.post = {
                 cb({ status: false, error: "Unauthorized Access" });
                 return;
             }
-
+            
             let projectType = queryString.projectType;
 
             if (usersType == "users") {
@@ -1190,7 +1237,7 @@ exports.post = {
             } else {
                 async.waterfall(
                     [
-                        function(callback) {
+                        function (callback) {
                             try {
                                 UsersTeam.findAll({
                                     where: {
@@ -1213,7 +1260,7 @@ exports.post = {
                                 callback(err);
                             }
                         },
-                        function(users, callback) {
+                        function (users, callback) {
                             try {
                                 if (projectType && projectType === "Internal") {
                                     const isExternalUser = _.find(users, { userType: "External" });
@@ -1241,7 +1288,7 @@ exports.post = {
                                 callback(err);
                             }
                         },
-                        function(userIds, callback) {
+                        function (userIds, callback) {
                             try {
                                 Members.update(
                                     { isDeleted: 1 },
@@ -1261,9 +1308,9 @@ exports.post = {
                                 callback(err);
                             }
                         },
-                        function(usersIds, callback) {
+                        function (usersIds, callback) {
                             try {
-                                Members.create(req.body.data).then(res => {
+                                Members.create(req.body).then(res => {
                                     callback(null, res.dataValues.id);
                                     return null;
                                 });
@@ -1271,7 +1318,7 @@ exports.post = {
                                 callback(err);
                             }
                         },
-                        function(teamId, callback) {
+                        function (teamId, callback) {
                             try {
                                 Members.findOne({
                                     where: {
@@ -1324,7 +1371,7 @@ exports.post = {
                             }
                         }
                     ],
-                    function(err, result) {
+                    function (err, result) {
                         if (err != null) {
                             cb({
                                 status: false,
@@ -1361,9 +1408,9 @@ exports.post = {
             form.multiples = false;
             files.push(
                 new Promise((resolve, reject) => {
-                    form.on("field", function(name, field) {
+                    form.on("field", function (name, field) {
                         projectId = field;
-                    }).on("file", function(field, file) {
+                    }).on("file", function (field, file) {
                         const date = new Date();
                         const Id = func.generatePassword(date.getTime() + file.name, "attachment");
                         const filename = Id + file.name.replace(/[^\w.]|_/g, "_");
@@ -1402,7 +1449,7 @@ exports.post = {
                 }
             });
             // log any errors that occur
-            form.on("error", function(err) {
+            form.on("error", function (err) {
                 cb({ status: false, error: "Upload error. Please try again later." });
             });
             form.parse(req);
