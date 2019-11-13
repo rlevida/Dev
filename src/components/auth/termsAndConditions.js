@@ -1,9 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { postData } from "../../globalFunction";
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import { EditorState, convertFromRaw } from 'draft-js';
+import { Editor } from '@tinymce/tinymce-react';
 
 @connect((store) => {
     return {
@@ -48,8 +46,14 @@ class TermsAndConditions extends React.Component {
                             {typeof termsAndConditions !== "undefined" &&
                                 <div class="mt20 terms-and-conditions">
                                     <Editor
-                                        editorState={EditorState.createWithContent(convertFromRaw(JSON.parse(termsAndConditions)))}
-                                        readOnly toolbarHidden={true}
+                                        apiKey="0k8gbet4gorudtci5hipja5itrruvmfwn83ymo64w0zwur9x"
+                                        initialValue={termsAndConditions}
+                                        init={{
+                                            menubar: false,
+                                            readonly: 1,
+                                            statusbar: false,
+                                            toolbar: false,
+                                        }}
                                     />
                                     <div class="d-flex-between mt20">
                                         <label class="custom-checkbox">

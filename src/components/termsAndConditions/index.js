@@ -1,9 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Editor } from 'react-draft-wysiwyg';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
+import { Editor } from '@tinymce/tinymce-react';
 import { getData, postData, putData, showToast } from "../../globalFunction";
+// import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+// import ClassicEditor from '../../ckeditor';
 
 @connect(store => {
     return {
@@ -17,7 +17,7 @@ export default class Component extends React.Component {
         this.state = {
             reset: false,
             formData: {
-                editorState: EditorState.createEmpty()
+                editorState: ""
             }
         };
         this.onEditorStateChange = this.onEditorStateChange.bind(this)
@@ -29,11 +29,10 @@ export default class Component extends React.Component {
             try {
                 if (getTermsAndConditionsResponse.data && getTermsAndConditionsResponse.data.termsAndConditions) {
                     const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
-                    const convertRawResult = convertFromRaw(JSON.parse(termsAndConditions))
                     this.setState({
                         formData: {
                             ...getTermsAndConditionsResponse.data,
-                            editorState: EditorState.createWithContent(convertRawResult)
+                            editorState: termsAndConditions
                         }
                     });
                 }
@@ -41,21 +40,31 @@ export default class Component extends React.Component {
                 showToast('error', 'Something went wrong. Please try again.')
             }
         })
-
     }
+    
+    // componentDidMount() {
+    //     ClassicEditor
+    //     .create( document.querySelector( '#editor' ) )
+    //     .then( editor => {
+    //         // window.editor = editor;
+    //         console.log( 'Editor was initialized', editor ); 
+    //     } )
+    //     .catch( err => {
+    //         console.error( err.stack );
+    //     } );
+    // }
 
     onEditorStateChange(editorState) {
         const { formData } = { ...this.state }
-        this.setState({ formData: { ...formData, editorState } })
+        this.setState({ formData: { ...formData, editorState } }) 
     }
 
     handleSubmit() {
         const { formData, reset } = { ...this.state }
         const { id, editorState } = { ...formData }
-        const rawDraftContentState = JSON.stringify(convertToRaw(editorState.getCurrentContent()));
         if (id) {
             try {
-                putData(`/api/termsAndConditions/${id}`, { termsAndConditions: rawDraftContentState, reset }, () => {
+                putData(`/api/termsAndConditions/${id}`, { termsAndConditions: editorState, reset }, () => {
                     showToast('success', "Successfully updated.");
                 })
             } catch (error) {
@@ -64,7 +73,7 @@ export default class Component extends React.Component {
             }
         } else {
             try {
-                postData(`/api/termsAndConditions`, { termsAndConditions: rawDraftContentState, reset }, () => {
+                postData(`/api/termsAndConditions`, { termsAndConditions: editorState, reset }, () => {
                     showToast('success', "Successfully updated.");
                 })
             } catch (err) {
@@ -81,11 +90,25 @@ export default class Component extends React.Component {
                 <div class="col-lg-12">
                     <div class="card">
                         <Editor
-                            editorState={editorState ? editorState : EditorState.createEmpty()}
+                            apiKey="0k8gbet4gorudtci5hipja5itrruvmfwn83ymo64w0zwur9x"
+                            initialValue={editorState ? editorState : ""}
+                            init={{
+                            height: 600,
+                            menubar: false,
+                            plugins: [
+                                'advlist autolink lists link image charmap print preview anchor',
+                                'searchreplace visualblocks code fullscreen',
+                                'insertdatetime media table paste code help wordcount'
+                            ],
+                            toolbar:
+                                'undo redo | formatselect | bold italic backcolor | \
+                                alignleft aligncenter alignright alignjustify | \
+                                bullist numlist outdent indent | removeformat | help'
+                            }}
+                            onEditorChange={(e) => this.onEditorStateChange(e)}
                             toolbarClassName="toolbarClassName"
                             wrapperClassName="wrapperClassName"
                             editorClassName="editorClassName"
-                            onEditorStateChange={this.onEditorStateChange}
                             editorStyle={{ border: "1px solid #F1F1F1", padding: '5px' }}
                         />
                         <div class="d-flex-between mt20">

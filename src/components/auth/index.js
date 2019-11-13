@@ -85,12 +85,11 @@ export default class Component extends React.Component {
 
     getTermsAndConditions(userDetails) {
         getData(`/termsAndConditions`, {}, getTermsAndConditionsResponse => {
+            console.log('getTermsAndConditionsResponse: ', getTermsAndConditionsResponse);
             try {
-                if (getTermsAndConditionsResponse.data && getTermsAndConditionsResponse.data.termsAndConditions) {
-                    const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
-                    this.setState({ termsAndConditions: termsAndConditions })
-                    $(`#termsAndCondition`).modal("show");
-                }
+                const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
+                this.setState({ termsAndConditions: termsAndConditions })
+                $(`#termsAndCondition`).modal("show");
             } catch (err) {
                 showToast('error', 'Something went wrong. Please try again.')
             }
