@@ -47,7 +47,7 @@ class TermsAndConditions extends React.Component {
                                 <div class="mt20 terms-and-conditions">
                                     <Editor
                                         class="tcEditor"
-                                        apiKey="0k8gbet4gorudtci5hipja5itrruvmfwn83ymo64w0zwur9x"
+                                        apiKey="pqgfoi8qj6k0rua9o2fqgebi47b6obcpg6o7n94wo5wcnr2z"
                                         initialValue={termsAndConditions}
                                         readOnly={true}
                                         init={{

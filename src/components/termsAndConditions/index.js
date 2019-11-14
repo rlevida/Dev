@@ -90,7 +90,7 @@ export default class Component extends React.Component {
                 <div class="col-lg-12">
                     <div class="card">
                         <Editor
-                            apiKey="0k8gbet4gorudtci5hipja5itrruvmfwn83ymo64w0zwur9x"
+                            apiKey="pqgfoi8qj6k0rua9o2fqgebi47b6obcpg6o7n94wo5wcnr2z"
                             initialValue={editorState ? editorState : ""}
                             init={{
                             height: 600,
