@@ -39,20 +39,25 @@ class TermsAndConditions extends React.Component {
         const { termsAndConditions } = { ...this.props }
         return (
             <div class="modal fade delete-modal" id="termsAndCondition">
-                <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content br10">
                         <div class="modal-body">
                             <h1>Terms and Conditions</h1>
                             {typeof termsAndConditions !== "undefined" &&
                                 <div class="mt20 terms-and-conditions">
                                     <Editor
+                                        class="tcEditor"
                                         apiKey="0k8gbet4gorudtci5hipja5itrruvmfwn83ymo64w0zwur9x"
                                         initialValue={termsAndConditions}
+                                        readOnly={true}
                                         init={{
                                             menubar: false,
-                                            readonly: 1,
+                                            readonly: true,
                                             statusbar: false,
                                             toolbar: false,
+                                            plugins: "autoresize",
+                                            inline_boundaries: false,
+                                            editor_deselector: "readonly"
                                         }}
                                     />
                                     <div class="d-flex-between mt20">

@@ -95,6 +95,8 @@ export default class Component extends React.Component {
                             init={{
                             height: 600,
                             menubar: false,
+                            statusbar: false,
+                            toolbar: false,
                             plugins: [
                                 'advlist autolink lists link image charmap print preview anchor',
                                 'searchreplace visualblocks code fullscreen',
@@ -109,7 +111,7 @@ export default class Component extends React.Component {
                             toolbarClassName="toolbarClassName"
                             wrapperClassName="wrapperClassName"
                             editorClassName="editorClassName"
-                            editorStyle={{ border: "1px solid #F1F1F1", padding: '5px' }}
+                            editorStyle={{ border: "1px solid #F1F1F1", padding: '20px' }}
                         />
                         <div class="d-flex-between mt20">
                             <label class="custom-checkbox">

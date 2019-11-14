@@ -57,10 +57,10 @@ export default class Component extends React.Component {
             return;
         }
 
-        if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
-            showToast("error", "Please confirm your not a robot.", 360000);
-            return;
-        }
+        // if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
+        //     showToast("error", "Please confirm your not a robot.", 360000);
+        //     return;
+        // }
 
         showToast("success", "Logging in, please wait ...", 360000);
 
@@ -85,7 +85,6 @@ export default class Component extends React.Component {
 
     getTermsAndConditions(userDetails) {
         getData(`/termsAndConditions`, {}, getTermsAndConditionsResponse => {
-            console.log('getTermsAndConditionsResponse: ', getTermsAndConditionsResponse);
             try {
                 const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
                 this.setState({ termsAndConditions: termsAndConditions })
