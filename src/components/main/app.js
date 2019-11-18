@@ -14,6 +14,7 @@ import Profile from "../profile";
 import notAvailable from "../notAvailable";
 import inactiveProject from "../inactiveProject";
 import Notification from "../notification";
+import TermsAndConditions from "../termsAndConditions";
 
 let keyTimer = "";
 
@@ -314,6 +315,13 @@ class Main extends React.Component {
                 path_name: "inactive-project",
                 component: inactiveProject,
                 show_menu: false
+            },
+            {
+                label: "Terms & Conditions",
+                icon: "fa-info",
+                path_name: "terms-and-conditions",
+                component: TermsAndConditions,
+                show_menu: true
             }
         ];
         const dropdownAddLinks = [{ id: "task", label: "Task" }, { id: "project", label: "Project" }, { id: "user", label: "User" }, { id: "team", label: "Team" }];
