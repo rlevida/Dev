@@ -39,13 +39,13 @@ class TaskActiveFile extends React.Component {
         const { loggedUser, task, dispatch, document } = this.props;
         let requestUrl = "";
         if (document.uploadType === "active") {
-            requestUrl = `/api/document/getFiles?&isArchived=0&isDeleted=0&projectId=${task.Selected.projectId}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
+            requestUrl = `/api/document/getTaskDocument?&isArchived=0&isDeleted=0&projectId=${task.Selected.projectId}&linkType=task&linkId=${task.Selected.id}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
                 loggedUser.data.id
-            }&isActive=1&t&&tagType=document&folderId=null&type=document`;
+                }&isActive=1&t&&tagType=document&folderId=null&type=document`;
         } else {
             requestUrl = `/api/document?isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
                 loggedUser.data.id
-            }&folderId=null&type=folder&isActive=1&isDeleted=0`;
+                }&folderId=null&type=folder&isActive=1&isDeleted=0`;
         }
 
         getData(requestUrl, {}, c => {
@@ -100,7 +100,7 @@ class TaskActiveFile extends React.Component {
 
         let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
             loggedUser.data.id
-        }&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
+            }&type=folder&isActive=1&isDeleted=0&folderId=${folderId}`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
@@ -133,7 +133,7 @@ class TaskActiveFile extends React.Component {
         } else if (folder.Selected.id !== data.id) {
             getData(
                 `/api/document?isDeleted=0&linkId=${task.Selected.projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== "undefined" ? data.id : null}&starredUser=${
-                    loggedUser.data.id
+                loggedUser.data.id
                 }`,
                 {},
                 c => {
@@ -164,9 +164,7 @@ class TaskActiveFile extends React.Component {
 
     render() {
         const { document, folder, task } = { ...this.props };
-        const documentList = document.List.filter(e => {
-            return !_.find(e.tagTask, { value: task.Selected.id }) || e.type === "folder";
-        });
+
         return (
             <div>
                 <div class="card-header">
@@ -199,7 +197,7 @@ class TaskActiveFile extends React.Component {
                         </tr>
                     </thead>
                     <tbody>
-                        {documentList.map((data, index) => {
+                        {document.List.map((data, index) => {
                             const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
                             return (
                                 <tr key={index}>
@@ -227,8 +225,8 @@ class TaskActiveFile extends React.Component {
                         })}
                     </tbody>
                 </table>
-                {document.Loading == "RETRIEVING" && documentList.length > 0 && <Loading />}
-                {documentList.length === 0 && document.Loading != "RETRIEVING" && (
+                {document.Loading == "RETRIEVING" && document.List.length > 0 && <Loading />}
+                {document.List.length === 0 && document.Loading != "RETRIEVING" && (
                     <p class="mb0 text-center">
                         <strong>No Records Found</strong>
                     </p>

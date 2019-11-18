@@ -1,103 +1,25 @@
-const sequence = require("sequence").Sequence,
-    toPdf = require("office-to-pdf"),
-    mime = require("mime-types"),
-    path = require("path");
-const _ = require("lodash");
+const { find, omit, toNumber, ceil } = require("lodash");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const models = require("../../modelORM");
 const moment = require("moment");
-const { ActivityLogsDocument, Document, DocumentLink, DocumentRead, Starred, Tasks, Tag, Users, Workstream, Notes } = models;
-const func = global.initFunc();
+const { Document, DocumentLink, DocumentRead, Tag, Users, ActivityLogsDocument } = models;
+
 const createDocument = require("./utils/createDocument");
 const createDocumentTag = require("./utils/createDocumentTag");
 const createDocumentActivityLog = require("./utils/createDocumentActivityLog");
 const createDocumentNotification = require("./utils/createDocumentNotification");
 const getDocumentById = require("./utils/getDocumentById");
+const getDocumentWorkstream = require("./utils/getDocumentWorkstream");
 
-const associationFindAllStack = [
-    {
-        model: Tag,
-        where: {
-            linkType: "workstream",
-            tagType: "document"
-        },
-        as: "tagDocumentWorkstream",
-        required: false,
-        include: [
-            {
-                model: Workstream,
-                as: "tagWorkstream"
-            }
-        ]
-    },
-    {
-        model: Tag,
-        where: {
-            linkType: "task",
-            tagType: "document"
-        },
-        required: false,
-        as: "tagDocumentTask",
-        include: [
-            {
-                model: Tasks,
-                as: "tagTask"
-            }
-        ]
-    },
-    {
-        model: Tag,
-        where: {
-            linkType: "notes",
-            tagType: "document"
-        },
-        required: false,
-        as: "tagDocumentNotes",
-        include: [
-            {
-                model: Notes,
-                as: "TagNotes"
-            }
-        ]
-    },
-    {
-        model: Users,
-        as: "user"
-    },
-    {
-        model: Starred,
-        as: "document_starred",
-        where: { linkType: "document", isActive: 1, isDeleted: 0 },
-        required: false,
-        include: [
-            {
-                model: Users,
-                as: "user",
-                attributes: ["id", "firstName", "lastName", "emailAddress"]
-            }
-        ]
-    },
-    {
-        model: Document,
-        as: "document_folder",
-        where: { type: "folder" },
-        required: false
-    },
-    {
-        model: DocumentRead,
-        as: "document_read",
-        required: false
-    }
-];
-const async = require("async");
+const { documentIncludes } = require("../includes/document");
 
 exports.get = {
     index: async (req, cb) => {
         try {
             const queryString = req.query;
             const limit = 10;
-            let associationStack = _.cloneDeep(associationFindAllStack);
+            let associationStack = documentIncludes();
             const options = {
                 ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {}),
                 order: [["dateAdded", "DESC"]]
@@ -134,16 +56,15 @@ exports.get = {
                     : {})
             };
 
-
             if (typeof queryString.userId !== "undefined" && queryString.userId !== "") {
-                _.find(associationStack, { as: "document_read" }).where = {
+                find(associationStack, { as: "document_read" }).where = {
                     usersId: queryString.userId,
                     isDeleted: 0
                 };
             }
 
             if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
-                _.find(associationStack, { as: "document_starred" }).where = {
+                find(associationStack, { as: "document_starred" }).where = {
                     linkType: "document",
                     isActive: 1,
                     isDeleted: 0,
@@ -165,37 +86,37 @@ exports.get = {
 
             /* Filter request */
             if (typeof queryString.workstream !== "undefined" && queryString.workstream !== "") {
-                _.find(associationStack, { as: "tagDocumentWorkstream" }).where = {
+                find(associationStack, { as: "tagDocumentWorkstream" }).where = {
                     linkId: queryString.workstream,
                     linkType: "workstream",
                     tagType: "document"
                 };
-                _.find(associationStack, { as: "tagDocumentWorkstream" }).required = true;
+                find(associationStack, { as: "tagDocumentWorkstream" }).required = true;
             } else {
-                _.find(associationStack, { as: "tagDocumentWorkstream" }).required = false;
+                find(associationStack, { as: "tagDocumentWorkstream" }).required = false;
             }
 
             /* Filter request */
             if (typeof queryString.task !== "undefined" && queryString.task !== "") {
-                _.find(associationStack, { as: "tagDocumentTask" }).where = {
+                find(associationStack, { as: "tagDocumentTask" }).where = {
                     linkId: queryString.task,
                     linkType: "task",
                     tagType: "document"
                 };
-                _.find(associationStack, { as: "tagDocumentTask" }).required = true;
+                find(associationStack, { as: "tagDocumentTask" }).required = true;
             } else {
-                _.find(associationStack, { as: "tagDocumentTask" }).required = false;
+                find(associationStack, { as: "tagDocumentTask" }).required = false;
             }
 
             /* Filter request */
             if (typeof queryString.uploadedBy !== "undefined" && queryString.uploadedBy !== "") {
-                _.find(associationStack, { as: "user" }).where = {
+                find(associationStack, { as: "user" }).where = {
                     [Op.or]: [{ firstName: { [Op.like]: `%${queryString.uploadedBy}%` } }, { lastName: { [Op.like]: `%${queryString.uploadedBy}%` } }]
                 };
-                _.find(associationStack, { as: "user" }).required = true;
+                find(associationStack, { as: "user" }).required = true;
             } else {
-                delete _.find(associationStack, { as: "user" }).required;
-                delete _.find(associationStack, { as: "user" }).where;
+                delete find(associationStack, { as: "user" }).required;
+                delete find(associationStack, { as: "user" }).where;
             }
 
             /* Get all documents that are link to the project */
@@ -237,15 +158,15 @@ exports.get = {
                     isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && tagDocumentObj.document_starred.length > 0 ? tagDocumentObj.document_starred[0].isActive : 0,
                     isRead: tagDocumentObj.document_read.length > 0 ? 1 : 0
                 };
-                return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask", "tagDocumentNotes");
+                return omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask", "tagDocumentNotes");
             });
 
             const documentPaginationCount = {
                 total_count: count,
-                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(count / limit) } : {})
+                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: count > 0 ? toNumber(queryString.page) : 0, last_page: ceil(count / limit) } : {})
             }
-            const results = { count: documentPaginationCount, result: documentResult };
 
+            const results = { count: documentPaginationCount, result: documentResult };
             cb({ status: true, data: results });
 
         } catch (error) {
@@ -253,347 +174,194 @@ exports.get = {
         }
 
     },
-    getById: (req, cb) => {
-        const id = req.params.id;
-        const queryString = req.query;
-        const whereObj = {
-            ...(typeof id !== "undefined" && id !== "" ? { id: id } : {})
-        };
-
-        Document.findOne({
-            where: whereObj,
-            include: associationFindAllStack
-        }).then(res => {
-            const documentObj = res.toJSON();
-            let resToReturn = {
-                ...documentObj,
-                tagWorkstream: documentObj.tagDocumentWorkstream.map(e => {
-                    return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
-                }),
-                tagTask: documentObj.tagDocumentTask.map(e => {
-                    return { value: e.tagTask.id, label: e.tagTask.task };
-                }),
-                tagNote: documentObj.tagDocumentNotes.map(e => {
-                    return { value: e.TagNotes.id, label: e.TagNotes.note };
-                }),
-                isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && documentObj.document_starred.length > 0 ? documentObj.document_starred[0].isActive : 0,
-                isRead: documentObj.document_read.length > 0 ? 1 : 0
-            };
-            cb({ status: true, data: resToReturn });
-        });
-    },
-    getDocumentCount: (req, cb) => {
-        const queryString = req.query;
-        const documentLinkWhereObj = {
-            ...(typeof queryString.linkId != "undefined" && queryString.linkId != "" ? { linkId: queryString.linkId } : {}),
-            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "" ? { linkType: queryString.linkType } : {})
-        };
-        let documentWhereObj = {
-            ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : {}),
-            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: queryString.isCompleted } : {}),
-            ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {})
-        };
-        if (typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") {
-            documentWhereObj = {
-                ...documentWhereObj,
-                [Op.or]: {
-                    ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != ""
-                        ? {
-                            [Op.or]: [
-                                {
-                                    id: {
-                                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
-                                    }
-                                }
-                            ]
-                        }
-                        : {}),
-                    uploadedBy: queryString.userId
-                }
-            };
-        }
-
+    getWorkstreamDocument: async (req, cb) => {
         try {
-            DocumentLink.findAndCountAll({
-                where: documentLinkWhereObj,
-                include: [
-                    {
-                        model: Document,
-                        as: "document",
-                        where: documentWhereObj,
-                        include: associationFindAllStack
+            const queryString = req.query;
+            const limit = 10;
+
+            const options = {
+                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * toNumber(queryString.page) - limit, limit } : {}),
+                order: [["dateAdded", "DESC"]]
+            };
+
+            let documentWhereObj = {
+                ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
+                ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
+                ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
+                ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
+                ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
+                ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
+            };
+
+            const tagWhereObj = {
+                ...(typeof queryString.tagType != "undefined" && queryString.tagType != "" ? { tagType: queryString.tagType } : {}),
+                ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != ""
+                    ? {
+                        [Op.or]: [
+                            {
+                                linkId: {
+                                    [Op.in]: Sequelize.literal(`(SELECT id FROM task where workstreamId = ${queryString.workstreamId} AND id = ${typeof queryString.taskId != "undefined" ? queryString.taskId : !null} )`)
+                                },
+                                linkType: "task"
+                            },
+                            {
+                                linkId: queryString.workstreamId,
+                                linkType: "workstream"
+                            }
+                        ]
                     }
-                ]
-            }).then(res => {
-                cb({ status: true, data: { count: res.count } });
-            });
-        } catch (err) {
-            cb({ status: false, error: err });
+                    : {})
+            };
+
+            if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
+                find(documentIncludes(), { as: "document_starred" }).where = {
+                    linkType: "document",
+                    isActive: 1,
+                    isDeleted: 0,
+                    usersId: queryString.starredUser
+                };
+            }
+
+            const results = await getDocumentWorkstream({ tagWhereObj, documentWhereObj, options, starredUser: queryString.stqueryString, page: queryString.page });
+            cb({ status: true, data: results });
+
+        } catch (error) {
+            cb({ status: false, error: error });
         }
     },
-    getTaggedDocument: (req, cb) => {
-        const queryString = req.query;
+    getTaskDocument: async (req, cb) => {
+        try {
+            const queryString = req.query;
+            const limit = 10;
+
+            const options = {
+                ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * toNumber(queryString.page) - limit, limit } : {}),
+                order: [["dateAdded", "DESC"]]
+            };
+            let documentWhereObj = {
+                ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
+                ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
+                ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
+                ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
+                ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
+                ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
+                ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
+            };
+
+            const tagWhereObj = {
+                ...(typeof queryString.linkType != "undefined" && queryString.linkType != "" ? { linkType: queryString.linkType } : {}),
+                ...(typeof queryString.linkId != "undefined" && queryString.linkId != "" ? { linkId: parseInt(queryString.linkId) } : {})
+            };
+
+            const results = await getDocumentWorkstream({ tagWhereObj, documentWhereObj, options, starredUser: queryString.stqueryString, page: queryString.page });
+            cb({ status: true, data: results });
+        } catch (error) {
+            cb({ status: false, error: error });
+        }
+    },
+    getDocumentActivityLog: async (req, cb) => {
         const limit = 10;
+        const queryString = req.query;
 
-        const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
-            order: [["dateAdded", "DESC"]]
-        };
+        const documentActivityLogIncludes = [
+            {
+                model: Users,
+                as: "user"
+            },
+            {
+                model: Document,
+                as: "document",
+                attributes: ["id", "origin", "documentNameCount"]
+            }
+        ];
 
-        let documentWhereObj = {
-            ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
-            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
-            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
-            ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
-        };
-
-        const tagWhereObj = {
-            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "" ? { tagType: queryString.tagType } : {}),
-            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != ""
+        let whereObj = {
+            ...(typeof queryString.projectId !== "undefined" && queryString.projectId !== "" ? { projectId: queryString.projectId } : {}),
+            ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != ""
                 ? {
                     [Op.or]: [
                         {
                             linkId: {
-                                [Op.in]: Sequelize.literal(`(SELECT id FROM task where workstreamId = ${queryString.workstreamId} AND id = ${typeof queryString.taskId != "undefined" ? queryString.taskId : !null} )`)
-                            },
-                            linkType: "task"
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
+                            }
                         },
                         {
-                            linkId: queryString.workstreamId,
-                            linkType: "workstream"
+                            linkId: {
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
+                            }
+                        },
+                        {
+                            linkId: {
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document WHERE uploadedBy = ${queryString.userId})`)
+                            }
                         }
                     ]
+                }
+                : {}),
+            ...(typeof queryString.search !== "undefined" && queryString.search !== ""
+                ? {
+                    [Op.or]: [{ new: { [Op.like]: `%${queryString.search}%` } }, { old: { [Op.like]: `%${queryString.search}%` } }]
                 }
                 : {})
         };
 
-        if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
-            _.find(associationFindAllStack, { as: "document_starred" }).where = {
-                linkType: "document",
-                isActive: 1,
-                isDeleted: 0,
-                usersId: queryString.starredUser
+        if (typeof queryString.uploadedBy !== "undefined" && queryString.uploadedBy !== "") {
+            _.find(documentActivityLogIncludes, { as: "user" }).where = {
+                [Op.or]: [{ emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } }]
             };
+            _.find(documentActivityLogIncludes, { as: "user" }).required = true;
+        } else {
+            delete _.find(documentActivityLogIncludes, { as: "user" }).required;
+            delete _.find(documentActivityLogIncludes, { as: "user" }).where;
         }
 
-        sequence
-            .create()
-            .then(nextThen => {
-                Tag.findAll({
-                    where: tagWhereObj,
-                    logging: true
-                })
-                    .map(res => {
-                        return res.tagTypeId;
-                    })
-                    .then(res => {
-                        nextThen(res);
-                    });
-            })
-            .then((nextThen, result) => {
-                async.parallel(
-                    {
-                        count: parallelCallback => {
-                            try {
-                                Document.findAndCountAll({
-                                    where: { ...documentWhereObj, id: result },
-                                    include: associationFindAllStack,
-                                    ...options
-                                }).then(res => {
-                                    const pageData = {
-                                        total_count: res.count,
-                                        ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
-                                    };
-                                    parallelCallback(null, pageData);
-                                });
-                            } catch (err) {
-                                parallelCallback(err);
-                            }
-                        },
-                        result: parallelCallback => {
-                            try {
-                                Document.findAll({
-                                    where: { ...documentWhereObj, id: result },
-                                    include: associationFindAllStack,
-                                    ...options
-                                })
-                                    .map(res => {
-                                        const tagTaskArray = res.tagDocumentTask
-                                            .map(e => {
-                                                if (e.tagTask) {
-                                                    return { value: e.tagTask.id, label: e.tagTask.task };
-                                                }
-                                                return;
-                                            })
-                                            .filter(e => {
-                                                return e;
-                                            });
-                                        let resToReturn = {
-                                            ...res.toJSON(),
-                                            tagWorkstream: res.tagDocumentWorkstream.map(e => {
-                                                return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
-                                            }),
-                                            tagTask: tagTaskArray.length ? tagTaskArray : [],
-                                            tagNote: res.tagDocumentNotes.map(e => {
-                                                return { value: e.TagNotes.id, label: e.TagNotes.note };
-                                            }),
-                                            isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document_starred.length > 0 ? res.document_starred[0].isActive : 0,
-                                            isRead: res.document_read.length > 0 ? 1 : 0
-                                        };
-                                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask");
-                                    })
-                                    .then(res => {
-                                        parallelCallback(null, res);
-                                    });
-                            } catch (err) {
-                                parallelCallback(err);
-                            }
-                        }
-                    },
-                    (err, results) => {
-                        if (err != null) {
-                            cb({ status: false, error: err });
-                        } else {
-                            cb({ status: true, data: results });
-                        }
-                    }
-                );
-            });
-    },
-    getFiles: (req, cb) => {
-        const queryString = req.query;
-        const limit = 10;
-
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
+            ...(typeof queryString !== "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
             order: [["dateAdded", "DESC"]]
         };
-        let documentWhereObj = {
-            ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
-            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
-            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
-            ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
-            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {})
-        };
 
-        const tagWhereObj = {
-            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "" ? { linkType: queryString.linkType } : {}),
-            ...(typeof queryString.linkId != "undefined" && queryString.linkId != "" ? { linkId: parseInt(queryString.linkId) } : {})
-        };
-        const documentLinkWhereObj = {
-            linkType: "project",
-            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { linkId: parseInt(queryString.projectId) } : {})
-        };
-
-        sequence
-            .create()
-            .then(nextThen => {
-                try {
-                    DocumentLink.findAll({ where: { ...documentLinkWhereObj } })
-                        .map(res => {
-                            return res.documentId;
-                        })
-                        .then(res => {
-                            nextThen(res);
+        async.parallel(
+            {
+                result: parallelCallback => {
+                    try {
+                        ActivityLogsDocument.findAll({
+                            ...options,
+                            where: whereObj,
+                            include: documentActivityLogIncludes
+                        }).then(res => {
+                            parallelCallback(null, res);
                         });
-                } catch (err) {
-                    cb({ status: false, error: err });
-                }
-            })
-            .then((nextThen, result) => {
-                try {
-                    Tag.findAll({
-                        where: { ...tagWhereObj },
-                        logging: true
-                    })
-                        .map(res => {
-                            return res.tagTypeId;
-                        })
-                        .then(res => {
-                            const documentId = result.filter(e => {
-                                return res.indexOf(e) < 0;
-                            });
-                            nextThen(documentId);
-                        });
-                } catch (err) {
-                    cb({ status: false, error: err });
-                }
-            })
-            .then((nextThen, result) => {
-                async.parallel(
-                    {
-                        count: parallelCallback => {
-                            try {
-                                Document.findAndCountAll({
-                                    where: { ...documentWhereObj, id: result },
-                                    include: associationFindAllStack,
-                                    ...options
-                                }).then(res => {
-                                    const pageData = {
-                                        total_count: res.count,
-                                        ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
-                                    };
-                                    parallelCallback(null, pageData);
-                                });
-                            } catch (err) {
-                                parallelCallback(err);
-                            }
-                        },
-                        result: parallelCallback => {
-                            try {
-                                Document.findAll({
-                                    where: { ...documentWhereObj, id: result },
-                                    include: associationFindAllStack,
-                                    ...options
-                                })
-                                    .map(res => {
-                                        const tagTaskArray = res.tagDocumentTask
-                                            .map(e => {
-                                                if (e.tagTask) {
-                                                    return { value: e.tagTask.id, label: e.tagTask.task };
-                                                }
-                                                return;
-                                            })
-                                            .filter(e => {
-                                                return e;
-                                            });
-                                        let resToReturn = {
-                                            ...res.toJSON(),
-                                            tagWorkstream: res.tagDocumentWorkstream.map(e => {
-                                                return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
-                                            }),
-                                            tagTask: tagTaskArray.length ? tagTaskArray : [],
-                                            tagNote: res.tagDocumentNotes.map(e => {
-                                                return { value: e.TagNotes.id, label: e.TagNotes.note };
-                                            }),
-                                            isStarred: typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "" && res.document_starred.length > 0 ? res.document_starred[0].isActive : 0,
-                                            isRead: res.document_read.length > 0 ? 1 : 0
-                                        };
-                                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask");
-                                    })
-                                    .then(res => {
-                                        parallelCallback(null, res);
-                                    });
-                            } catch (err) {
-                                parallelCallback(err);
-                            }
-                        }
-                    },
-                    (err, results) => {
-                        if (err != null) {
-                            cb({ status: false, error: err });
-                        } else {
-                            cb({ status: true, data: results });
-                        }
+                    } catch (err) {
+                        cb({ status: false, error: err });
                     }
-                );
-            });
+                },
+                count: parallelCallback => {
+                    ActivityLogsDocument.findAndCountAll({
+                        ...options,
+                        where: whereObj,
+                        include: [
+                            {
+                                model: Users,
+                                as: "user"
+                            }
+                        ]
+                    }).then(res => {
+                        const pageData = {
+                            total_count: res.count,
+                            ...(typeof queryString.page !== "undefined" && queryString.page !== "" ? { current_page: res.count > 0 ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {})
+                        };
+                        parallelCallback(null, pageData);
+                    });
+                }
+            },
+            (err, results) => {
+                if (err) {
+                    cb({ status: false, error: err });
+                } else {
+                    cb({ status: true, data: results });
+                }
+            }
+        );
     }
 };
 
@@ -636,6 +404,7 @@ exports.post = {
     },
     upload: (req, cb) => {
         let formidable = global.initRequire("formidable")
+        const func = global.initFunc();
         let form = new formidable.IncomingForm();
         let filenameList = [],
             files = [],
@@ -695,15 +464,15 @@ exports.post = {
         // parse the incoming request containing the form data
         form.parse(req);
     },
-    read: (req, cb) => {
-        let data = req.body;
-        DocumentRead.create({ ...data })
-            .then(res => {
-                cb({ status: true, data: res });
-            })
-            .catch(err => {
-                cb({ status: false, error: err });
-            });
+    read: async (req, cb) => {
+        try {
+            let data = req.body;
+            const documentCreateResult = DocumentRead.create({ ...data })
+
+            cb({ status: true, data: documentCreateResult });
+        } catch (error) {
+            cb({ status: false, error: error });
+        }
     }
 };
 
@@ -713,7 +482,7 @@ exports.put = {
         const id = req.params.id;
         const projectId = body.projectId;
         const usersId = body.usersId;
-        const dataToUpdate = _.omit(body, "usersId", "oldDocument", "newDocument", "projectId", "type", "title", "actionType");
+        const dataToUpdate = omit(body, "usersId", "oldDocument", "newDocument", "projectId", "type", "title", "actionType");
 
         try {
             await Document.update(dataToUpdate, { where: { id: id } });
@@ -729,9 +498,7 @@ exports.put = {
             }]
 
             const documentActivityLogs = await createDocumentActivityLog({ documents: document, projectId, usersId });
-
             cb({ status: true, data: { result: documentFindResult, activityLogs: documentActivityLogs } });
-
 
         } catch (error) {
             cb({ status: false, error: error });
@@ -744,7 +511,7 @@ exports.put = {
             const { projectId, usersId, oldDocument, newDocument, origin } = body;
             const queryString = req.query;
 
-            body = _.omit(body, "projectId", "usersId", "oldDocument", "newDocument", "origin");
+            body = omit(body, "projectId", "usersId", "oldDocument", "newDocument", "origin");
 
             // const documentWhereObj = {
             //     ...(typeof queryString.status != "undefined" && queryString.status != "" ? { status: queryString.status } : {}),
@@ -782,7 +549,6 @@ exports.put = {
 
             /* Document activity logs */
             const documentActivityLogs = await createDocumentActivityLog({ documents, projectId, usersId });
-
             cb({ status: true, data: { result: documentGetResult[0], activityLogs: documentActivityLogs } });
 
         } catch (error) {
@@ -794,7 +560,7 @@ exports.put = {
             let body = req.body;
             const { usersId, oldDocument, newDocument, projectId, type } = { ...body };
             const id = req.params.id;
-            body = _.omit(body, "usersId", "oldDocument", "newDocument", "projectId");
+            body = omit(body, "usersId", "oldDocument", "newDocument", "projectId");
 
             const documentCheckDuplicateResult = Document.findAll({
                 where: {
@@ -813,7 +579,7 @@ exports.put = {
 
             /* Update document */
             await Document.update({ ...body }, { where: { id: id } });
-            
+
             /* Get document by id */
             const documentGetResult = await getDocumentById({ documentIds: id });
 
@@ -829,148 +595,78 @@ exports.put = {
 
             /* Document activity logs */
             const documentActivityLogs = await createDocumentActivityLog({ documents, projectId, usersId });
-
             cb({ status: true, data: { result: documentGetResult[0], activityLogs: documentActivityLogs } });
+
         } catch (error) {
             cb({ status: false, message: error });
         }
     },
-    empty: (req, cb) => {
-        const id = req.body.documentIds;
-        const body = req.body.data;
-
+    empty: async (req, cb) => {
         try {
-            Document.update(body, { where: { id: id } }).then(res => {
-                cb({ status: true });
-            });
+            const id = req.body.documentIds;
+            const body = req.body.data;
+
+            await Document.update(body, { where: { id: id } });
+            cb({ status: true });
+
         } catch (err) {
             cb({ status: false, message: err });
         }
     },
-    bulkUpdate: (req, cb) => {
-        const body = req.body.data;
-        const actionType = body.actionType;
-        const usersId = body.usersId;
-        const folder = body.folder;
-        const projectId = body.projectId;
-        const ids = req.body.documentIds;
+    bulkUpdate: async (req, cb) => {
+        try {
+            const body = req.body.data;
+            const { actionType, projectId, usersId } = { ...body };
+            const documentIds = req.body.documentIds;
 
-        sequence.create().then(() => {
-            try {
-                Document.update(body, { where: { id: ids } }).then(res => {
-                    try {
-                        DocumentLink.findAll({
-                            where: { documentId: ids },
-                            include: [
-                                {
-                                    model: Document,
-                                    as: "document",
-                                    include: associationFindAllStack
-                                }
-                            ]
-                        }).then(findRes => {
-                            async.parallel(
-                                {
-                                    result: parallelCallback => {
-                                        async.map(
-                                            findRes,
-                                            (f, mapCallback) => {
-                                                const documentObj = f.document.toJSON();
-                                                let returnDocumentObj = {
-                                                    ...documentObj,
-                                                    tagWorkstream: documentObj.tagDocumentWorkstream.map(e => {
-                                                        return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream };
-                                                    }),
-                                                    tagTask: documentObj.tagDocumentTask.map(e => {
-                                                        return { value: e.tagTask.id, label: e.tagTask.task };
-                                                    }),
-                                                    tagNote: documentObj.tagDocumentNotes.map(e => {
-                                                        return { value: e.TagNotes.id, label: e.TagNotes.note };
-                                                    }),
-                                                    isRead: documentObj.document_read.length > 0 ? 1 : 0
-                                                };
-                                                mapCallback(null, _.omit(returnDocumentObj, "tagDocumentWorkstream", "tagDocumentTask"));
-                                            },
-                                            (err, mapCallbackResult) => {
-                                                parallelCallback(null, { data: mapCallbackResult });
-                                            }
-                                        );
-                                    },
-                                    activityLogsDocument: parallelCallback => {
-                                        async.map(
-                                            findRes,
-                                            (f, mapCallback) => {
-                                                const documentObj = f.document.toJSON();
-                                                const logData = {
-                                                    linkType: "document",
-                                                    linkId: documentObj.id,
-                                                    projectId: projectId,
-                                                    actionType: actionType,
-                                                    title: actionType === "moved" ? `moved a document` : "",
-                                                    new: documentObj.origin,
-                                                    usersId: usersId,
-                                                    old: ""
-                                                };
-                                                mapCallback(null, logData);
-                                            },
-                                            (err, mapCallbackResult) => {
-                                                ActivityLogsDocument.bulkCreate(mapCallbackResult).then(c => {
-                                                    ActivityLogsDocument.findAll({
-                                                        where: { id: ids },
-                                                        include: [
-                                                            {
-                                                                model: Users,
-                                                                as: "user"
-                                                            }
-                                                        ]
-                                                    }).then(findRes => {
-                                                        parallelCallback(null, findRes);
-                                                    });
-                                                });
-                                            }
-                                        );
-                                    }
-                                },
-                                (err, { result, activityLogsDocument }) => {
-                                    if (err) {
-                                        cb({ status: false, error: err });
-                                    } else {
-                                        cb({ status: true, data: { result: result.data, activityLogs: activityLogsDocument } });
-                                    }
-                                }
-                            );
-                        });
-                    } catch (err) {
-                        parallelCallback(err);
-                    }
-                });
-            } catch (err) {
-                cb({ status: false, error: err });
-            }
-        });
+            await Document.update(body, { where: { id: documentIds } });
+
+            const result = await getDocumentById({ documentIds });
+
+            const activityLogsData = result.map((documentObj) => {
+                const logData = {
+                    linkType: "document",
+                    linkId: documentObj.id,
+                    projectId: projectId,
+                    actionType: actionType,
+                    title: actionType === "moved" ? `moved a document` : "",
+                    new: documentObj.origin,
+                    usersId: usersId,
+                    old: ""
+                };
+                return logData;
+            })
+
+            const documentActivityLogs = await createDocumentActivityLog({ documents: activityLogsData, projectId, usersId });
+
+            cb({ status: true, data: { result: result, activityLogs: documentActivityLogs } });
+        } catch (error) {
+            cb({ status: false, error: error });
+        }
     }
 };
 
 exports.delete = {
-    index: (req, cb) => {
-        const id = req.params.id;
+    index: async (req, cb) => {
         try {
-            Document.update({ isDeleted: 1 }, { where: { id: id } }).then(res => {
-                cb({ status: true, data: res });
-            });
-        } catch (err) {
-            cb({ status: false, error: err });
+            const id = req.params.id;
+            const documentUpdateResult = await Document.update({ isDeleted: 1 }, { where: { id: id } })
+            cb({ status: true, data: documentUpdateResult });
+        } catch (error) {
+            cb({ status: false, error: error });
         }
     },
-    read: (req, cb) => {
-        const queryString = req.query;
-        const whereObj = {
-            ...(queryString.usersId ? { usersId: queryString.usersId } : {}),
-            ...(queryString.documentId ? { documentId: queryString.documentId } : {})
-        };
-
-        DocumentRead.destroy({ where: { ...whereObj } }).then(() => {
+    read: async (req, cb) => {
+        try {
+            const queryString = req.query;
+            const whereObj = {
+                ...(queryString.usersId ? { usersId: queryString.usersId } : {}),
+                ...(queryString.documentId ? { documentId: queryString.documentId } : {})
+            };
+            await DocumentRead.destroy({ where: { ...whereObj } });
             cb({ status: true });
-        });
+        } catch (error) {
+            cb({ status: false, error: error });
+        }
     }
 };

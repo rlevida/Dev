@@ -35,7 +35,7 @@ class WorkstreamDocument extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, project, workstream_id } = this.props;
         getData(
-            `/api/document/getTaggedDocument?folderId=null&isActive=1&isDeleted=0&projectId=${project.Selected.id}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${
+            `/api/document/getWorkstreamDocument?folderId=null&isActive=1&isDeleted=0&projectId=${project.Selected.id}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${
                 loggedUser.data.userType
             }&workstreamId=${workstream_id}&tagType=document&starredUser=${loggedUser.data.id}&type=document&isArchived=0`,
             {},

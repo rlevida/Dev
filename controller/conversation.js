@@ -156,46 +156,46 @@ exports.get = {
             ...(typeof queryString.workstreamId !== "undefined" && queryString.workstreamId !== "" ? { workstreamId: queryString.workstreamId } : {}),
             ...(typeof queryString.title !== "undefined" && queryString.title !== "undefined"
                 ? {
-                      [Op.or]: [
-                          {
-                              [Op.and]: [
-                                  {
-                                      [Sequelize.Op.or]: [
-                                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
-                                              [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
-                                          })
-                                      ]
-                                  },
-                                  {
-                                      id: _.map(taggedUser, ({ tagTypeId }) => {
-                                          return tagTypeId;
-                                      })
-                                  }
-                              ]
-                          },
-                          {
-                              [Op.and]: [
-                                  {
-                                      id: {
-                                          [Sequelize.Op.in]: Sequelize.literal(conversationQuery)
-                                      }
-                                  },
-                                  {
-                                      id: {
-                                          [Sequelize.Op.in]: Sequelize.literal(taggedUserQuery)
-                                      }
-                                  }
-                              ]
-                          }
-                      ]
-                  }
+                    [Op.or]: [
+                        {
+                            [Op.and]: [
+                                {
+                                    [Sequelize.Op.or]: [
+                                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
+                                            [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
+                                        })
+                                    ]
+                                },
+                                {
+                                    id: _.map(taggedUser, ({ tagTypeId }) => {
+                                        return tagTypeId;
+                                    })
+                                }
+                            ]
+                        },
+                        {
+                            [Op.and]: [
+                                {
+                                    id: {
+                                        [Sequelize.Op.in]: Sequelize.literal(conversationQuery)
+                                    }
+                                },
+                                {
+                                    id: {
+                                        [Sequelize.Op.in]: Sequelize.literal(taggedUserQuery)
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
                 : {}),
             ...(typeof queryString.userId && queryString.userId != "" && !queryString.message
                 ? {
-                      id: _.map(taggedUser, ({ tagTypeId }) => {
-                          return tagTypeId;
-                      })
-                  }
+                    id: _.map(taggedUser, ({ tagTypeId }) => {
+                        return tagTypeId;
+                    })
+                }
                 : {})
         };
         if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
@@ -226,7 +226,7 @@ exports.get = {
 
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Notes.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -240,7 +240,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Notes.findAll({
                             ...options,
@@ -261,7 +261,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -307,12 +307,12 @@ exports.get = {
             ...(typeof queryString.workstreamId !== "undefined" && queryString.workstreamId !== "" ? { workstreamId: queryString.workstreamId } : {}),
             ...(typeof queryString.title != "undefined" && queryString.title != ""
                 ? {
-                      [Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
-                              [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
-                          })
-                      ]
-                  }
+                    [Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("notes.note")), {
+                            [Op.like]: sequelize.fn("lower", `%${queryString.title}%`)
+                        })
+                    ]
+                }
                 : {})
         };
 
@@ -418,7 +418,7 @@ exports.get = {
 
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Conversation.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -432,7 +432,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Conversation.findAll({
                             where: whereObj,
@@ -449,7 +449,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -507,10 +507,10 @@ exports.post = {
         let bodyField = "";
 
         form.multiples = true;
-        form.on("field", function(name, field) {
+        form.on("field", function (name, field) {
             bodyField = field;
         })
-            .on("file", function(field, file) {
+            .on("file", function (field, file) {
                 const date = new Date();
                 const id = func.generatePassword(date.getTime() + file.name, "attachment");
                 const filename = id + file.name.replace(/[^\w.]|_/g, "_");
@@ -982,7 +982,7 @@ exports.post = {
                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                 html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                     global.site_url
-                                                                                }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
+                                                                                    }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
                                                                                 const mailOptions = {
                                                                                     from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1038,7 +1038,7 @@ exports.post = {
                     }
                 );
             })
-            .on("error", function(err) {
+            .on("error", function (err) {
                 cb({ status: false, error: "Upload error. Please try again later." });
             });
 
@@ -1248,7 +1248,7 @@ exports.post = {
                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
                                                                 html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                     global.site_url
-                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                 const mailOptions = {
@@ -1426,7 +1426,7 @@ exports.post = {
                                                                     html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
                                                                     html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                         global.site_url
-                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                        }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                     html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                     const mailOptions = {
@@ -1640,10 +1640,10 @@ exports.post = {
         let type = "upload";
         let bodyField = "";
         form.multiples = true;
-        form.on("field", function(name, field) {
+        form.on("field", function (name, field) {
             bodyField = field;
         })
-            .on("file", function(field, file) {
+            .on("file", function (field, file) {
                 const date = new Date();
                 const id = func.generatePassword(date.getTime() + file.name, "attachment");
                 const filename = id + file.name.replace(/[^\w.]|_/g, "_");
@@ -2020,7 +2020,7 @@ exports.post = {
                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                 html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                     global.site_url
-                                                                                }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
+                                                                                    }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                 const mailOptions = {
@@ -2037,8 +2037,12 @@ exports.post = {
                                                                             req.app.parent.io.emit("FRONT_COMMENT_LIST", { result: conversationObj, members: memberUser });
                                                                             parallelCallback(null);
                                                                         }
-                                                                    );
-                                                                });
+                                                                        mapCallback(null);
+                                                                },
+                                                                    () => {
+                                                                        parallelCallback(null);
+                                                                    }
+                                                                );
                                                         });
                                                 });
                                         },
@@ -2155,7 +2159,7 @@ exports.post = {
                                                                                     html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                     html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                         global.site_url
-                                                                                    }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
+                                                                                        }account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
                                                                                     html += `<p>Date:<br>${moment().format("LLL")}</p>`;
                                                                                     const mailOptions = {
                                                                                         from: '"no-reply" <no-reply@c_cfo.com>',
@@ -2193,7 +2197,7 @@ exports.post = {
                     }
                 );
             })
-            .on("error", function(err) {
+            .on("error", function (err) {
                 cb({ status: false, error: "Upload error. Please try again later." });
             });
 
