@@ -3,10 +3,8 @@ import moment from "moment";
 import mime from "mime-types";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
-import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from "../../../globalFunction";
+import { getFilePathExtension, putData, showToast, postData } from "../../../globalFunction";
 import DocumentComment from "../comment/";
-
-var delayTimer = "";
 
 @connect(store => {
     return {
@@ -30,7 +28,7 @@ class DocumentViewerComponent extends React.Component {
             mentions: [],
             reminderList: []
         };
-        _.map(["downloadDocument", "handleOnChange", "deleteDocument", "printDocument", "downloadDocument", "starredDocument"], fn => {
+        _.map(["downloadDocument", "handleOnChange", "deleteDocument", "downloadDocument", "starredDocument"], fn => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -39,9 +37,6 @@ class DocumentViewerComponent extends React.Component {
         const { dispatch } = { ...this.props };
         $("#documentViewerModal").on("hidden.bs.modal", () => {
             const { history } = { ...this.props };
-            if (history.location.search != "") {
-                // history.push(history.location.pathname)
-            }
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
             dispatch({ type: "CLEAR_COMMENT" });
         });
@@ -66,25 +61,6 @@ class DocumentViewerComponent extends React.Component {
                 }
             });
         }
-    }
-
-    printDocument(file) {
-        const dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
-        postData(`/api/document/printDocument`, dataToSubmit, c => {
-            document.getElementById("printDocument").src = `/temp/${c.data}`;
-            setTimeout(() => {
-                document.getElementById("printDocument").contentWindow.print();
-
-                let onFocus = true;
-                window.onfocus = function() {
-                    if (onFocus) {
-                        removeTempFile(c.data, c => {
-                            onFocus = false;
-                        });
-                    }
-                };
-            }, 2000);
-        });
     }
 
     downloadDocument(document) {
