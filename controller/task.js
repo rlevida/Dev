@@ -225,25 +225,40 @@ exports.get = {
         const userRole = req.user.user_role[0].roleId;
         const usersId = req.user.id;
 
+        /* Get all the team id's of user */
+        const userTeamId = await UsersTeam.findAll({ where: { usersId: usersId }, raw: true }).map((usersTeamResponse) => { return usersTeamResponse.teamId });
+
         const associationArray = [
             {
                 model: Projects,
                 as: "task_project",
-                required: true,
+                required: false,
                 where: { isActive: 1 },
                 /* Check if user is a member of project */
-                include: [{
-                    model: Members,
-                    as: "members",
-                    required: true,
-                    where: {
-                        usersType: "users",
-                        linkType: "project",
-                        isDeleted: 0,
-                        ... (userRole > 3 ? { userTypeLinkId: usersId, memberType: 'assignedTo', isDeleted: 0 } : {})
+                include: [
+                    {
+                        model: Members,
+                        as: "members",
+                        required: true,
+                        where: {
+                            linkType: "project",
+                            isDeleted: 0,
+                            ... (userRole > 3
+                                ? {
+                                    [Op.or]: [
+                                        { userTypeLinkId: usersId, memberType: 'assignedTo', usersType: "users" },
+                                        { userTypeLinkId: userTeamId, memberType: 'assignedTo', usersType: "team" }
+                                    ]
+                                }
+                                : {
+                                    usersType: "users",
+                                    linkType: "project",
+                                })
+                        },
+                        attributes: []
                     },
-                    attributes: ["userTypeLinkId", "memberType"]
-                }]
+
+                ]
             },
             {
                 model: Members,
