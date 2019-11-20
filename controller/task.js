@@ -222,12 +222,28 @@ const associationStack = [
 
 exports.get = {
     index: async (req, cb) => {
+        const userRole = req.user.user_role[0].roleId;
+        const usersId = req.user.id;
+
         const associationArray = [
             {
                 model: Projects,
                 as: "task_project",
                 required: true,
-                where: { isActive: 1 }
+                where: { isActive: 1 },
+                /* Check if user is a member of project */
+                include: [{
+                    model: Members,
+                    as: "members",
+                    required: true,
+                    where: {
+                        usersType: "users",
+                        linkType: "project",
+                        isDeleted: 0,
+                        ... (userRole > 3 ? { userTypeLinkId: usersId, memberType: 'assignedTo', isDeleted: 0 } : {})
+                    },
+                    attributes: ["userTypeLinkId", "memberType"]
+                }]
             },
             {
                 model: Members,
@@ -351,7 +367,7 @@ exports.get = {
                         attributes: ["id", "color", "project"]
                     }
                 ]
-            }
+            },
         ];
         const queryString = req.query;
         const limit = typeof queryString.limit != "undefined" ? parseInt(queryString.limit) : 10;
@@ -363,7 +379,7 @@ exports.get = {
             if (Array.isArray(queryString.dueDate.value)) {
                 dueDate = _.reduce(
                     queryString.dueDate,
-                    function(obj, values) {
+                    function (obj, values) {
                         const arrValues = JSON.parse(values);
                         obj[Sequelize.Op[arrValues.opt]] = arrValues.value;
                         return obj;
@@ -385,96 +401,96 @@ exports.get = {
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
             ...(typeof queryString.task != "undefined" && queryString.task != ""
                 ? {
-                      [Sequelize.Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("task.task")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.task}%`)
-                          })
-                      ]
-                  }
+                    [Sequelize.Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("task.task")), {
+                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.task}%`)
+                        })
+                    ]
+                }
                 : {}),
             ...(status != ""
                 ? {
-                      status: {
-                          ...(status.opt == "not"
-                              ? {
-                                    [Sequelize.Op.or]: {
-                                        [Sequelize.Op[status.opt]]: status.value,
-                                        [Sequelize.Op.eq]: null
-                                    }
+                    status: {
+                        ...(status.opt == "not"
+                            ? {
+                                [Sequelize.Op.or]: {
+                                    [Sequelize.Op[status.opt]]: status.value,
+                                    [Sequelize.Op.eq]: null
                                 }
-                              : {
-                                    [Sequelize.Op.and]: {
-                                        [Sequelize.Op[status.opt]]: status.value
-                                    }
-                                })
-                      }
-                  }
+                            }
+                            : {
+                                [Sequelize.Op.and]: {
+                                    [Sequelize.Op[status.opt]]: status.value
+                                }
+                            })
+                    }
+                }
                 : {}),
             ...(dueDate != "" && typeof queryString.view == "undefined"
                 ? {
-                      [Sequelize.Op.and]: [
-                          {
-                              dueDate:
-                                  queryString.dueDate == "null"
-                                      ? null
-                                      : {
-                                            ...(dueDate != "" && Array.isArray(dueDate)
+                    [Sequelize.Op.and]: [
+                        {
+                            dueDate:
+                                queryString.dueDate == "null"
+                                    ? null
+                                    : {
+                                        ...(dueDate != "" && Array.isArray(dueDate)
+                                            ? {
+                                                [Sequelize.Op.or]: dueDate
+                                            }
+                                            : dueDate != "" && Array.isArray(dueDate.value)
                                                 ? {
-                                                      [Sequelize.Op.or]: dueDate
-                                                  }
-                                                : dueDate != "" && Array.isArray(dueDate.value)
-                                                ? {
-                                                      [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                                          return moment(o, "YYYY-MM-DD")
-                                                              .utc()
-                                                              .format("YYYY-MM-DD HH:mm");
-                                                      })
-                                                  }
+                                                    [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                                        return moment(o, "YYYY-MM-DD")
+                                                            .utc()
+                                                            .format("YYYY-MM-DD HH:mm");
+                                                    })
+                                                }
                                                 : {
-                                                      [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
-                                                  }),
-                                            [Sequelize.Op.not]: null
-                                        }
-                          },
-                          {
-                              ...(weekDate !== ""
-                                  ? {
-                                        dueDate: {
-                                            [Sequelize.Op.notBetween]: _.map(weekDate.value, o => {
-                                                return moment(o, "YYYY-MM-DD")
-                                                    .utc()
-                                                    .format("YYYY-MM-DD HH:mm");
-                                            })
-                                        }
+                                                    [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
+                                                }),
+                                        [Sequelize.Op.not]: null
                                     }
-                                  : {})
-                          }
-                      ]
-                  }
+                        },
+                        {
+                            ...(weekDate !== ""
+                                ? {
+                                    dueDate: {
+                                        [Sequelize.Op.notBetween]: _.map(weekDate.value, o => {
+                                            return moment(o, "YYYY-MM-DD")
+                                                .utc()
+                                                .format("YYYY-MM-DD HH:mm");
+                                        })
+                                    }
+                                }
+                                : {})
+                        }
+                    ]
+                }
                 : {}),
             ...(typeof queryString.view != "undefined" && queryString.view == "calendar"
                 ? {
-                      [Sequelize.Op.or]: [
-                          {
-                              dueDate: {
-                                  [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                      return moment(o, "YYYY-MM-DD")
-                                          .utc()
-                                          .format("YYYY-MM-DD HH:mm");
-                                  })
-                              }
-                          },
-                          {
-                              startDate: {
-                                  [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                      return moment(o, "YYYY-MM-DD")
-                                          .utc()
-                                          .format("YYYY-MM-DD HH:mm");
-                                  })
-                              }
-                          }
-                      ]
-                  }
+                    [Sequelize.Op.or]: [
+                        {
+                            dueDate: {
+                                [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                    return moment(o, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm");
+                                })
+                            }
+                        },
+                        {
+                            startDate: {
+                                [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                    return moment(o, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm");
+                                })
+                            }
+                        }
+                    ]
+                }
                 : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {})
         };
@@ -624,9 +640,10 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
             order: [["dueDate", "ASC"]]
         };
+
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Tasks.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -640,7 +657,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Tasks.findAll({
                             where: whereObj,
@@ -666,7 +683,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -776,20 +793,20 @@ exports.get = {
                 [
                     models.sequelize.literal(
                         'COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate = "' +
-                            moment(queryString.date, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm") +
-                            '" THEN task.id END)'
+                        moment(queryString.date, "YYYY-MM-DD")
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm") +
+                        '" THEN task.id END)'
                     ),
                     "due_today"
                 ],
                 [
                     models.sequelize.literal(
                         'COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate < "' +
-                            moment(queryString.date, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm") +
-                            '" THEN task.id END)'
+                        moment(queryString.date, "YYYY-MM-DD")
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm") +
+                        '" THEN task.id END)'
                     ),
                     "issues"
                 ]
@@ -846,20 +863,20 @@ exports.get = {
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                            moment(queryString.date, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" THEN task.id END)'
+                                        moment(queryString.date, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" THEN task.id END)'
                                     ),
                                     "issues"
                                 ],
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                            moment(queryString.date, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" THEN task.id END)'
+                                        moment(queryString.date, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" THEN task.id END)'
                                     ),
                                     "due_today"
                                 ]
@@ -901,20 +918,20 @@ exports.get = {
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "issues"
                             ],
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "due_today"
                             ]
@@ -953,20 +970,20 @@ exports.get = {
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "issues"
                             ],
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "due_today"
                             ]
@@ -1009,12 +1026,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1033,12 +1050,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1060,12 +1077,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1148,7 +1165,7 @@ exports.post = {
                     }).then(response => {
                         async.waterfall(
                             [
-                                function(callback) {
+                                function (callback) {
                                     if (typeof body.periodic != "undefined" && body.periodic == 1) {
                                         const taskPromises = _.times(2, o => {
                                             return new Promise(resolve => {
@@ -1160,10 +1177,10 @@ exports.post = {
                                                     dueDate: nextDueDate,
                                                     ...(body.startDate != null && body.startDate != ""
                                                         ? {
-                                                              startDate: moment(body.startDate)
-                                                                  .add(body.periodType, body.periodInstance * (o + 1))
-                                                                  .format("YYYY-MM-DD HH:mm:ss")
-                                                          }
+                                                            startDate: moment(body.startDate)
+                                                                .add(body.periodType, body.periodInstance * (o + 1))
+                                                                .format("YYYY-MM-DD HH:mm:ss")
+                                                        }
                                                         : {}),
                                                     periodTask: newTaskResponse.id
                                                 };
@@ -1190,7 +1207,7 @@ exports.post = {
                                         callback(null, [newTaskResponse]);
                                     }
                                 },
-                                function(newTasksArgs, callback) {
+                                function (newTasksArgs, callback) {
                                     const taskAttrPromises = _.map(newTasksArgs, taskObj => {
                                         return new Promise(resolve => {
                                             async.parallel(
@@ -1340,7 +1357,7 @@ exports.post = {
                                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                                 html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                                     global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                                 const mailOptions = {
@@ -1374,7 +1391,7 @@ exports.post = {
                                         callback(null, newTasksArgs);
                                     });
                                 },
-                                function(newTasksArgs) {
+                                function (newTasksArgs) {
                                     Tasks.findAll({
                                         ...options,
                                         where: {
@@ -1419,7 +1436,7 @@ exports.post = {
                                         });
                                 }
                             ],
-                            function(err, result) {
+                            function (err, result) {
                                 cb({ status: true, data: result.tasks });
                             }
                         );
@@ -1443,7 +1460,7 @@ exports.post = {
         const filesStack = [];
 
         form.multiples = true;
-        form.on("field", function(name, field) {
+        form.on("field", function (name, field) {
             if (name == "userId") {
                 userId = field;
             } else if (name == "tagged") {
@@ -1452,7 +1469,7 @@ exports.post = {
                 taskId = field;
             }
         })
-            .on("file", function(field, file) {
+            .on("file", function (field, file) {
                 const date = new Date();
                 const id = func.generatePassword(date.getTime() + file.name, "attachment");
                 const filename = id + file.name.replace(/[^\w.]|_/g, "_");
@@ -1464,7 +1481,7 @@ exports.post = {
                     filename: filename
                 });
             })
-            .on("end", function() {
+            .on("end", function () {
                 async.map(
                     filesStack,
                     (fileObj, mapCallback) => {
@@ -1667,7 +1684,7 @@ exports.post = {
                                                                                         html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                         html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                             global.site_url
-                                                                                        }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                                            }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                                         html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                         const mailOptions = {
@@ -1730,7 +1747,7 @@ exports.post = {
                                                         status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
 
                                                         const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                                        const objectKeys = _.map(newObject, function(value, key) {
+                                                        const objectKeys = _.map(newObject, function (value, key) {
                                                             return key;
                                                         });
                                                         const bulkActivities = [
@@ -1782,7 +1799,7 @@ exports.post = {
                                         });
                                     });
 
-                                    Promise.all(checklistPromise).then(function(values) {
+                                    Promise.all(checklistPromise).then(function (values) {
                                         ChecklistDocuments.bulkCreate(
                                             _.map(checklistTag, o => {
                                                 return { ..._.omit(o, ["document"]), documentId: o.document.id };
@@ -1963,7 +1980,7 @@ exports.post = {
                     }
                 );
             })
-            .on("error", function(err) {
+            .on("error", function (err) {
                 cb({ status: false, error: "Upload error. Please try again later." });
             });
 
@@ -2061,7 +2078,7 @@ exports.post = {
                                                 status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
 
                                                 const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                                const objectKeys = _.map(newObject, function(value, key) {
+                                                const objectKeys = _.map(newObject, function (value, key) {
                                                     return key;
                                                 });
                                                 const bulkActivities = [
@@ -2113,7 +2130,7 @@ exports.post = {
                                 });
                             });
 
-                            Promise.all(checklistPromise).then(function(values) {
+                            Promise.all(checklistPromise).then(function (values) {
                                 ChecklistDocuments.bulkCreate(
                                     _.map(checklistTag, o => {
                                         return { ..._.omit(o, ["document"]), documentId: o.document.id };
@@ -2324,7 +2341,7 @@ exports.put = {
                                                         })
                                                         .value();
                                                     const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                    const objectKeys = _.map(newObject, function(value, key) {
+                                                    const objectKeys = _.map(newObject, function (value, key) {
                                                         return key;
                                                     });
 
@@ -2333,11 +2350,11 @@ exports.put = {
                                                         ...(_.isEmpty(newObject)
                                                             ? {}
                                                             : {
-                                                                  logs: {
-                                                                      old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                      new: JSON.stringify({ task_details: newObject })
-                                                                  }
-                                                              })
+                                                                logs: {
+                                                                    old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                                    new: JSON.stringify({ task_details: newObject })
+                                                                }
+                                                            })
                                                     });
                                                 };
                                                 if (responseObj.periodic == 0 && body.periodic == 1) {
@@ -2351,10 +2368,10 @@ exports.put = {
                                                                 dueDate: nextDueDate,
                                                                 ...(body.startDate != null && body.startDate != ""
                                                                     ? {
-                                                                          startDate: moment(body.startDate)
-                                                                              .add(body.periodType, body.periodInstance * (o + 1))
-                                                                              .format("YYYY-MM-DD HH:mm:ss")
-                                                                      }
+                                                                        startDate: moment(body.startDate)
+                                                                            .add(body.periodType, body.periodInstance * (o + 1))
+                                                                            .format("YYYY-MM-DD HH:mm:ss")
+                                                                    }
                                                                     : {}),
                                                                 periodTask: responseObj.id
                                                             };
@@ -2437,10 +2454,10 @@ exports.put = {
                                                 dueDate: nextDueDate,
                                                 ...(body.startDate != null && body.startDate != ""
                                                     ? {
-                                                          startDate: moment(body.startDate)
-                                                              .add(body.periodType, body.periodInstance * (index + 1))
-                                                              .format("YYYY-MM-DD HH:mm:ss")
-                                                      }
+                                                        startDate: moment(body.startDate)
+                                                            .add(body.periodType, body.periodInstance * (index + 1))
+                                                            .format("YYYY-MM-DD HH:mm:ss")
+                                                    }
                                                     : {})
                                             };
 
@@ -2465,18 +2482,18 @@ exports.put = {
                                                             .value();
 
                                                         const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                        const objectKeys = _.map(newObject, function(_, key) {
+                                                        const objectKeys = _.map(newObject, function (_, key) {
                                                             return key;
                                                         });
                                                         resolve({
                                                             data: updatedResponse,
                                                             ...(_.isEmpty(newObject) == false
                                                                 ? {
-                                                                      logs: {
-                                                                          old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                          new: JSON.stringify({ task_details: newObject })
-                                                                      }
-                                                                  }
+                                                                    logs: {
+                                                                        old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                                        new: JSON.stringify({ task_details: newObject })
+                                                                    }
+                                                                }
                                                                 : {})
                                                         });
                                                     });
@@ -2603,14 +2620,14 @@ exports.put = {
                                                                                 old:
                                                                                     o.old != "undefined" && _.isEmpty(o.old) == false
                                                                                         ? JSON.stringify({
-                                                                                              [o.type]: o.old
-                                                                                          })
+                                                                                            [o.type]: o.old
+                                                                                        })
                                                                                         : "",
                                                                                 new:
                                                                                     o.new != "undefined" && _.isEmpty(o.new) == false
                                                                                         ? JSON.stringify({
-                                                                                              [o.type]: o.new
-                                                                                          })
+                                                                                            [o.type]: o.new
+                                                                                        })
                                                                                         : "",
                                                                                 actionType: "modified",
                                                                                 usersId: body.userId,
@@ -2732,10 +2749,10 @@ exports.put = {
                                         periodTask: periodTaskId,
                                         ...(latestTaskDate.startDate != null && latestTaskDate.startDate != ""
                                             ? {
-                                                  startDate: moment(latestTaskDate.startDate)
-                                                      .add(latestTaskDate.periodType, latestTaskDate.periodInstance)
-                                                      .format("YYYY-MM-DD HH:mm:ss")
-                                              }
+                                                startDate: moment(latestTaskDate.startDate)
+                                                    .add(latestTaskDate.periodType, latestTaskDate.periodInstance)
+                                                    .format("YYYY-MM-DD HH:mm:ss")
+                                            }
                                             : {}),
                                         status: "In Progress"
                                     };
@@ -2825,7 +2842,7 @@ exports.put = {
                                         .value();
 
                                     const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                    const objectKeys = _.map(newObject, function(value, key) {
+                                    const objectKeys = _.map(newObject, function (value, key) {
                                         return key;
                                     });
 
@@ -2944,7 +2961,7 @@ exports.put = {
                                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                                 html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                                     global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                                 const mailOptions = {
@@ -3098,7 +3115,7 @@ exports.put = {
                                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                                 html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                                     global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                                 const mailOptions = {
@@ -3237,7 +3254,7 @@ exports.put = {
                                                                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                                                 html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
                                                                                                     global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                                                    }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
                                                                                                 html += `<p>Date:<br>${moment().format("LLL")}</p>`;
 
                                                                                                 const mailOptions = {
@@ -3437,7 +3454,7 @@ exports.delete = {
                                         status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
 
                                         const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                        const objectKeys = _.map(newObject, function(value, key) {
+                                        const objectKeys = _.map(newObject, function (value, key) {
                                             return key;
                                         });
                                         const bulkActivities = [
@@ -3485,7 +3502,7 @@ exports.delete = {
                             }
                         });
                     });
-                    Promise.all(checklistPromise).then(function(values) {
+                    Promise.all(checklistPromise).then(function (values) {
                         cb({
                             status: true,
                             data: {

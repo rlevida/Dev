@@ -39,7 +39,7 @@ export default class ProjectMemberForm extends React.Component {
         let result = true;
 
         $("#project-member-form  *").validator("validate");
-        $("#project-member-form .form-group").each(function() {
+        $("#project-member-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -257,7 +257,7 @@ export default class ProjectMemberForm extends React.Component {
                             <input
                                 type="checkbox"
                                 checked={showAllUsers}
-                                onChange={() => {}}
+                                onChange={() => { }}
                                 onClick={f => {
                                     this.setState({ showAllUsers: !showAllUsers }, () => {
                                         dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });

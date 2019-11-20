@@ -328,7 +328,7 @@ exports.get = {
 
                                 let projectManagerId = "";
 
-                                if (responseObj.members.length > 0) {
+                                if (responseObj.members) {
                                     projectManagerId = responseObj.members.filter(e => {
                                         return e.memberType === "project manager";
                                     })[0].userTypeLinkId;
@@ -1372,6 +1372,7 @@ exports.post = {
                         }
                     ],
                     function (err, result) {
+                        console.log(result)
                         if (err != null) {
                             cb({
                                 status: false,

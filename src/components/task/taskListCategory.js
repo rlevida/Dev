@@ -389,6 +389,7 @@ export default class TaskListCategory extends React.Component {
         const currentPage = typeof count.current_page != "undefined" ? count.current_page : 1;
         const lastPage = typeof count.last_page != "undefined" ? count.last_page : 1;
         const taskList = this.groupList();
+        console.log(taskList)
         return (
             <div>
                 <div class="card-header">
