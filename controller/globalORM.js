@@ -1,24 +1,14 @@
-const Sequelize = require("sequelize");
 const async = require("async");
-const Op = Sequelize.Op;
 const _ = require("lodash")
 const models = require('../modelORM');
 
 const {
-    Document,
-    DocumentLink,
     Members,
-    Project,
-    Share,
-    Tag,
-    Tasks,
     Teams,
-    Type,
     Users,
     UsersTeam,
     UsersRole,
     Roles,
-    Workstream,
 } = models;
 
 exports.get = {
