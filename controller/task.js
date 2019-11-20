@@ -241,13 +241,13 @@ exports.get = {
                         as: "members",
                         required: true,
                         where: {
-                            linkType: "project",
                             isDeleted: 0,
                             ... (userRole > 3
                                 ? {
                                     [Op.or]: [
-                                        { userTypeLinkId: usersId, memberType: 'assignedTo', usersType: "users" },
-                                        { userTypeLinkId: userTeamId, memberType: 'assignedTo', usersType: "team" }
+                                        { userTypeLinkId: usersId, memberType: 'assignedTo', usersType: "users", linkType: "project" },
+                                        { userTypeLinkId: userTeamId, memberType: 'assignedTo', usersType: "team", linkType: "project" },
+                                        { userTypeLinkId: usersId, memberType: "assignedTo", usersType: "users", linkType: "task" }
                                     ]
                                 }
                                 : {
