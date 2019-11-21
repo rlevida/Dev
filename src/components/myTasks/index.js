@@ -22,6 +22,7 @@ export default class Component extends React.Component {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         this.resetSelected();
+        window.stop();
     }
 
     componentDidMount() {

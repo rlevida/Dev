@@ -32,6 +32,10 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
 
+    componentWillUnmount(){
+        window.stop();
+    }
+
     handleChange(e) {
         const { dispatch } = this.props;
         dispatch({ type: "SET_COMMENT_LIST", list: [] });
