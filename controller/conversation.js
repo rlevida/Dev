@@ -2036,13 +2036,9 @@ exports.post = {
                                                                         () => {
                                                                             req.app.parent.io.emit("FRONT_COMMENT_LIST", { result: conversationObj, members: memberUser });
                                                                             parallelCallback(null);
-                                                                        }
-                                                                        mapCallback(null);
-                                                                },
-                                                                    () => {
-                                                                        parallelCallback(null);
-                                                                    }
-                                                                );
+                                                                        })
+
+                                                                })
                                                         });
                                                 });
                                         },

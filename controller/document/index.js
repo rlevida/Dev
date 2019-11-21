@@ -174,6 +174,15 @@ exports.get = {
         }
 
     },
+    getById: async (req, cb) => {
+        try {
+            const id = req.params.id;
+            const result = await getDocumentById({ documentIds: id });
+            cb({ status: true, data: result[0] });
+        } catch (error) {
+            cb({ status: true, message: error })
+        }
+    },
     getWorkstreamDocument: async (req, cb) => {
         try {
             const queryString = req.query;
@@ -375,8 +384,12 @@ exports.post = {
             const usersId = data.usersId
             const isDuplicate = req.query.isDuplicate;
 
+            const documents = data.DocumentToSave.filter((documentObj) => {
+                return documentObj.name && documentObj.origin && documentObj.project && documentObj.status && documentObj.type
+            })
+
             /* Create Document */
-            const documentBulkCreateResult = await createDocument({ documents: data.DocumentToSave, folderId, projectId });
+            const documentBulkCreateResult = await createDocument({ documents: documents, folderId, projectId });
 
             /* Document tags */
             if (typeof data.tagWorkstream !== "undefined") {
@@ -399,6 +412,7 @@ exports.post = {
             cb({ status: true, data: { result: result, activityLogs: documentActivityLogs } });
 
         } catch (error) {
+            console.log(error)
             cb({ status: false, error: error })
         }
     },

@@ -5,9 +5,10 @@ const { uniqBy } = require("lodash")
 const Op = Sequelize.Op;
 const { Tasks, Members, Users, UsersNotificationSetting, Notification } = models;
 const { notificationIncludes } = require("../../includes/notification");
+const moment = require("moment");
 
-const notificationTemplate = global.notificationEmailTemplate();
-const func = global.initFunc();
+// const notificationTemplate = global.notificationEmailTemplate();
+// const func = global.initFunc();
 
 module.exports = async (params) => {
     const { documents, tagWorkstream, usersId, projectId, req } = { ...params }
@@ -97,6 +98,7 @@ module.exports = async (params) => {
         })
         return taskWorkstreamMmbemrNotification
     })
+
     workstreamNotificationBulkCreateData = uniqBy(findWorkstreamMemberResult.flat(), "usersId");
 
     /* Notification */
@@ -122,15 +124,29 @@ module.exports = async (params) => {
     })
 
     findNotificationResult.forEach((notificationObj, ) => {
-        const { notification_setting, to } = { ...notificationObj }
+        const { notification_setting, to, message } = { ...notificationObj }
         const { receiveEmail } = { ...notification_setting }
 
         if (receiveEmail) {
-            const htmlBody = notificationTemplate.fileUploadEmailNotification(notificationObj);
-            const mailOptions = func.MailOptions({ to: to.emailAddress, subject: "New files were uploaded", html: htmlBody, });
+
+            let html = "<p>" + message + "</p>";
+            html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
+            html += "<p>Message:<br>" + message + "</p>";
+            html += `<p>Date:<br>${moment().format("LLL")}</p>`;
+
+            const mailOptions = {
+                from: '"no-reply" <no-reply@c_cfo.com>',
+                to: `${to.emailAddress}`,
+                subject: "[CLOUD-CFO]",
+                html: html
+            };
+
             global.emailtransport(mailOptions);
+
+            // const htmlBody = notificationTemplate.fileUploadEmailNotification(notificationObj);
+            // const mailOptions = func.MailOptions({ to: to.emailAddress, subject: "New files were uploaded", html: htmlBody, });
+            // global.emailtransport(mailOptions);
         }
     })
-
     return;
 }
