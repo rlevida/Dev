@@ -58,32 +58,7 @@ class DocumentList extends React.Component {
         }
 
         window.onscroll = function () {
-            const element = document.querySelector(".open .document-action-dropdown");
-            const elementSubMenu = document.querySelector(".open .document-action-dropdown .document-folder-list");
-            if (element) {
-                const bound = element.getBoundingClientRect();
-
-                let boundHeight = 100;
-
-                if (elementSubMenu) {
-                    boundHeight += elementSubMenu.getBoundingClientRect().height
-                }
-
-                boundHeight += bound.y;
-                boundHeight += bound.height;
-
-
-                if (boundHeight > window.screen.height) {
-                    element.style.top = "-170px";
-                    if (elementSubMenu) {
-                        elementSubMenu.style.top = elementSubMenu.getBoundingClientRect().height * -1
-                    }
-                }
-
-                if (bound.y < 0) {
-                    element.style.top = "auto"
-                }
-            }
+            this.handleActions();
         }
     }
 
@@ -92,30 +67,25 @@ class DocumentList extends React.Component {
         const elementSubMenu = document.querySelector(".open .document-action-dropdown .document-folder-list");
 
         if (element) {
-            const bound = element.getBoundingClientRect();
-
-            let boundHeight = 100;
+            element.style.top = "60px";
 
             if (elementSubMenu) {
-                boundHeight += elementSubMenu.getBoundingClientRect().height
+                elementSubMenu.style.top = "-60px"
             }
+
+            const bound = element.getBoundingClientRect();
+            let boundHeight = 100;
 
             boundHeight += bound.y;
             boundHeight += bound.height;
 
-
             if (boundHeight > window.screen.height) {
-                element.style.top = "-170px";
+                element.style.top = "unset"
+                element.style.top = "-130px";
                 if (elementSubMenu) {
-                    elementSubMenu.style.top = "-170px"
+                    elementSubMenu.style.top = `${(elementSubMenu.getBoundingClientRect().height - 40) * -1}px`
                 }
             }
-
-
-        }
-
-        if (elementSubMenu) {
-
         }
     }
 
@@ -234,7 +204,7 @@ class DocumentList extends React.Component {
 
         putData(`/api/document/${documentData.id}`, dataToSubmit, c => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: documentData.status });
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result[0], Status: documentData.status });
                 dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
                 showToast("success", "Successfully Updated.");
             } else {
@@ -446,23 +416,6 @@ class DocumentList extends React.Component {
         }
     }
 
-    moveTo(folderObj, documentObj) {
-        const { dispatch, loggedUser, match } = this.props;
-        const projectId = match.params.projectId;
-        const dataToSubmit = {
-            origin: documentObj.origin,
-            folderId: folderObj.id,
-            projectId: projectId,
-            usersId: loggedUser.data.id
-        };
-
-        putData(`/api/document/${documentObj.id}`, dataToSubmit, c => {
-            const { result } = { ...c.data };
-            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result });
-            showToast("success", "Successfully Updated.");
-        });
-    }
-
     restore(data) {
         const { dispatch, document, match, loggedUser } = { ...this.props };
         const { ActiveTab } = { ...document };
@@ -659,18 +612,20 @@ class DocumentList extends React.Component {
                                                                             </li>
                                                                         )}
                                                                         {document.ActiveTab === "library" && (
-                                                                            <li onMouseEnter={() => this.handleActions()}>
+                                                                            <li>
                                                                                 <a class=" dropdown dropdown-library" onMouseEnter={() => this.handleActions()}>
                                                                                     Move to
-                                                                                    <div class="dropdown-content dropdown-menu-right document-folder-list">
-                                                                                        {moveOptions.map((e, fIndex) => {
-                                                                                            return (
-                                                                                                <span key={fIndex} onClick={() => this.moveTo(e, data)}>
-                                                                                                    {e.name}
-                                                                                                </span>
-                                                                                            );
-                                                                                        })}
-                                                                                    </div>
+                                                                                    {moveOptions.length > 0 &&
+                                                                                        <div class="dropdown-content dropdown-menu-right document-folder-list">
+                                                                                            {moveOptions.map((e, fIndex) => {
+                                                                                                return (
+                                                                                                    <span key={fIndex} onClick={() => this.moveTo(e, data)}>
+                                                                                                        {e.name}
+                                                                                                    </span>
+                                                                                                );
+                                                                                            })}
+                                                                                        </div>
+                                                                                    }
                                                                                 </a>
                                                                             </li>
                                                                         )}
