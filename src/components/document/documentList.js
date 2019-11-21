@@ -57,7 +57,7 @@ class DocumentList extends React.Component {
             });
         }
 
-        window.onscroll = function () {
+        window.onscroll = () => {
             this.handleActions();
         }
     }
