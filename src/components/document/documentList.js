@@ -25,11 +25,11 @@ class DocumentList extends React.Component {
     }
 
     async componentDidMount() {
-        const { dispatch, fetchWorkstreamDocument, match, document } = { ...this.props };
+        const { dispatch, fetchWorkstreamDocument, match, document: { List } } = { ...this.props };
         const projectId = match.params.projectId;
 
         if (match.url === `/projects/${projectId}/files` || (match.url === `/projects/${projectId}` && !getParameterByName("folder-id"))) {
-            if (document.List.length === 0) {
+            if (List.length === 0) {
                 this.fetchData(1);
             }
         } else {
@@ -55,6 +55,67 @@ class DocumentList extends React.Component {
                 dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", active: "library" });
                 this.viewDocument(documentObj);
             });
+        }
+
+        window.onscroll = function () {
+            const element = document.querySelector(".open .document-action-dropdown");
+            const elementSubMenu = document.querySelector(".open .document-action-dropdown .document-folder-list");
+            if (element) {
+                const bound = element.getBoundingClientRect();
+
+                let boundHeight = 100;
+
+                if (elementSubMenu) {
+                    boundHeight += elementSubMenu.getBoundingClientRect().height
+                }
+
+                boundHeight += bound.y;
+                boundHeight += bound.height;
+
+
+                if (boundHeight > window.screen.height) {
+                    element.style.top = "-170px";
+                    if (elementSubMenu) {
+                        elementSubMenu.style.top = elementSubMenu.getBoundingClientRect().height * -1
+                    }
+                }
+
+                if (bound.y < 0) {
+                    element.style.top = "auto"
+                }
+            }
+        }
+    }
+
+    handleActions() {
+        const element = document.querySelector(".open .document-action-dropdown");
+        const elementSubMenu = document.querySelector(".open .document-action-dropdown .document-folder-list");
+
+        if (element) {
+            const bound = element.getBoundingClientRect();
+
+            let boundHeight = 100;
+
+            if (elementSubMenu) {
+                boundHeight += elementSubMenu.getBoundingClientRect().height
+            }
+
+            boundHeight += bound.y;
+            boundHeight += bound.height;
+
+
+            if (boundHeight > window.screen.height) {
+                element.style.top = "-170px";
+                if (elementSubMenu) {
+                    elementSubMenu.style.top = "-170px"
+                }
+            }
+
+
+        }
+
+        if (elementSubMenu) {
+
         }
     }
 
@@ -552,12 +613,12 @@ class DocumentList extends React.Component {
                                                                     <a href="javascript:void(0)" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })} class="btn btn-action">
                                                                         <span class="fa fa-trash" title="DELETE" />
                                                                     </a>
-                                                                    <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onClick={() => this.handleActions()}>
                                                                         <span>
                                                                             <i class="fa fa-ellipsis-v" />
                                                                         </span>
                                                                     </a>
-                                                                    <ul class="dropdown-menu pull-right" aria-labelledby="dropdownMenu2">
+                                                                    <ul class="dropdown-menu pull-right document-action-dropdown" aria-labelledby="dropdownMenu2" >
                                                                         {data.type != "folder" && (
                                                                             <li>
                                                                                 <a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>
@@ -598,10 +659,10 @@ class DocumentList extends React.Component {
                                                                             </li>
                                                                         )}
                                                                         {document.ActiveTab === "library" && (
-                                                                            <li>
-                                                                                <a class=" dropdown dropdown-library">
+                                                                            <li onMouseEnter={() => this.handleActions()}>
+                                                                                <a class=" dropdown dropdown-library" onMouseEnter={() => this.handleActions()}>
                                                                                     Move to
-                                                                                    <div class="dropdown-content dropdown-menu-right">
+                                                                                    <div class="dropdown-content dropdown-menu-right document-folder-list">
                                                                                         {moveOptions.map((e, fIndex) => {
                                                                                             return (
                                                                                                 <span key={fIndex} onClick={() => this.moveTo(e, data)}>
