@@ -576,6 +576,22 @@ exports.put = {
                 }
             })
             .then(nextThen => {
+                const previousRole = body.user_role[0].roleId;
+                const currentRole = body.userRole;
+
+                if (previousRole !== currentRole && previousRole < 4 && currentRole > 3) {
+                    Members.findAll({ where: { memberType: "approver", isDeleted: 0, userTypeLinkId: body.id } }).then((memberResponse) => {
+                        if (memberResponse.length > 0) {
+                            cb({ status: true, data: { error: true, message: "This user is assigned as an approver, please remove first the task assignment before modifying the access" } });
+                        } else {
+                            nextThen()
+                        }
+                    })
+                } else {
+                    nextThen()
+                }
+            })
+            .then(nextThen => {
                 try {
                     Users.update(body, { where: { id: body.id } }).then(res => {
                         nextThen();

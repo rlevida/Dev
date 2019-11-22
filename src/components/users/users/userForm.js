@@ -52,7 +52,7 @@ export default class UserForm extends React.Component {
         let result = true;
 
         $("#user-form *").validator("validate");
-        $("#user-form .form-group").each(function() {
+        $("#user-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -62,10 +62,10 @@ export default class UserForm extends React.Component {
             ...users.Selected,
             ...(typeof users.Selected.firstName != "undefined" && typeof users.Selected.lastName != "undefined"
                 ? {
-                      firstName: users.Selected.firstName.trim(),
-                      lastName: users.Selected.lastName.trim(),
-                      dateAdded: moment().format("YYYY-MM-DD HH:mm:ss")
-                  }
+                    firstName: users.Selected.firstName.trim(),
+                    lastName: users.Selected.lastName.trim(),
+                    dateAdded: moment().format("YYYY-MM-DD HH:mm:ss")
+                }
                 : {})
         };
 
@@ -102,13 +102,14 @@ export default class UserForm extends React.Component {
             });
         } else {
             let dataToSubmit = profileEdit == false ? users.Selected : _.pick(users.Selected, ["id", "firstName", "lastName", "phoneNumber", "emailAddress", "username"]);
-
             putData(`/api/user/${dataToSubmit.id}`, dataToSubmit, c => {
                 if (c.data.error) {
                     showToast(`error`, c.data.message);
                 } else {
                     dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: c.data });
                     showToast("success", "User successfully updated.");
+                    $("#user-form").validator("destroy");
+                    dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
                 }
 
                 if (profileEdit) {
@@ -117,9 +118,6 @@ export default class UserForm extends React.Component {
                         data: _.merge(loggedUser.data, dataToSubmit)
                     });
                 }
-
-                $("#user-form").validator("destroy");
-                dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
             });
         }
     }
@@ -150,7 +148,7 @@ export default class UserForm extends React.Component {
         let result = true;
 
         $("#user-password *").validator("validate");
-        $("#user-password .form-group").each(function() {
+        $("#user-password .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -211,18 +209,18 @@ export default class UserForm extends React.Component {
             const teamSelectList =
                 profileEdit == false
                     ? _.uniqBy(
-                          [
-                              ...teamOptions,
-                              ..._.map(users.Selected.team, o => {
-                                  return {
-                                      id: o.value,
-                                      name: o.label,
-                                      teamLeader: o.teamLeader
-                                  };
-                              })
-                          ],
-                          "id"
-                      )
+                        [
+                            ...teamOptions,
+                            ..._.map(users.Selected.team, o => {
+                                return {
+                                    id: o.value,
+                                    name: o.label,
+                                    teamLeader: o.teamLeader
+                                };
+                            })
+                        ],
+                        "id"
+                    )
                     : teamOptions;
 
             dispatch({
@@ -413,8 +411,8 @@ export default class UserForm extends React.Component {
                                                     typeof users.Selected.team == "undefined"
                                                         ? []
                                                         : users.Selected.team.map(e => {
-                                                              return typeof e.value != "undefined" ? { value: e.value } : { value: e.id };
-                                                          })
+                                                            return typeof e.value != "undefined" ? { value: e.value } : { value: e.id };
+                                                        })
                                                 }
                                                 isClearable={users.SelectList.length > 0}
                                             />
