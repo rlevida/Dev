@@ -378,7 +378,7 @@ exports.post = {
             const data = req.body;
             const projectId = data.projectId;
             const folderId = data.folderId;
-            const usersId = data.usersId
+            const usersId = req.user.id
             const isDuplicate = req.query.isDuplicate;
 
             const documents = data.DocumentToSave.filter((documentObj) => {
