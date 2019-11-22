@@ -7,7 +7,7 @@ module.exports = async (params) => {
         return {
             projectId: projectId,
             linkType: `document`,
-            linkId: documentObj.id,
+            linkId: documentObj.linkId ? documentObj.linkId : documentObj.id,
             actionType: documentObj.actionType
                 ? documentObj.actionType
                 : isDuplicate
