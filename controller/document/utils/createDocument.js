@@ -2,7 +2,7 @@ const models = require("../../../modelORM");
 const { DocumentLink, Document } = models;
 
 module.exports = async (params) => {
-    const { projectId, documents } = { ...params }
+    const { projectId, documents, folderId } = { ...params }
     const documentBulkCreateData = documents.map(async (document) => {
         let whereObj = {
             ...(typeof document.origin != "undefined" && document.origin != "" ? { origin: document.origin } : {}),
