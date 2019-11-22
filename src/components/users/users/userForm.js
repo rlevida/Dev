@@ -107,9 +107,10 @@ export default class UserForm extends React.Component {
                     showToast(`error`, c.data.message);
                 } else {
                     dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: c.data });
+                    dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
+                    dispatch({ type: "SET_USER_FILTER", filter: { name: "" } });
                     showToast("success", "User successfully updated.");
                     $("#user-form").validator("destroy");
-                    dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
                 }
 
                 if (profileEdit) {
