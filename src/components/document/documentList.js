@@ -74,7 +74,7 @@ class DocumentList extends React.Component {
             }
 
             const bound = element.getBoundingClientRect();
-            let boundHeight = 100;
+            let boundHeight = 200;
 
             boundHeight += bound.y;
             boundHeight += bound.height;
@@ -107,7 +107,7 @@ class DocumentList extends React.Component {
             }
 
             if (ActiveTab === "library") {
-                requestUrl += `&isActive=1&isDeleted=0`;
+                requestUrl += `&isActive=1&isDeleted=0&folderId=${folder.Selected.id ? folder.Selected.id : null}${folder.Selected.id ? "": "&type=folder"}`;
             }
 
             if (ActiveTab === "archived") {
@@ -115,6 +115,7 @@ class DocumentList extends React.Component {
             } else {
                 requestUrl += `&isArchived=0`;
             }
+
         }
         getData(requestUrl, {}, c => {
             const { count, result } = { ...c.data };
@@ -617,12 +618,15 @@ class DocumentList extends React.Component {
                                                                                     Move to
                                                                                     {moveOptions.length > 0 &&
                                                                                         <div class="dropdown-content dropdown-menu-right document-folder-list">
+                                                                                            {console.log(moveOptions)}
                                                                                             {moveOptions.map((e, fIndex) => {
-                                                                                                return (
-                                                                                                    <span key={fIndex} onClick={() => this.moveTo(e, data)}>
-                                                                                                        {e.name}
-                                                                                                    </span>
-                                                                                                );
+                                                                                                if (e.type === "folder") {
+                                                                                                    return (
+                                                                                                        <span key={fIndex} onClick={() => this.moveTo(e, data)}>
+                                                                                                            {e.name}
+                                                                                                        </span>
+                                                                                                    );
+                                                                                                }
                                                                                             })}
                                                                                         </div>
                                                                                     }
