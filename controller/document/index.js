@@ -129,15 +129,12 @@ exports.get = {
                         as: "document",
                         where: documentWhereObj,
                         include: associationStack,
-
-                        hierarchy: true
                     }
                 ]
             })
 
             const { rows, count } = { ...findDocumentLinkResult };
 
-            /* Map all fields to return */
             const documentResult = rows.map((documentLink) => {
                 const tagDocumentObj = documentLink.document.toJSON();
                 const tagTaskArray = tagDocumentObj.tagDocumentTask
