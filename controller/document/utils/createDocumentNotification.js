@@ -1,7 +1,7 @@
 
 const models = require("../../../modelORM");
 const Sequelize = require("sequelize");
-const { uniqBy } = require("lodash")
+const { uniqBy, flattenDeep } = require("lodash")
 const Op = Sequelize.Op;
 const { Tasks, Members, Users, UsersNotificationSetting, Notification } = models;
 const { notificationIncludes } = require("../../includes/notification");
@@ -61,7 +61,7 @@ module.exports = async (params) => {
         return taskMemberNotification;
     })
 
-    taskNotificationBulkCreateData = uniqBy(findTaskMembersResult.flat(), "usersId");
+    taskNotificationBulkCreateData = uniqBy(flattenDeep(findTaskMembersResult), "usersId");
 
     /* Workstream Members */
 
