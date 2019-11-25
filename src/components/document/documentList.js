@@ -618,7 +618,6 @@ class DocumentList extends React.Component {
                                                                                     Move to
                                                                                     {moveOptions.length > 0 &&
                                                                                         <div class="dropdown-content dropdown-menu-right document-folder-list">
-                                                                                            {console.log(moveOptions)}
                                                                                             {moveOptions.map((e, fIndex) => {
                                                                                                 if (e.type === "folder") {
                                                                                                     return (
