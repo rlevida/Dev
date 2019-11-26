@@ -227,12 +227,14 @@ exports.get = {
                             as: "document",
                             where: { isDeleted: 0 }
                         }
-                    ]
+                    ],
+                    separate: true
                 },
                 {
                     model: Notes,
                     as: "workstreamNotes",
-                    required: false
+                    required: false,
+                    separate: true
                 }
             );
         }
@@ -1015,7 +1017,7 @@ exports.put = {
             const projectWorkstreamObj = projectWorkstreamResult.toJSON();
 
             const workstreamUpdateData = _.omit(body, ["dateUpdated", "projectId"])
-            
+
             /* Update workstream */
             await Workstream.update(workstreamUpdateData, { where: { id: workstreamId } });
 
