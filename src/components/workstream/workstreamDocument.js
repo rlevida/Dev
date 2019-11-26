@@ -25,7 +25,7 @@ class WorkstreamDocument extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "CLEAR_DOCUMENT" });
+        dispatch({ type: "RESET_DOCUMENT", List: [], Selected: {} });
     }
 
     componentDidMount() {
@@ -36,7 +36,7 @@ class WorkstreamDocument extends React.Component {
         const { dispatch, loggedUser, document, project, workstream_id } = this.props;
         getData(
             `/api/document/getWorkstreamDocument?folderId=null&isActive=1&isDeleted=0&projectId=${project.Selected.id}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${
-                loggedUser.data.userType
+            loggedUser.data.userType
             }&workstreamId=${workstream_id}&tagType=document&starredUser=${loggedUser.data.id}&type=document&isArchived=0`,
             {},
             c => {
@@ -57,10 +57,10 @@ class WorkstreamDocument extends React.Component {
                 oldDocument:
                     type === "tags"
                         ? data.tagWorkstream
-                              .map(e => {
-                                  return e.label;
-                              })
-                              .join(",")
+                            .map(e => {
+                                return e.label;
+                            })
+                            .join(",")
                         : newData.origin
             }
         });

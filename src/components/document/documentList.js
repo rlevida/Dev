@@ -107,7 +107,7 @@ class DocumentList extends React.Component {
             }
 
             if (ActiveTab === "library") {
-                requestUrl += `&isActive=1&isDeleted=0&folderId=${folder.Selected.id ? folder.Selected.id : null}${folder.Selected.id ? "": "&type=folder"}`;
+                requestUrl += `&isActive=1&isDeleted=0&folderId=${folder.Selected.id ? folder.Selected.id : null}${folder.Selected.id ? "" : "&type=folder"}`;
             }
 
             if (ActiveTab === "archived") {
