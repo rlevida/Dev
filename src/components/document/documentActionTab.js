@@ -41,6 +41,10 @@ class DocumentActionTab extends React.Component {
             dispatch({ type: "RESET_DOCUMENT_FILTER", filter: {} });
 
             delayTimer = setTimeout(() => {
+                
+                /* Remove pending request */
+                window.stop();
+
                 if (ActiveTab !== "activities") {
                     let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
