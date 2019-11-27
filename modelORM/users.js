@@ -69,6 +69,11 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
                 defaultValue: "0"
             },
+            termsAndConditions: {
+                type: DataTypes.INTEGER(1),
+                allowNull: true,
+                defaultValue: "0"
+            },
             company: {
                 type: DataTypes.STRING(50),
                 allowNull: true
@@ -134,6 +139,39 @@ module.exports = (sequelize, DataTypes) => {
         });
         Users.hasOne(models.Session, {
             as: "session",
+            foreignKey: "usersId"
+        });
+        Users.hasMany(models.Tasks, {
+            as: "task_approver",
+            foreignKey: "approverId"
+        })
+        Users.hasMany(models.Members, {
+            as: "task_assigned",
+            sourceKey: "id",
+            foreignKey: "userTypeLinkId"
+        })
+        Users.hasMany(models.Members, {
+            as: 'task_follower',
+            sourceKey: "id",
+            foreignKey: "userTypeLinkId"
+        })
+        Users.hasMany(models.Teams, {
+            as: 'task_team_leader',
+            sourceKey: "id",
+            foreignKey: "teamLeaderId"
+        })
+        Users.hasMany(models.Members, {
+            as: "task_responsible",
+            sourceKey: "id",
+            foreignKey: "userTypeLinkId"
+        })
+        Users.hasOne(models.UsersNotificationSetting, {
+            as: "user_notification_setting",
+            sourceKey: "id",
+            foreignKey: "usersId"
+        })
+        Users.hasMany(models.Conversation, {
+            as: "users_conversation",
             foreignKey: "usersId"
         });
     };

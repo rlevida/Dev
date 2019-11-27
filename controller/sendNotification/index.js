@@ -5,7 +5,7 @@ const { Notification, UsersNotificationSetting, Projects, Users } = models;
 const { notificationIncludes } = require("../includes/notification");
 
 module.exports = async (params) => {
-    const { req, receiver, sender, notificationType, notificationData, requestBody } = { ...params };
+    const { req, receiver, sender, notificationType, notificationData, requestBody, notificationSocket } = { ...params };
 
     const projectFindResult = await Projects.findOne({ where: { id: requestBody.projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
@@ -54,17 +54,17 @@ module.exports = async (params) => {
             return notificationRes.id;
         })
 
-    Notification.findAll({
+    await Notification.findAll({
         where: { id: notificationBulkCreateResult },
         include: notificationIncludes()
     }).map(findNotificationRes => {
-        req.app.parent.io.emit("FRONT_NOTIFICATION", {
+        notificationSocket.emit("FRONT_NOTIFICATION", {
             ...findNotificationRes.toJSON()
         });
         return findNotificationRes.toJSON();
     })
 
-    return
+    return true
 
 
     // EMAIL NOTIFICATION

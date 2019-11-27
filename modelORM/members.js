@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     memberType: {
-      type: DataTypes.ENUM('assignedTo', 'follower', 'responsible', 'project manager','approver'),
+      type: DataTypes.ENUM('assignedTo', 'follower', 'responsible', 'project manager', 'approver'),
       allowNull: true
     },
     receiveNotification: {
@@ -66,8 +66,63 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'userTypeLinkId'
     });
     Members.belongsTo(models.Teams, {
-      as:'team',
+      as: 'team',
       foreignKey: 'userTypeLinkId'
+    })
+    Members.hasMany(models.Tasks, {
+      as: 'memberTaskAssigned',
+      sourceKey: "linkId",
+      foreignKey: "id"
+    })
+    Members.hasMany(models.Tasks, {
+      as: "memberTaskResponsible",
+      sourceKey: "linkId",
+      foreignKey: 'workstreamId',
+    });
+    Members.hasMany(models.Tasks, {
+      as: "memberTaskFollower",
+      sourceKey: "linkId",
+      foreignKey: "id",
+    })
+    Members.belongsTo(models.Users, {
+      as: 'task_assigned',
+      foreignKey: "userTypeLinkId",
+      targetKey: "id"
+    })
+    Members.belongsTo(models.Users, {
+      as: 'task_follower',
+      foreignKey: "userTypeLinkId",
+      targetKey: "id"
+    })
+    Members.hasMany(models.Tasks, {
+      as: 'assigned_task',
+      sourceKey: "linkId",
+      foreignKey: "id",
+    })
+    Members.hasMany(models.Tasks, {
+      as: 'follower_task',
+      sourceKey: "linkId",
+      foreignKey: "id",
+    })
+    Members.belongsTo(models.UsersTeam, {
+      as: 'task_team_member_assigned',
+      foreignKey: 'userTypeLinkId',
+      targetKey: 'usersId'
+    })
+    Members.belongsTo(models.Users, {
+      as: 'task_responsible',
+      foreignKey: 'userTypeLinkId',
+      targetKey: 'id'
+    })
+    Members.hasMany(models.Tasks, {
+      as: 'responsible_task',
+      sourceKey: "linkId",
+      foreignKey: 'workstreamId'
+    })
+    Members.belongsTo(models.Users, {
+      as: "member_assigned_to_task",
+      foreignKey: "linkId",
+      targetKey: "id"
     })
   };
 

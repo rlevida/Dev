@@ -734,11 +734,11 @@ exports.post = {
                         });
 
                         // message: `${sender.firstName} sent you a message`,
-                        await sendNotification({ req, requestBody: body, sender: sender, receiver: receiver, notificationType: "messageSend", notificationData: { conversations, note: noteResult }, projectId: body.projectId });
+                        await sendNotification({ notificationSocket: req.app.parent.io, requestBody: body, sender: sender, receiver: receiver, notificationType: "messageSend", notificationData: { conversations, note: noteResult }, projectId: body.projectId });
 
                         // mentioned you in a message
                         if (mentionedUsers.length > 0) {
-                            await sendNotification({ req, requestBody: body, sender: sender, receiver: mentionedUsers, notificationType: "messageMentioned", notificationData: { conversations, note: noteResult }, projectId: body.projectId });
+                            await sendNotification({ notificationSocket: req.app.parent.io, requestBody: body, sender: sender, receiver: mentionedUsers, notificationType: "messageMentioned", notificationData: { conversations, note: noteResult }, projectId: body.projectId });
                         }
 
                         const options = {

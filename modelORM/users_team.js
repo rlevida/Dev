@@ -37,20 +37,29 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-      tableName: 'users_team',
-      timestamps: false
-    });
+    tableName: 'users_team',
+    timestamps: false
+  });
 
   UsersTeam.associate = function (models) {
     UsersTeam.belongsTo(models.Users, {
       as: 'user',
       foreignKey: 'usersId',
     });
-
     UsersTeam.belongsTo(models.Teams, {
       as: 'team',
       foreignKey: 'teamId',
     });
+    UsersTeam.belongsTo(models.Teams, {
+      as: 'task_team_member',
+      foreignKey: "teamId",
+      targetKey: "id"
+    })
+    UsersTeam.hasMany(models.Members, {
+      as: 'task_team_member_assigned',
+      foreignKey: 'userTypeLinkId',
+      sourceKey: 'usersId'
+    })
   };
 
   return UsersTeam

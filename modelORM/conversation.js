@@ -65,9 +65,13 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: 'linkId'
     })
     Conversation.hasOne(models.Notification, {
-      as: "coversation_notification",
+      as: "conversation_notification",
       foreignKey: "id"
-    })
+    });
+    Conversation.belongsTo(models.Users, {
+      as: 'users_conversation',
+      foreignKey: 'usersId',
+    });
   }
 
   return Conversation;
