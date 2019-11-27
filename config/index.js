@@ -17,7 +17,7 @@ if (global.environment === "production") {
     This functions calls indicated model to avoid require on each file
 */
 
-global.initModel = exports.initModel = function(model) {
+global.initModel = exports.initModel = function (model) {
     return require("../model/" + model);
 };
 
@@ -25,7 +25,7 @@ global.initModel = exports.initModel = function(model) {
     This functions calls indicated model to avoid require on each file
 */
 
-global.initModelORM = exports.initModelORM = function(model) {
+global.initModelORM = exports.initModelORM = function (model) {
     return require("../modelORM/" + model);
 };
 
@@ -33,7 +33,7 @@ global.initModelORM = exports.initModelORM = function(model) {
     This functions calls indicated controller to avoid require on each file
 */
 
-global.initController = exports.initController = function(controller) {
+global.initController = exports.initController = function (controller) {
     return require("../controller/" + controller);
 };
 
@@ -41,7 +41,7 @@ global.initController = exports.initController = function(controller) {
     This function initialize database setup to avoid require on each file
 */
 
-global.initDB = exports.initDB = function() {
+global.initDB = exports.initDB = function () {
     return require("./database");
 };
 
@@ -66,7 +66,7 @@ global.connectionDb = exports.connectionDb = new Sequelize(process.env.CLOUD_CFO
     This function initialize reusable function to avoid require on each file
 */
 
-global.initModelFunc = exports.initModelFunc = function() {
+global.initModelFunc = exports.initModelFunc = function () {
     return require("../model");
 };
 
@@ -74,35 +74,52 @@ global.initModelFunc = exports.initModelFunc = function() {
     This function initialize reusable function to avoid require on each file
 */
 
-global.initFunc = exports.initFunc = function() {
+global.initFunc = exports.initFunc = function () {
     return require("./function");
 };
 /*
     This function is used to initialize node modules
 */
-global.initRequire = exports.initRequire = function(name) {
+global.initRequire = exports.initRequire = function (name) {
     return require(name);
 };
 
 /*
     This function is used to initialize email
 */
-global.emailtransport = exports.emailtransport = function(mailOptions) {
-    var nodemailer = global.initRequire("nodemailer");
-    var deferred = global.initRequire("deferred");
-    var response = deferred();
+global.emailtransport = exports.emailtransport = function (mailOptions) {
+    const nodemailer = global.initRequire("nodemailer"),
+        { google } = global.initRequire("googleapis"),
+        OAuth2 = google.auth.OAuth2,
+        deferred = global.initRequire("deferred"),
+        response = deferred();
 
-    var transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
+    const oauth2Client = new OAuth2(process.env.CLOUD_CFO_CLIENT_ID, process.env.CLOUD_CFO_CLIENT_SECRET, "https://developers.google.com/oauthplayground");
+
+    oauth2Client.setCredentials({
+        refresh_token: process.env.CLOUD_CFO_REFRESH_TOKEN
+    });
+
+    const accessToken = oauth2Client.getAccessToken();
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
         auth: {
-            user: "mobbizapps12345@gmail.com",
-            pass: "!qa@ws#ed"
+            type: "OAuth2",
+            user: "no-reply@cloudcfo.ph",
+            clientId: process.env.CLOUD_CFO_CLIENT_ID,
+            clientSecret: process.env.CLOUD_CFO_CLIENT_SECRET,
+            refreshToken: process.env.CLOUD_CFO_REFRESH_TOKEN,
+            accessToken: accessToken
         }
     });
 
-    transporter.sendMail(mailOptions, function(error, info) {
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (!error) {
+            console.log("Email successfully sent.")
+        } else {
+            console.error(error)
+        }
         response.resolve("Successfully Sent.");
     });
 
@@ -121,7 +138,7 @@ global.AWSBucket = "cloud-cfo";
 global.AWSAccessKey = "AKIAI5UVURKMM4LYE5YA";
 global.AWSSecretAccessKey = "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";
 global.AWSLink = "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/";
-global.initAWS = exports.initAWS = function() {
+global.initAWS = exports.initAWS = function () {
     var AWS = global.initRequire("aws-sdk");
 
     AWS.config.update({
@@ -131,7 +148,7 @@ global.initAWS = exports.initAWS = function() {
     return AWS;
 };
 
-global.initAWSClient = exports.initAWSClient = function() {
+global.initAWSClient = exports.initAWSClient = function () {
     var knox = global.initRequire("knox");
 
     var client = knox.createClient({
