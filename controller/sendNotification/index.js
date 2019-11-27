@@ -2,7 +2,7 @@ const models = require("../../modelORM");
 const { filter } = require("lodash");
 const { Notification, UsersNotificationSetting, Projects, Users } = models;
 
-const notificationIncludes = require("../includes/notification");
+const { notificationIncludes } = require("../includes/notification");
 
 module.exports = async (params) => {
     const { req, receiver, sender, notificationType, notificationData, requestBody } = { ...params };
