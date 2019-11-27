@@ -72,6 +72,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.CHAR(50),
       allowNull: true
     },
+    appNotification: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    emailNotification: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -83,9 +93,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-      tableName: 'project',
-      timestamps: false
-    });
+    tableName: 'project',
+    timestamps: false
+  });
 
   Projects.associate = function (models) {
     Projects.belongsTo(models.Users, {
