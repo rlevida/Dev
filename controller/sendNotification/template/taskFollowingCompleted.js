@@ -2,7 +2,7 @@ const moment = require("moment")
 
 module.exports = async (params) => {
     const { emailNotificationData } = { ...params }
-    console.log(emailNotificationData)
+
     emailNotificationData.forEach(emailObj => {
         const { message, projectId, workstreamId, taskId, from, to } = { ...emailObj };
         let html = "<p>" + message + "</p>";

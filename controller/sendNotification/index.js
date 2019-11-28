@@ -19,7 +19,7 @@ const taskApproverNotification = require("./template/taskApprover");
 module.exports = async (params) => {
     try {
         const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationSocket } = { ...params };
-        console.log(params)
+
         const projectFindResult = await Projects.findOne({ where: { id: projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
         const message = await getNotificationMessage({ notificationType, sender, task: notificationData.task });
