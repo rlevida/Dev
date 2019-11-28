@@ -24,7 +24,10 @@ export default class DocumentComponent extends React.Component {
         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
         dispatch({ type: "SET_FOLDER_LIST", list: [] });
         dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+        window.stop();
+
     }
+
     componentDidMount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });

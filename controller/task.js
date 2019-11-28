@@ -224,12 +224,43 @@ const associationStack = [
 
 exports.get = {
     index: async (req, cb) => {
+        const userRole = req.user.user_role[0].roleId;
+        const usersId = req.user.id;
+
+        /* Get all the team id's of user */
+        const userTeamId = await UsersTeam.findAll({ where: { usersId: usersId }, raw: true }).map((usersTeamResponse) => { return usersTeamResponse.teamId });
+
         const associationArray = [
             {
                 model: Projects,
                 as: "task_project",
-                required: true,
-                where: { isActive: 1 }
+                required: false,
+                where: { isActive: 1 },
+                /* Check if user is a member of project */
+                include: [
+                    {
+                        model: Members,
+                        as: "members",
+                        required: true,
+                        where: {
+                            isDeleted: 0,
+                            ... (userRole > 3
+                                ? {
+                                    [Op.or]: [
+                                        { userTypeLinkId: usersId, memberType: 'assignedTo', usersType: "users", linkType: "project" },
+                                        { userTypeLinkId: userTeamId, memberType: 'assignedTo', usersType: "team", linkType: "project" },
+                                        { userTypeLinkId: usersId, memberType: "assignedTo", usersType: "users", linkType: "task" }
+                                    ]
+                                }
+                                : {
+                                    usersType: "users",
+                                    linkType: "project",
+                                })
+                        },
+                        attributes: []
+                    },
+
+                ]
             },
             {
                 model: Members,
@@ -353,7 +384,7 @@ exports.get = {
                         attributes: ["id", "color", "project"]
                     }
                 ]
-            }
+            },
         ];
         const queryString = req.query;
         const limit = typeof queryString.limit != "undefined" ? parseInt(queryString.limit) : 10;
@@ -626,6 +657,7 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "" ? { offset: limit * _.toNumber(queryString.page) - limit, limit } : {}),
             order: [["dueDate", "ASC"]]
         };
+
         async.parallel(
             {
                 count: function (callback) {

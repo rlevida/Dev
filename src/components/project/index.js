@@ -26,6 +26,7 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" });
         dispatch({ type: "SET_PROJECT_FILTER", filter: { projectProgress: "All", projectNameSort: "asc", projectType: 1, typeId: 1 } });
         this.unlisten();
+        window.stop();
     }
 
     componentWillMount() {

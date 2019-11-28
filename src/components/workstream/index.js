@@ -68,6 +68,7 @@ export default class Component extends React.Component {
             dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
             dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
         }
+        window.stop();
     }
 
     render() {

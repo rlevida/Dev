@@ -38,9 +38,9 @@ function projectAuth(authObj) {
 
 exports.get = {
     index: async (req, cb) => {
-        if (!req.user) {
-            cb({ status: false, error: "Unauthorized Access" });
-        }
+        // if (!req.user) {
+        //     cb({ status: false, error: "Unauthorized Access" });
+        // }
 
         const queryString = req.query;
         const limit = 25;
@@ -57,7 +57,55 @@ exports.get = {
                 model: Workstream,
                 as: "workstream",
                 attributes: ["id"]
-            }
+            },
+            {
+                model: Members,
+                as: "projectManager",
+                where: {
+                    memberType: "project manager"
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: "user",
+                        required: false,
+                        attributes: ["id", "firstName", "lastName", "avatar"]
+                    }
+                ],
+                attributes: ["id", "userTypeLinkId"]
+            },
+            {
+                model: Members,
+                as: "team",
+                where: {
+                    usersType: "team",
+                    linkType: "project",
+                    isDeleted: 0
+                },
+                required: false,
+                include: [
+                    {
+                        model: Teams,
+                        as: "team",
+                        required: false,
+                        include: [
+                            {
+                                model: UsersTeam,
+                                as: "users_team",
+                                required: false,
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: "user",
+                                        required: false
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
         ];
 
         if (parseInt(queryString.hasMembers)) {
@@ -119,7 +167,6 @@ exports.get = {
                 }
                 : {})
         };
-
         if (typeof userId != "undefined" && userId != "" && (typeof userRole != "undefined" && userRole >= 3)) {
             const userTeam = await UsersTeam.findAll({
                 where: {
@@ -402,10 +449,10 @@ exports.get = {
         );
     },
     getById: async (req, cb) => {
-        if (!projectAuth({ user: req.user, projectId: req.params.id, action: "get" }) || !req.params.id) {
-            cb({ status: false, error: "Unauthorized Access" });
-            return;
-        }
+        // if (!projectAuth({ user: req.user, projectId: req.params.id, action: "get" }) || !req.params.id) {
+        //     cb({ status: false, error: "Unauthorized Access" });
+        //     return;
+        // }
 
         const id = req.params.id,
             queryString = req.query;
@@ -653,10 +700,10 @@ exports.get = {
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;
 
-        if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
-            cb({ status: false, error: "Unauthorized Access" });
-            return;
-        }
+        // if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
+        //     cb({ status: false, error: "Unauthorized Access" });
+        //     return;
+        // }
 
         const whereObj = {
             linkType: queryString.linkType,
@@ -870,10 +917,10 @@ exports.get = {
     getProjectTeams: async (req, cb) => {
         const queryString = req.query;
 
-        if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
-            cb({ status: false, error: "Unauthorized Access" });
-            return;
-        }
+        // if (!projectAuth({ user: req.user, projectId: queryString.linkId, action: "get" }) || !queryString.linkType || !queryString.linkId) {
+        //     cb({ status: false, error: "Unauthorized Access" });
+        //     return;
+        // }
 
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != ""
@@ -959,11 +1006,11 @@ exports.post = {
     index: async (req, cb) => {
         let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png", color: typeof req.body.color !== "undefined" ? req.body.color : "#fff" };
         if (req.body.project && req.body.projectManagerId && req.body.typeId && req.body.color) {
-            const hasAccess = await projectAuth({ user: req.user, action: "post" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
+            // const hasAccess = await projectAuth({ user: req.user, action: "post" });
+            // if (!hasAccess) {
+            //     cb({ status: false, error: "Unauthorized Access" });
+            //     return;
+            // }
             sequence
                 .create()
                 .then(nextThen => {
@@ -1138,12 +1185,12 @@ exports.post = {
         const { usersType, userTypeLinkId, linkType, linkId, memberType } = { ...req.body };
 
         if (usersType && userTypeLinkId && linkType && linkId && memberType && queryString.projectType) {
-            const hasAccess = await projectAuth({ user: req.user, projectId: linkId, action: "post" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
-
+            // const hasAccess = await projectAuth({ user: req.user, projectId: linkId, action: "post" });
+            // if (!hasAccess) {
+            //     cb({ status: false, error: "Unauthorized Access" });
+            //     return;
+            // }
+            
             let projectType = queryString.projectType;
 
             if (usersType == "users") {
@@ -1263,7 +1310,7 @@ exports.post = {
                         },
                         function (usersIds, callback) {
                             try {
-                                Members.create(req.body.data).then(res => {
+                                Members.create(req.body).then(res => {
                                     callback(null, res.dataValues.id);
                                     return null;
                                 });
@@ -1345,11 +1392,11 @@ exports.post = {
     },
     upload: async (req, cb) => {
         if (req.query.projectId) {
-            const hasAccess = await projectAuth({ user: req.user, projectId: req.query.projectId, action: "post" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
+            // const hasAccess = await projectAuth({ user: req.user, projectId: req.query.projectId, action: "post" });
+            // if (!hasAccess) {
+            //     cb({ status: false, error: "Unauthorized Access" });
+            //     return;
+            // }
 
             const formidable = global.initRequire("formidable");
             const func = global.initFunc();
@@ -1415,11 +1462,11 @@ exports.post = {
 exports.put = {
     index: async (req, cb) => {
         if (req.params.id) {
-            const hasAccess = await projectAuth({ user: req.user, projectId: req.params.id, action: "post" });
-            if (!hasAccess) {
-                cb({ status: false, error: "Unauthorized Access" });
-                return;
-            }
+            // const hasAccess = await projectAuth({ user: req.user, projectId: req.params.id, action: "post" });
+            // if (!hasAccess) {
+            //     cb({ status: false, error: "Unauthorized Access" });
+            //     return;
+            // }
 
             const id = req.params.id,
                 dataToSubmit = req.body;

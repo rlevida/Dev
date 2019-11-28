@@ -47,6 +47,7 @@ export default class ProjectForm extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
         dispatch({ type: "SET_TEAM_LIST", list: [], count: {} });
         dispatch({ type: "SET_MEMBERS_LIST", list: [], count: {} });
+        window.stop();
     }
 
     deleteMember(value) {
