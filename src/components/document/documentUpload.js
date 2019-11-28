@@ -152,7 +152,7 @@ class DocumentUpload extends React.Component {
         let result = true;
 
         $(".form-container *").validator("validate");
-        $(".form-container .form-group").each(function() {
+        $(".form-container .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -309,15 +309,16 @@ class DocumentUpload extends React.Component {
                                     </div>
                                     {DocumentToSave.length === 0 && (
                                         <div class="form-group">
-                                            <Dropzone accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt" onDrop={this.onDrop} class="document-file-upload mb10" id="task-document" disabled={Loading == "SUBMITTING"}>
+                                            <p class="note">Supported files ( .jpg, .png, .pdf, .doc, .docx, .xlsx, .pptx, .ppt, .xls )</p>
+                                            <Dropzone accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt,.xls" onDrop={this.onDrop} class="document-file-upload mb10" id="task-document" disabled={Loading == "SUBMITTING"}>
                                                 <div class="dropzone-wrapper">
                                                     {Loading === "SUBMITTING" ? (
                                                         <i class="fa fa-spinner fa-spin fa-3x fa-fw" />
                                                     ) : (
-                                                        <div class="upload-wrapper">
-                                                            <p class="m0">Select Files</p>
-                                                        </div>
-                                                    )}
+                                                            <div class="upload-wrapper">
+                                                                <p class="m0">Select Files</p>
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </Dropzone>
                                         </div>

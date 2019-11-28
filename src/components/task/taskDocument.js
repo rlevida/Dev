@@ -247,7 +247,8 @@ export default class TaskDocument extends React.Component {
                             <label for="email">
                                 Document:<span class="text-red">*</span>
                             </label>
-                            <Dropzone accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt" onDrop={this.onDrop} class="document-file-upload mb10" id="task-document" disabled={Loading == "SUBMITTING"}>
+                            <p class="note">Supported files ( .jpg, .png, .pdf, .doc, .docx, .xlsx, .pptx, .ppt, .xls )</p>
+                            <Dropzone accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt,.xls" onDrop={this.onDrop} class="document-file-upload mb10" id="task-document" disabled={Loading == "SUBMITTING"}>
                                 <div class="dropzone-wrapper">
                                     <div class="upload-wrapper">
                                         {Files.length > 0 ? (
@@ -255,12 +256,12 @@ export default class TaskDocument extends React.Component {
                                                 {fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg" ? (
                                                     <img src={Files[0].preview} alt="Task Document" class="img-responsive" />
                                                 ) : (
-                                                    <i class={`fa ${Files.length > 1 ? "fa-files-o" : "fa-file"}`} aria-hidden="true" />
-                                                )}
+                                                        <i class={`fa ${Files.length > 1 ? "fa-files-o" : "fa-file"}`} aria-hidden="true" />
+                                                    )}
                                             </div>
                                         ) : (
-                                            <p class="m0">Drop task document</p>
-                                        )}
+                                                <p class="m0">Drop task document</p>
+                                            )}
                                     </div>
                                 </div>
                             </Dropzone>
@@ -314,10 +315,10 @@ export default class TaskDocument extends React.Component {
                         (document.uploadType === "library" && checkSelectedDocument.length > 0 && Selected.document_type == "task_document") ||
                         (Selected.document_type == "checklist_document" && document.uploadType === "library" && checkSelectedDocument.length > 0 && checklistTagged.length > 0) ||
                         (Selected.document_type == "checklist_document" && document.uploadType === "active" && checkSelectedDocument.length > 0 && checklistTagged.length > 0)) && (
-                        <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
-                            <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
-                        </a>
-                    )}
+                            <a class="btn btn-violet" onClick={this.handleSubmit} disabled={Loading == "SUBMITTING"}>
+                                <span>{Loading == "SUBMITTING" ? "Uploading..." : "Create Task Document"}</span>
+                            </a>
+                        )}
                 </div>
             </form>
         );
