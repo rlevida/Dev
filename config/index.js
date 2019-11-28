@@ -10,7 +10,7 @@ if (global.environment === "staging") {
 }
 
 if (global.environment === "production") {
-    global.site_url = "//cloudcfo.mobbizapps.com/";
+    global.site_url = "//app.cloudcfo.ph/";
 }
 
 /*
@@ -83,7 +83,6 @@ global.initFunc = exports.initFunc = function () {
 global.initRequire = exports.initRequire = function (name) {
     return require(name);
 };
-
 /*
     This function is used to initialize email
 */
@@ -159,3 +158,7 @@ global.initAWSClient = exports.initAWSClient = function () {
 
     return client;
 };
+
+global.notificationEmailTemplate = exports.notificationEmailTemplate = function () {
+    return require("./notificationEmailTemplate")
+}

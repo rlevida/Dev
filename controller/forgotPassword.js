@@ -23,12 +23,12 @@ exports.get = {
 
                         UserForgotPassword
                             .destroy({ where: { usersId: res.id } })
-                            .then((destroyRes) => {
+                            .then(() => {
                                 UserForgotPassword
                                     .create({ hash: hash, usersId: res.id })
-                                    .then((createRes) => {
+                                    .then(() => {
                                         var mailOptions = {
-                                            from: 'noreply<mobbizapps12345@gmail.com>',
+                                            from: 'noreply<no-reply@cloudcfo.ph>',
                                             to: queryString.email,
                                             subject: "Reset " + global.site_name + " Account",
                                             html: content
