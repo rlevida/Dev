@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
     const UsersNotificationSetting = sequelize.define(
         "users_notification_setting",
         {
@@ -95,6 +95,11 @@ module.exports = function(sequelize, DataTypes) {
             as: "notification_setting",
             foreignKey: "usersId"
         });
+        UsersNotificationSetting.belongsTo(models.Users, {
+            as: "user_notification_setting",
+            foreignKey: "usersId",
+            targetKey: "id"
+        })
     };
 
     return UsersNotificationSetting;

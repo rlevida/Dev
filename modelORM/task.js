@@ -107,7 +107,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    Tasks.associate = function(models) {
+    Tasks.associate = function (models) {
         Tasks.hasMany(models.Tag, {
             as: "tag_task",
             foreignKey: "linkId"
@@ -148,7 +148,6 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "linkId",
             as: "task_starred"
         });
-
         Tasks.hasOne(models.Notification, {
             foreignKey: "taskId",
             as: "task_notification"
@@ -157,7 +156,45 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "projectId",
             as: "task_project"
         });
+        Tasks.belongsTo(models.Users, {
+            foreignKey: "approverId",
+            as: "task_approver"
+        });
+        Tasks.belongsTo(models.Members, {
+            as: 'memberTask',
+            foreignKey: 'id',
+            targetKey: 'linkId'
+        })
+        Tasks.belongsTo(models.Members, {
+            as: 'memberWorkstreamTask',
+            foreignKey: "workstreamId",
+            targetKey: 'linkId',
+        })
+        Tasks.hasMany(models.Members, {
+            as: "memberTaskFollower",
+            foreignKey: "id",
+            targetKey: "linkId",
+        })
+        Tasks.belongsTo(models.Members, {
+            as: 'assigned_task',
+            foreignKey: "id",
+            targetKey: "linkId",
+        })
+        Tasks.belongsTo(models.Members, {
+            as: 'follower_Task',
+            foreignKey: "id",
+            targetKey: "linkId",
+        })
+        Tasks.belongsTo(models.Members, {
+            as: 'responsible_task',
+            foreignKey: "workstreamId",
+            targetKey: 'linkId',
+        })
+        Tasks.hasOne(models.Members, {
+            as: "member_assigned_to_task",
+            foreignKey: "linkId",
+            sourceKey: "id"
+        })
     };
-
     return Tasks;
 };

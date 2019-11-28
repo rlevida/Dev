@@ -65,9 +65,9 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-      tableName: 'workstream',
-      timestamps: false
-    });
+    tableName: 'workstream',
+    timestamps: false
+  });
 
   Workstream.associate = function (models) {
     Workstream.belongsTo(models.Projects, {

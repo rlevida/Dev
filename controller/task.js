@@ -28,6 +28,8 @@ const {
     UsersNotificationSetting
 } = models;
 
+const sendNotification = require("./sendNotification");
+
 const func = global.initFunc();
 const Op = Sequelize.Op;
 
@@ -363,7 +365,7 @@ exports.get = {
             if (Array.isArray(queryString.dueDate.value)) {
                 dueDate = _.reduce(
                     queryString.dueDate,
-                    function(obj, values) {
+                    function (obj, values) {
                         const arrValues = JSON.parse(values);
                         obj[Sequelize.Op[arrValues.opt]] = arrValues.value;
                         return obj;
@@ -385,96 +387,96 @@ exports.get = {
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
             ...(typeof queryString.task != "undefined" && queryString.task != ""
                 ? {
-                      [Sequelize.Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("task.task")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.task}%`)
-                          })
-                      ]
-                  }
+                    [Sequelize.Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("task.task")), {
+                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.task}%`)
+                        })
+                    ]
+                }
                 : {}),
             ...(status != ""
                 ? {
-                      status: {
-                          ...(status.opt == "not"
-                              ? {
-                                    [Sequelize.Op.or]: {
-                                        [Sequelize.Op[status.opt]]: status.value,
-                                        [Sequelize.Op.eq]: null
-                                    }
+                    status: {
+                        ...(status.opt == "not"
+                            ? {
+                                [Sequelize.Op.or]: {
+                                    [Sequelize.Op[status.opt]]: status.value,
+                                    [Sequelize.Op.eq]: null
                                 }
-                              : {
-                                    [Sequelize.Op.and]: {
-                                        [Sequelize.Op[status.opt]]: status.value
-                                    }
-                                })
-                      }
-                  }
+                            }
+                            : {
+                                [Sequelize.Op.and]: {
+                                    [Sequelize.Op[status.opt]]: status.value
+                                }
+                            })
+                    }
+                }
                 : {}),
             ...(dueDate != "" && typeof queryString.view == "undefined"
                 ? {
-                      [Sequelize.Op.and]: [
-                          {
-                              dueDate:
-                                  queryString.dueDate == "null"
-                                      ? null
-                                      : {
-                                            ...(dueDate != "" && Array.isArray(dueDate)
+                    [Sequelize.Op.and]: [
+                        {
+                            dueDate:
+                                queryString.dueDate == "null"
+                                    ? null
+                                    : {
+                                        ...(dueDate != "" && Array.isArray(dueDate)
+                                            ? {
+                                                [Sequelize.Op.or]: dueDate
+                                            }
+                                            : dueDate != "" && Array.isArray(dueDate.value)
                                                 ? {
-                                                      [Sequelize.Op.or]: dueDate
-                                                  }
-                                                : dueDate != "" && Array.isArray(dueDate.value)
-                                                ? {
-                                                      [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                                          return moment(o, "YYYY-MM-DD")
-                                                              .utc()
-                                                              .format("YYYY-MM-DD HH:mm");
-                                                      })
-                                                  }
+                                                    [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                                        return moment(o, "YYYY-MM-DD")
+                                                            .utc()
+                                                            .format("YYYY-MM-DD HH:mm");
+                                                    })
+                                                }
                                                 : {
-                                                      [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
-                                                  }),
-                                            [Sequelize.Op.not]: null
-                                        }
-                          },
-                          {
-                              ...(weekDate !== ""
-                                  ? {
-                                        dueDate: {
-                                            [Sequelize.Op.notBetween]: _.map(weekDate.value, o => {
-                                                return moment(o, "YYYY-MM-DD")
-                                                    .utc()
-                                                    .format("YYYY-MM-DD HH:mm");
-                                            })
-                                        }
+                                                    [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, "YYYY-MM-DD").format("YYYY-MM-DD HH:mm:ss")
+                                                }),
+                                        [Sequelize.Op.not]: null
                                     }
-                                  : {})
-                          }
-                      ]
-                  }
+                        },
+                        {
+                            ...(weekDate !== ""
+                                ? {
+                                    dueDate: {
+                                        [Sequelize.Op.notBetween]: _.map(weekDate.value, o => {
+                                            return moment(o, "YYYY-MM-DD")
+                                                .utc()
+                                                .format("YYYY-MM-DD HH:mm");
+                                        })
+                                    }
+                                }
+                                : {})
+                        }
+                    ]
+                }
                 : {}),
             ...(typeof queryString.view != "undefined" && queryString.view == "calendar"
                 ? {
-                      [Sequelize.Op.or]: [
-                          {
-                              dueDate: {
-                                  [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                      return moment(o, "YYYY-MM-DD")
-                                          .utc()
-                                          .format("YYYY-MM-DD HH:mm");
-                                  })
-                              }
-                          },
-                          {
-                              startDate: {
-                                  [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
-                                      return moment(o, "YYYY-MM-DD")
-                                          .utc()
-                                          .format("YYYY-MM-DD HH:mm");
-                                  })
-                              }
-                          }
-                      ]
-                  }
+                    [Sequelize.Op.or]: [
+                        {
+                            dueDate: {
+                                [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                    return moment(o, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm");
+                                })
+                            }
+                        },
+                        {
+                            startDate: {
+                                [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, o => {
+                                    return moment(o, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm");
+                                })
+                            }
+                        }
+                    ]
+                }
                 : {}),
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: queryString.isActive } : {})
         };
@@ -626,7 +628,7 @@ exports.get = {
         };
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Tasks.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -640,7 +642,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Tasks.findAll({
                             where: whereObj,
@@ -666,7 +668,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -776,20 +778,20 @@ exports.get = {
                 [
                     models.sequelize.literal(
                         'COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate = "' +
-                            moment(queryString.date, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm") +
-                            '" THEN task.id END)'
+                        moment(queryString.date, "YYYY-MM-DD")
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm") +
+                        '" THEN task.id END)'
                     ),
                     "due_today"
                 ],
                 [
                     models.sequelize.literal(
                         'COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate < "' +
-                            moment(queryString.date, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm") +
-                            '" THEN task.id END)'
+                        moment(queryString.date, "YYYY-MM-DD")
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm") +
+                        '" THEN task.id END)'
                     ),
                     "issues"
                 ]
@@ -846,20 +848,20 @@ exports.get = {
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                            moment(queryString.date, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" THEN task.id END)'
+                                        moment(queryString.date, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" THEN task.id END)'
                                     ),
                                     "issues"
                                 ],
                                 [
                                     models.sequelize.literal(
                                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                            moment(queryString.date, "YYYY-MM-DD")
-                                                .utc()
-                                                .format("YYYY-MM-DD HH:mm") +
-                                            '" THEN task.id END)'
+                                        moment(queryString.date, "YYYY-MM-DD")
+                                            .utc()
+                                            .format("YYYY-MM-DD HH:mm") +
+                                        '" THEN task.id END)'
                                     ),
                                     "due_today"
                                 ]
@@ -901,20 +903,20 @@ exports.get = {
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "issues"
                             ],
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "due_today"
                             ]
@@ -953,20 +955,20 @@ exports.get = {
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "issues"
                             ],
                             [
                                 models.sequelize.literal(
                                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
+                                    moment(queryString.date, "YYYY-MM-DD")
+                                        .utc()
+                                        .format("YYYY-MM-DD HH:mm") +
+                                    '" THEN task.id END)'
                                 ),
                                 "due_today"
                             ]
@@ -1009,12 +1011,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1033,12 +1035,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1060,12 +1062,12 @@ exports.get = {
                                 isDeleted: 0,
                                 ...(userId != "" && queryString.userRole > 3
                                     ? {
-                                          id: {
-                                              [Op.in]: Sequelize.literal(
-                                                  `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
-                                              )
-                                          }
-                                      }
+                                        id: {
+                                            [Op.in]: Sequelize.literal(
+                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                            )
+                                        }
+                                    }
                                     : {})
                             }
                         }).then(({ count }) => {
@@ -1148,7 +1150,7 @@ exports.post = {
                     }).then(response => {
                         async.waterfall(
                             [
-                                function(callback) {
+                                function (callback) {
                                     if (typeof body.periodic != "undefined" && body.periodic == 1) {
                                         const taskPromises = _.times(2, o => {
                                             return new Promise(resolve => {
@@ -1160,10 +1162,10 @@ exports.post = {
                                                     dueDate: nextDueDate,
                                                     ...(body.startDate != null && body.startDate != ""
                                                         ? {
-                                                              startDate: moment(body.startDate)
-                                                                  .add(body.periodType, body.periodInstance * (o + 1))
-                                                                  .format("YYYY-MM-DD HH:mm:ss")
-                                                          }
+                                                            startDate: moment(body.startDate)
+                                                                .add(body.periodType, body.periodInstance * (o + 1))
+                                                                .format("YYYY-MM-DD HH:mm:ss")
+                                                        }
                                                         : {}),
                                                     periodTask: newTaskResponse.id
                                                 };
@@ -1190,7 +1192,7 @@ exports.post = {
                                         callback(null, [newTaskResponse]);
                                     }
                                 },
-                                function(newTasksArgs, callback) {
+                                function (newTasksArgs, callback) {
                                     const taskAttrPromises = _.map(newTasksArgs, taskObj => {
                                         return new Promise(resolve => {
                                             async.parallel(
@@ -1230,137 +1232,6 @@ exports.post = {
                                                         } else {
                                                             parallelCallback(null, {});
                                                         }
-                                                    },
-                                                    notification: parallelCallback => {
-                                                        Users.findOne({
-                                                            where: {
-                                                                id: body.userId
-                                                            }
-                                                        }).then(o => {
-                                                            const sender = o.toJSON();
-                                                            UsersNotificationSetting.findAll({
-                                                                where: { usersId: [body.assignedTo, body.approverId] },
-                                                                include: [
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "notification_setting",
-                                                                        required: false
-                                                                    }
-                                                                ]
-                                                            })
-                                                                .map(response => {
-                                                                    return response.toJSON();
-                                                                })
-                                                                .then(response => {
-                                                                    const notificationArr = _.filter(response, nSetting => {
-                                                                        return nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId;
-                                                                    }).map(nSetting => {
-                                                                        if (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) {
-                                                                            return {
-                                                                                usersId: nSetting.usersId,
-                                                                                projectId: body.projectId,
-                                                                                taskId: taskObj.id,
-                                                                                workstreamId: body.workstreamId,
-                                                                                createdBy: body.userId,
-                                                                                type: "taskAssigned",
-                                                                                message: "Assigned a new task for you",
-                                                                                emailAddress: nSetting.notification_setting.emailAddress,
-                                                                                receiveEmail: nSetting.receiveEmail
-                                                                            };
-                                                                        }
-                                                                    });
-
-                                                                    Notification.bulkCreate(notificationArr)
-                                                                        .map(notificationRes => {
-                                                                            return notificationRes.id;
-                                                                        })
-                                                                        .then(notificationRes => {
-                                                                            Notification.findAll({
-                                                                                where: { id: notificationRes },
-                                                                                include: [
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "to",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "from",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Projects,
-                                                                                        as: "project_notification",
-                                                                                        required: false,
-                                                                                        include: [
-                                                                                            {
-                                                                                                model: Type,
-                                                                                                as: "type",
-                                                                                                required: false,
-                                                                                                attributes: ["type"]
-                                                                                            }
-                                                                                        ]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Document,
-                                                                                        as: "document_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["origin"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Workstream,
-                                                                                        as: "workstream_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["workstream"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Tasks,
-                                                                                        as: "task_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["task"]
-                                                                                    }
-                                                                                ]
-                                                                            })
-                                                                                .map(findNotificationRes => {
-                                                                                    req.app.parent.io.emit("FRONT_NOTIFICATION", {
-                                                                                        ...findNotificationRes.toJSON()
-                                                                                    });
-                                                                                    return findNotificationRes.toJSON();
-                                                                                })
-                                                                                .then(() => {
-                                                                                    async.map(
-                                                                                        notificationArr,
-                                                                                        ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                                            if (receiveEmail === 1) {
-                                                                                                let html = "<p>" + message + "</p>";
-                                                                                                html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
-                                                                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                                                html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
-                                                                                                    global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                                                html += `<p>Date:<br>${moment().format("LLL")}</p>`;
-
-                                                                                                const mailOptions = {
-                                                                                                    from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                                                    to: `${emailAddress}`,
-                                                                                                    subject: "[CLOUD-CFO]",
-                                                                                                    html: html
-                                                                                                };
-                                                                                                global.emailtransport(mailOptions);
-                                                                                            }
-                                                                                            mapCallback(null);
-                                                                                        },
-                                                                                        err => {
-                                                                                            parallelCallback(null);
-                                                                                        }
-                                                                                    );
-                                                                                });
-                                                                        });
-                                                                });
-                                                        });
                                                     }
                                                 },
                                                 (err, response) => {
@@ -1374,7 +1245,7 @@ exports.post = {
                                         callback(null, newTasksArgs);
                                     });
                                 },
-                                function(newTasksArgs) {
+                                function (newTasksArgs, callback) {
                                     Tasks.findAll({
                                         ...options,
                                         where: {
@@ -1384,43 +1255,55 @@ exports.post = {
                                                 })
                                             }
                                         }
-                                    })
-                                        .map(mapObject => {
-                                            return mapObject.toJSON();
-                                        })
-                                        .then(response => {
-                                            async.parallel(
-                                                {
-                                                    projects: parallelCallback => {
-                                                        Projects.update(
-                                                            { dateUpdated: body.dateUpdated },
-                                                            {
-                                                                where: { id: response[0].projectId }
-                                                            }
-                                                        ).then(res => {
-                                                            parallelCallback(null);
-                                                        });
-                                                    },
-                                                    workstream: parallelCallback => {
-                                                        Workstream.update(
-                                                            { dateUpdated: body.dateUpdated },
-                                                            {
-                                                                where: { id: response[0].workstreamId }
-                                                            }
-                                                        ).then(res => {
-                                                            parallelCallback(null);
-                                                        });
-                                                    }
+                                    }).map(mapObject => {
+                                        return mapObject.toJSON();
+                                    }).then(response => {
+                                        async.parallel(
+                                            {
+                                                projects: parallelCallback => {
+                                                    Projects.update(
+                                                        { dateUpdated: body.dateUpdated },
+                                                        {
+                                                            where: { id: response[0].projectId }
+                                                        }
+                                                    ).then(res => {
+                                                        parallelCallback(null);
+                                                    });
                                                 },
-                                                () => {
-                                                    cb({ status: true, data: response });
+                                                workstream: parallelCallback => {
+                                                    Workstream.update(
+                                                        { dateUpdated: body.dateUpdated },
+                                                        {
+                                                            where: { id: response[0].workstreamId }
+                                                        }
+                                                    ).then(res => {
+                                                        parallelCallback(null);
+                                                    });
                                                 }
-                                            );
-                                        });
+                                            },
+                                            () => {
+                                                callback(null, response);
+                                            }
+                                        );
+                                    });
                                 }
                             ],
-                            function(err, result) {
-                                cb({ status: true, data: result.tasks });
+                            async function (err, result) {
+                                const userFindResult = await Users.findOne({ where: { id: body.userId } });
+                                const sender = userFindResult.toJSON();
+
+                                result.forEach(async taskObj => {
+                                    await sendNotification({
+                                        notificationSocket: req.app.parent.io,
+                                        sender: sender,
+                                        receiver: [body.assignedTo, body.approverId],
+                                        notificationType: "taskAssigned",
+                                        notificationData: { task: taskObj },
+                                        projectId: body.projectId,
+                                        workstreamId: taskObj.workstreamId,
+                                    });
+                                })
+                                cb({ status: true, data: result });
                             }
                         );
                     });
@@ -1443,7 +1326,7 @@ exports.post = {
         const filesStack = [];
 
         form.multiples = true;
-        form.on("field", function(name, field) {
+        form.on("field", function (name, field) {
             if (name == "userId") {
                 userId = field;
             } else if (name == "tagged") {
@@ -1452,7 +1335,7 @@ exports.post = {
                 taskId = field;
             }
         })
-            .on("file", function(field, file) {
+            .on("file", function (field, file) {
                 const date = new Date();
                 const id = func.generatePassword(date.getTime() + file.name, "attachment");
                 const filename = id + file.name.replace(/[^\w.]|_/g, "_");
@@ -1464,7 +1347,7 @@ exports.post = {
                     filename: filename
                 });
             })
-            .on("end", function() {
+            .on("end", function () {
                 async.map(
                     filesStack,
                     (fileObj, mapCallback) => {
@@ -1525,378 +1408,146 @@ exports.post = {
                                     };
                                 })
                             ];
+                            await Tag.bulkCreate(workstreamTag);
                         }
 
-                        async.parallel(
-                            {
-                                tag: parallelCallback => {
-                                    Tag.bulkCreate(workstreamTag).then(() => {
-                                        parallelCallback(null);
-                                    });
-                                },
-                                notification: parallelCallback => {
-                                    try {
-                                        Users.findOne({
-                                            where: {
-                                                id: userId
-                                            }
-                                        }).then(async o => {
-                                            const sender = o.toJSON();
-                                            const receiver = await Members.findAll({
-                                                where: {
-                                                    [Op.or]: [{ linkType: "workstream", linkId: workstreamId }, { linkType: "task", linkId: taskId }],
-                                                    userTypeLinkId: { [Op.ne]: userId }
-                                                }
-                                            })
-                                                .map(o => {
-                                                    return o.userTypeLinkId;
-                                                })
-                                                .then(o => {
-                                                    return _.union(o);
-                                                });
+                        /* NOTIFICATION */
+                        const userFindResult = await Users.findOne({ where: { id: userId } })
 
-                                            UsersNotificationSetting.findAll({
-                                                where: { usersId: receiver },
-                                                include: [
-                                                    {
-                                                        model: Users,
-                                                        as: "notification_setting",
-                                                        required: false
-                                                    }
-                                                ]
-                                            })
-                                                .map(response => {
-                                                    return response.toJSON();
-                                                })
-                                                .then(response => {
-                                                    async.map(
-                                                        documentUpload,
-                                                        (o, mapCallback) => {
-                                                            const notificationArr = _.filter(response, nSetting => {
-                                                                return nSetting.fileNewUpload === 1;
-                                                            }).map(nSetting => {
-                                                                return {
-                                                                    usersId: nSetting.usersId,
-                                                                    projectId: projectId,
-                                                                    createdBy: o.uploadedBy,
-                                                                    workstreamId: workstreamId,
-                                                                    taskId: taskId,
-                                                                    documentId: o.id,
-                                                                    type: "fileNewUpload",
-                                                                    message: "upload a new file",
-                                                                    emailAddress: nSetting.notification_setting.emailAddress,
-                                                                    receiveEmail: nSetting.receiveEmail
-                                                                };
-                                                            });
-                                                            mapCallback(null, { notificationArr: notificationArr });
-                                                        },
-                                                        (err, nsResult) => {
-                                                            const notificationArr = _.flatMapDeep(
-                                                                nsResult.map(o => {
-                                                                    return o.notificationArr;
-                                                                })
-                                                            );
+                        const sender = userFindResult.toJSON();
 
-                                                            Notification.bulkCreate(notificationArr)
-                                                                .map(notificationRes => {
-                                                                    return notificationRes.id;
-                                                                })
-                                                                .then(notificationRes => {
-                                                                    Notification.findAll({
-                                                                        where: { id: notificationRes },
-                                                                        include: [
-                                                                            {
-                                                                                model: Users,
-                                                                                as: "to",
-                                                                                required: false,
-                                                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                            },
-                                                                            {
-                                                                                model: Users,
-                                                                                as: "from",
-                                                                                required: false,
-                                                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                            },
-                                                                            {
-                                                                                model: Projects,
-                                                                                as: "project_notification",
-                                                                                required: false,
-                                                                                include: [
-                                                                                    {
-                                                                                        model: Type,
-                                                                                        as: "type",
-                                                                                        required: false,
-                                                                                        attributes: ["type"]
-                                                                                    }
-                                                                                ]
-                                                                            },
-                                                                            {
-                                                                                model: Document,
-                                                                                as: "document_notification",
-                                                                                required: false,
-                                                                                attributes: ["origin"]
-                                                                            },
-                                                                            {
-                                                                                model: Workstream,
-                                                                                as: "workstream_notification",
-                                                                                required: false,
-                                                                                attributes: ["workstream"]
-                                                                            },
-                                                                            {
-                                                                                model: Tasks,
-                                                                                as: "task_notification",
-                                                                                required: false,
-                                                                                attributes: ["task"]
-                                                                            }
-                                                                        ]
-                                                                    })
-                                                                        .map(findNotificationRes => {
-                                                                            req.app.parent.io.emit("FRONT_NOTIFICATION", {
-                                                                                ...findNotificationRes.toJSON()
-                                                                            });
-                                                                            return findNotificationRes.toJSON();
-                                                                        })
-                                                                        .then(() => {
-                                                                            async.map(
-                                                                                notificationArr,
-                                                                                ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                                    if (receiveEmail === 1) {
-                                                                                        let html = "<p>" + message + "</p>";
-                                                                                        html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
-                                                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                                        html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                                        html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
-                                                                                            global.site_url
-                                                                                        }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                                        html += `<p>Date:<br>${moment().format("LLL")}</p>`;
+                        const receiver = await Members.findAll({
+                            where: {
+                                [Op.or]: [{ linkType: "workstream", linkId: workstreamId }, { linkType: "task", linkId: taskId }],
+                                userTypeLinkId: { [Op.ne]: userId }
+                            }
+                        }).map(o => {
+                            return o.userTypeLinkId;
+                        }).then(o => {
+                            return _.union(o);
+                        });
 
-                                                                                        const mailOptions = {
-                                                                                            from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                                            to: `${emailAddress}`,
-                                                                                            subject: "[CLOUD-CFO]",
-                                                                                            html: html
-                                                                                        };
-                                                                                        global.emailtransport(mailOptions);
-                                                                                    }
-                                                                                    mapCallback(null);
-                                                                                },
-                                                                                () => {
-                                                                                    parallelCallback(null);
-                                                                                }
-                                                                            );
-                                                                        });
-                                                                });
-                                                        }
-                                                    );
-                                                });
-                                        });
-                                    } catch (err) {
-                                        console.error(err);
-                                    }
-                                }
-                            },
-                            () => {
-                                if (checklistStack.length > 0) {
-                                    const checklistTag = _(documentUpload)
-                                        .map(responseObj => {
-                                            return _.map(checklistStack, ({ value }) => {
-                                                return {
-                                                    taskId,
-                                                    checklistId: value,
-                                                    document: responseObj
-                                                };
-                                            });
-                                        })
-                                        .flatten()
-                                        .value();
+                        documentUpload.forEach(async documentObj => {
+                            await sendNotification({
+                                notificationSocket: req.app.parent.io,
+                                sender: sender,
+                                receiver: receiver,
+                                notificationType: "fileNewUpload",
+                                notificationData: { task: { id: taskId }, document: documentObj },
+                                projectId: projectId,
+                                workstreamId: workstreamId,
+                            });
+                        })
 
-                                    const checklistPromise = _.map(checklistTag, ({ checklistId, document }) => {
-                                        return new Promise(async (resolve, reject) => {
-                                            let oldChecklist = await TaskChecklist.findOne({ where: { id: checklistId } }).then(response => {
-                                                return response.toJSON();
-                                            });
-                                            let status = oldChecklist.isCompleted == 1 ? "Complete" : "Not Complete";
-                                            let oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
-
-                                            if (status == "Not Complete") {
-                                                TaskChecklist.update({ isCompleted: 1 }, { where: { id: checklistId } })
-                                                    .then(o => {
-                                                        return TaskChecklist.findOne({ where: { id: checklistId } }).then(o => {
-                                                            return o.toJSON();
-                                                        });
-                                                    })
-                                                    .then(response => {
-                                                        const updateResponse = response;
-                                                        status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
-
-                                                        const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                                        const objectKeys = _.map(newObject, function(value, key) {
-                                                            return key;
-                                                        });
-                                                        const bulkActivities = [
-                                                            {
-                                                                usersId: userId,
-                                                                linkType: "checklist",
-                                                                linkId: updateResponse.id,
-                                                                actionType: "completed",
-                                                                old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                                                                new: JSON.stringify({ checklist: newObject }),
-                                                                title: oldTaskChecklist.description
-                                                            },
-                                                            {
-                                                                usersId: userId,
-                                                                linkType: "document",
-                                                                linkId: document.id,
-                                                                actionType: "created",
-                                                                new: JSON.stringify({ document: _.omit(document, ["dateAdded", "dateUpdated"]) }),
-                                                                title: document.origin
-                                                            }
-                                                        ];
-
-                                                        ActivityLogs.bulkCreate(bulkActivities)
-                                                            .map(({ id }) => {
-                                                                return id;
-                                                            })
-                                                            .then(activityResponse => {
-                                                                return ActivityLogs.findAll({
-                                                                    include: [
-                                                                        {
-                                                                            model: Users,
-                                                                            as: "user",
-                                                                            attributes: ["firstName", "lastName"]
-                                                                        }
-                                                                    ],
-                                                                    where: { id: activityResponse }
-                                                                });
-                                                            })
-                                                            .map(response => {
-                                                                return response.toJSON();
-                                                            })
-                                                            .then(response => {
-                                                                resolve({ checklist: updateResponse, activity_log: response });
-                                                            });
-                                                    });
-                                            } else {
-                                                resolve({ checklist: {}, activity_log: [] });
-                                            }
-                                        });
-                                    });
-
-                                    Promise.all(checklistPromise).then(function(values) {
-                                        ChecklistDocuments.bulkCreate(
-                                            _.map(checklistTag, o => {
-                                                return { ..._.omit(o, ["document"]), documentId: o.document.id };
-                                            })
-                                        ).then(o => {
-                                            TaskChecklist.findAll({
-                                                where: {
-                                                    id: _.map(checklistTag, o => {
-                                                        return o.checklistId;
-                                                    })
-                                                },
-                                                include: [
-                                                    {
-                                                        model: Users,
-                                                        as: "user",
-                                                        attributes: ["id", "firstName", "lastName", "emailAddress", "avatar"]
-                                                    },
-                                                    {
-                                                        model: ChecklistDocuments,
-                                                        as: "tagDocuments",
-                                                        where: {
-                                                            isDeleted: 0
-                                                        },
-                                                        include: [
-                                                            {
-                                                                model: Document,
-                                                                as: "document",
-                                                                include: [
-                                                                    {
-                                                                        model: DocumentRead,
-                                                                        as: "document_read",
-                                                                        attributes: ["id"],
-                                                                        required: false
-                                                                    },
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "user"
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            })
-                                                .map(mapObject => {
-                                                    return mapObject.toJSON();
-                                                })
-                                                .then(async o => {
-                                                    const tags = await Tag.findAll({
-                                                        where: {
-                                                            linkType: "task",
-                                                            linkId: taskId,
-                                                            tagType: "document"
-                                                        },
-                                                        include: [
-                                                            {
-                                                                model: Document,
-                                                                as: "document",
-                                                                include: [
-                                                                    {
-                                                                        model: DocumentRead,
-                                                                        as: "document_read",
-                                                                        attributes: ["id"],
-                                                                        required: false
-                                                                    },
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "user"
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }).map(o => {
-                                                        return o.toJSON();
-                                                    });
-                                                    cb({
-                                                        status: true,
-                                                        data: {
-                                                            result: o,
-                                                            type: "checklist",
-                                                            tags,
-                                                            activity_logs: _.flatten(
-                                                                _.map(values, ({ activity_log }) => {
-                                                                    return activity_log;
-                                                                })
-                                                            )
-                                                        }
-                                                    });
-                                                });
-                                        });
-                                    });
-                                } else {
-                                    const taskTag = _.map(documentUpload, ({ id }) => {
+                        if (checklistStack.length > 0) {
+                            const checklistTag = _(documentUpload)
+                                .map(responseObj => {
+                                    return _.map(checklistStack, ({ value }) => {
                                         return {
-                                            linkType: "task",
-                                            linkId: taskId,
-                                            tagType: "document",
-                                            tagTypeId: id
+                                            taskId,
+                                            checklistId: value,
+                                            document: responseObj
                                         };
                                     });
+                                })
+                                .flatten()
+                                .value();
 
-                                    Tag.bulkCreate(taskTag)
-                                        .map(o => {
-                                            return o.toJSON();
-                                        })
-                                        .then(o => {
-                                            Tag.findAll({
-                                                where: {
-                                                    linkType: "task",
-                                                    linkId: taskId,
-                                                    tagType: "document",
-                                                    tagTypeId: _.map(taskTag, ({ tagTypeId }) => {
-                                                        return tagTypeId;
+                            const checklistPromise = _.map(checklistTag, ({ checklistId, document }) => {
+                                return new Promise(async (resolve, reject) => {
+                                    let oldChecklist = await TaskChecklist.findOne({ where: { id: checklistId } }).then(response => {
+                                        return response.toJSON();
+                                    });
+                                    let status = oldChecklist.isCompleted == 1 ? "Complete" : "Not Complete";
+                                    let oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
+
+                                    if (status == "Not Complete") {
+                                        TaskChecklist.update({ isCompleted: 1 }, { where: { id: checklistId } })
+                                            .then(o => {
+                                                return TaskChecklist.findOne({ where: { id: checklistId } }).then(o => {
+                                                    return o.toJSON();
+                                                });
+                                            })
+                                            .then(response => {
+                                                const updateResponse = response;
+                                                status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
+
+                                                const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
+                                                const objectKeys = _.map(newObject, function (value, key) {
+                                                    return key;
+                                                });
+                                                const bulkActivities = [
+                                                    {
+                                                        usersId: userId,
+                                                        linkType: "checklist",
+                                                        linkId: updateResponse.id,
+                                                        actionType: "completed",
+                                                        old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                                                        new: JSON.stringify({ checklist: newObject }),
+                                                        title: oldTaskChecklist.description
+                                                    },
+                                                    {
+                                                        usersId: userId,
+                                                        linkType: "document",
+                                                        linkId: document.id,
+                                                        actionType: "created",
+                                                        new: JSON.stringify({ document: _.omit(document, ["dateAdded", "dateUpdated"]) }),
+                                                        title: document.origin
+                                                    }
+                                                ];
+
+                                                ActivityLogs.bulkCreate(bulkActivities)
+                                                    .map(({ id }) => {
+                                                        return id;
                                                     })
+                                                    .then(activityResponse => {
+                                                        return ActivityLogs.findAll({
+                                                            include: [
+                                                                {
+                                                                    model: Users,
+                                                                    as: "user",
+                                                                    attributes: ["firstName", "lastName"]
+                                                                }
+                                                            ],
+                                                            where: { id: activityResponse }
+                                                        });
+                                                    })
+                                                    .map(response => {
+                                                        return response.toJSON();
+                                                    })
+                                                    .then(response => {
+                                                        resolve({ checklist: updateResponse, activity_log: response });
+                                                    });
+                                            });
+                                    } else {
+                                        resolve({ checklist: {}, activity_log: [] });
+                                    }
+                                });
+                            });
+
+                            Promise.all(checklistPromise).then(function (values) {
+                                ChecklistDocuments.bulkCreate(
+                                    _.map(checklistTag, o => {
+                                        return { ..._.omit(o, ["document"]), documentId: o.document.id };
+                                    })
+                                ).then(o => {
+                                    TaskChecklist.findAll({
+                                        where: {
+                                            id: _.map(checklistTag, o => {
+                                                return o.checklistId;
+                                            })
+                                        },
+                                        include: [
+                                            {
+                                                model: Users,
+                                                as: "user",
+                                                attributes: ["id", "firstName", "lastName", "emailAddress", "avatar"]
+                                            },
+                                            {
+                                                model: ChecklistDocuments,
+                                                as: "tagDocuments",
+                                                where: {
+                                                    isDeleted: 0
                                                 },
                                                 include: [
                                                     {
@@ -1916,54 +1567,144 @@ exports.post = {
                                                         ]
                                                     }
                                                 ]
-                                            })
-                                                .map(o => {
-                                                    return o.toJSON();
-                                                })
-                                                .then(o => {
-                                                    const documentResponse = o;
-                                                    const documentActivity = _.map(documentResponse, o => {
-                                                        return new Promise(resolve => {
-                                                            ActivityLogs.create({
-                                                                usersId: userId,
-                                                                linkType: "document",
-                                                                linkId: o.document.id,
-                                                                actionType: "created",
-                                                                new: JSON.stringify({ document: _.omit(o.document, ["dateAdded", "dateUpdated"]) }),
-                                                                title: o.document.origin
-                                                            })
-                                                                .then(response => {
-                                                                    const responseObj = response.toJSON();
-                                                                    return ActivityLogs.findOne({
-                                                                        include: [
-                                                                            {
-                                                                                model: Users,
-                                                                                as: "user",
-                                                                                attributes: ["firstName", "lastName"]
-                                                                            }
-                                                                        ],
-                                                                        where: { id: responseObj.id }
-                                                                    });
-                                                                })
-                                                                .then(response => {
-                                                                    const responseObj = response.toJSON();
-                                                                    resolve(responseObj);
-                                                                });
-                                                        });
-                                                    });
-
-                                                    Promise.all(documentActivity).then(promiseResponse => {
-                                                        cb({ status: true, data: { result: documentResponse, type: "document", activity_logs: promiseResponse } });
-                                                    });
-                                                });
+                                            }
+                                        ]
+                                    })
+                                        .map(mapObject => {
+                                            return mapObject.toJSON();
+                                        })
+                                        .then(async o => {
+                                            const tags = await Tag.findAll({
+                                                where: {
+                                                    linkType: "task",
+                                                    linkId: taskId,
+                                                    tagType: "document"
+                                                },
+                                                include: [
+                                                    {
+                                                        model: Document,
+                                                        as: "document",
+                                                        include: [
+                                                            {
+                                                                model: DocumentRead,
+                                                                as: "document_read",
+                                                                attributes: ["id"],
+                                                                required: false
+                                                            },
+                                                            {
+                                                                model: Users,
+                                                                as: "user"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }).map(o => {
+                                                return o.toJSON();
+                                            });
+                                            cb({
+                                                status: true,
+                                                data: {
+                                                    result: o,
+                                                    type: "checklist",
+                                                    tags,
+                                                    activity_logs: _.flatten(
+                                                        _.map(values, ({ activity_log }) => {
+                                                            return activity_log;
+                                                        })
+                                                    )
+                                                }
+                                            });
                                         });
-                                }
-                            }
-                        );
+                                });
+                            });
+                        } else {
+                            const taskTag = _.map(documentUpload, ({ id }) => {
+                                return {
+                                    linkType: "task",
+                                    linkId: taskId,
+                                    tagType: "document",
+                                    tagTypeId: id
+                                };
+                            });
+
+                            Tag.bulkCreate(taskTag)
+                                .map(o => {
+                                    return o.toJSON();
+                                })
+                                .then(o => {
+                                    Tag.findAll({
+                                        where: {
+                                            linkType: "task",
+                                            linkId: taskId,
+                                            tagType: "document",
+                                            tagTypeId: _.map(taskTag, ({ tagTypeId }) => {
+                                                return tagTypeId;
+                                            })
+                                        },
+                                        include: [
+                                            {
+                                                model: Document,
+                                                as: "document",
+                                                include: [
+                                                    {
+                                                        model: DocumentRead,
+                                                        as: "document_read",
+                                                        attributes: ["id"],
+                                                        required: false
+                                                    },
+                                                    {
+                                                        model: Users,
+                                                        as: "user"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    })
+                                        .map(o => {
+                                            return o.toJSON();
+                                        })
+                                        .then(o => {
+                                            const documentResponse = o;
+                                            const documentActivity = _.map(documentResponse, o => {
+                                                return new Promise(resolve => {
+                                                    ActivityLogs.create({
+                                                        usersId: userId,
+                                                        linkType: "document",
+                                                        linkId: o.document.id,
+                                                        actionType: "created",
+                                                        new: JSON.stringify({ document: _.omit(o.document, ["dateAdded", "dateUpdated"]) }),
+                                                        title: o.document.origin
+                                                    })
+                                                        .then(response => {
+                                                            const responseObj = response.toJSON();
+                                                            return ActivityLogs.findOne({
+                                                                include: [
+                                                                    {
+                                                                        model: Users,
+                                                                        as: "user",
+                                                                        attributes: ["firstName", "lastName"]
+                                                                    }
+                                                                ],
+                                                                where: { id: responseObj.id }
+                                                            });
+                                                        })
+                                                        .then(response => {
+                                                            const responseObj = response.toJSON();
+                                                            resolve(responseObj);
+                                                        });
+                                                });
+                                            });
+
+                                            Promise.all(documentActivity).then(promiseResponse => {
+                                                cb({ status: true, data: { result: documentResponse, type: "document", activity_logs: promiseResponse } });
+                                            });
+                                        });
+                                });
+                        }
                     }
                 );
             })
-            .on("error", function(err) {
+            .on("error", function (err) {
                 cb({ status: false, error: "Upload error. Please try again later." });
             });
 
@@ -2061,7 +1802,7 @@ exports.post = {
                                                 status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
 
                                                 const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                                const objectKeys = _.map(newObject, function(value, key) {
+                                                const objectKeys = _.map(newObject, function (value, key) {
                                                     return key;
                                                 });
                                                 const bulkActivities = [
@@ -2113,7 +1854,7 @@ exports.post = {
                                 });
                             });
 
-                            Promise.all(checklistPromise).then(function(values) {
+                            Promise.all(checklistPromise).then(function (values) {
                                 ChecklistDocuments.bulkCreate(
                                     _.map(checklistTag, o => {
                                         return { ..._.omit(o, ["document"]), documentId: o.document.id };
@@ -2324,7 +2065,7 @@ exports.put = {
                                                         })
                                                         .value();
                                                     const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                    const objectKeys = _.map(newObject, function(value, key) {
+                                                    const objectKeys = _.map(newObject, function (value, key) {
                                                         return key;
                                                     });
 
@@ -2333,11 +2074,11 @@ exports.put = {
                                                         ...(_.isEmpty(newObject)
                                                             ? {}
                                                             : {
-                                                                  logs: {
-                                                                      old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                      new: JSON.stringify({ task_details: newObject })
-                                                                  }
-                                                              })
+                                                                logs: {
+                                                                    old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                                    new: JSON.stringify({ task_details: newObject })
+                                                                }
+                                                            })
                                                     });
                                                 };
                                                 if (responseObj.periodic == 0 && body.periodic == 1) {
@@ -2351,10 +2092,10 @@ exports.put = {
                                                                 dueDate: nextDueDate,
                                                                 ...(body.startDate != null && body.startDate != ""
                                                                     ? {
-                                                                          startDate: moment(body.startDate)
-                                                                              .add(body.periodType, body.periodInstance * (o + 1))
-                                                                              .format("YYYY-MM-DD HH:mm:ss")
-                                                                      }
+                                                                        startDate: moment(body.startDate)
+                                                                            .add(body.periodType, body.periodInstance * (o + 1))
+                                                                            .format("YYYY-MM-DD HH:mm:ss")
+                                                                    }
                                                                     : {}),
                                                                 periodTask: responseObj.id
                                                             };
@@ -2437,10 +2178,10 @@ exports.put = {
                                                 dueDate: nextDueDate,
                                                 ...(body.startDate != null && body.startDate != ""
                                                     ? {
-                                                          startDate: moment(body.startDate)
-                                                              .add(body.periodType, body.periodInstance * (index + 1))
-                                                              .format("YYYY-MM-DD HH:mm:ss")
-                                                      }
+                                                        startDate: moment(body.startDate)
+                                                            .add(body.periodType, body.periodInstance * (index + 1))
+                                                            .format("YYYY-MM-DD HH:mm:ss")
+                                                    }
                                                     : {})
                                             };
 
@@ -2465,18 +2206,18 @@ exports.put = {
                                                             .value();
 
                                                         const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                        const objectKeys = _.map(newObject, function(_, key) {
+                                                        const objectKeys = _.map(newObject, function (_, key) {
                                                             return key;
                                                         });
                                                         resolve({
                                                             data: updatedResponse,
                                                             ...(_.isEmpty(newObject) == false
                                                                 ? {
-                                                                      logs: {
-                                                                          old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                          new: JSON.stringify({ task_details: newObject })
-                                                                      }
-                                                                  }
+                                                                    logs: {
+                                                                        old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                                        new: JSON.stringify({ task_details: newObject })
+                                                                    }
+                                                                }
                                                                 : {})
                                                         });
                                                     });
@@ -2603,14 +2344,14 @@ exports.put = {
                                                                                 old:
                                                                                     o.old != "undefined" && _.isEmpty(o.old) == false
                                                                                         ? JSON.stringify({
-                                                                                              [o.type]: o.old
-                                                                                          })
+                                                                                            [o.type]: o.old
+                                                                                        })
                                                                                         : "",
                                                                                 new:
                                                                                     o.new != "undefined" && _.isEmpty(o.new) == false
                                                                                         ? JSON.stringify({
-                                                                                              [o.type]: o.new
-                                                                                          })
+                                                                                            [o.type]: o.new
+                                                                                        })
                                                                                         : "",
                                                                                 actionType: "modified",
                                                                                 usersId: body.userId,
@@ -2732,10 +2473,10 @@ exports.put = {
                                         periodTask: periodTaskId,
                                         ...(latestTaskDate.startDate != null && latestTaskDate.startDate != ""
                                             ? {
-                                                  startDate: moment(latestTaskDate.startDate)
-                                                      .add(latestTaskDate.periodType, latestTaskDate.periodInstance)
-                                                      .format("YYYY-MM-DD HH:mm:ss")
-                                              }
+                                                startDate: moment(latestTaskDate.startDate)
+                                                    .add(latestTaskDate.periodType, latestTaskDate.periodInstance)
+                                                    .format("YYYY-MM-DD HH:mm:ss")
+                                            }
                                             : {}),
                                         status: "In Progress"
                                     };
@@ -2811,7 +2552,7 @@ exports.put = {
                                 .then(response => {
                                     return Tasks.findOne({ ...options, where: { id: body.id } });
                                 })
-                                .then(response => {
+                                .then(async response => {
                                     const updatedResponse = response.toJSON();
                                     const updatedTask = _(updatedResponse)
                                         .omit(["checklist", "tag_task", "dateUpdated", "dateAdded", "dateCompleted"])
@@ -2825,487 +2566,107 @@ exports.put = {
                                         .value();
 
                                     const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                    const objectKeys = _.map(newObject, function(value, key) {
+                                    const objectKeys = _.map(newObject, function (value, key) {
                                         return key;
                                     });
 
-                                    async.parallel(
-                                        {
-                                            notificationFollower: statusParallelCallback => {
-                                                try {
-                                                    if (body.status === "Completed") {
-                                                        Users.findOne({
-                                                            where: {
-                                                                id: body.userId
-                                                            }
-                                                        }).then(async o => {
-                                                            const sender = o.toJSON();
-                                                            const receiver = updatedResponse.follower.map(e => {
-                                                                return e.userTypeLinkId;
-                                                            });
+                                    /* Follower Notification */
 
-                                                            UsersNotificationSetting.findAll({
-                                                                where: { usersId: receiver },
-                                                                include: [
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "notification_setting",
-                                                                        required: false
-                                                                    }
-                                                                ]
-                                                            })
-                                                                .map(response => {
-                                                                    return response.toJSON();
-                                                                })
-                                                                .then(async response => {
-                                                                    const notificationArr = await _.filter(response, nSetting => {
-                                                                        return nSetting.taskFollowingCompleted === 1;
-                                                                    }).map(nSetting => {
-                                                                        return {
-                                                                            usersId: nSetting.usersId,
-                                                                            createdBy: sender.id,
-                                                                            projectId: updatedResponse.projectId,
-                                                                            taskId: updatedResponse.id,
-                                                                            workstreamId: updatedResponse.workstreamId,
-                                                                            type: "taskFollowingCompleted",
-                                                                            message: `Task ${updatedResponse.task} that you followed has been completed.`,
-                                                                            emailAddress: nSetting.notification_setting.emailAddress,
-                                                                            receiveEmail: nSetting.receiveEmail
-                                                                        };
-                                                                    });
+                                    if (body.status === "Completed") {
+                                        const userFindResult = await Users.findOne({ where: { id: body.userId } });
+                                        const sender = userFindResult.toJSON();
+                                        const receiver = updatedResponse.follower.map(e => {
+                                            return e.userTypeLinkId;
+                                        });
 
-                                                                    Notification.bulkCreate(notificationArr)
-                                                                        .map(notificationRes => {
-                                                                            return notificationRes.id;
-                                                                        })
-                                                                        .then(notificationRes => {
-                                                                            Notification.findAll({
-                                                                                where: { id: notificationRes },
-                                                                                include: [
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "to",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "from",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Projects,
-                                                                                        as: "project_notification",
-                                                                                        required: false,
-                                                                                        include: [
-                                                                                            {
-                                                                                                model: Type,
-                                                                                                as: "type",
-                                                                                                required: false,
-                                                                                                attributes: ["type"]
-                                                                                            }
-                                                                                        ]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Document,
-                                                                                        as: "document_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["origin"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Workstream,
-                                                                                        as: "workstream_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["workstream"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Tasks,
-                                                                                        as: "task_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["task"]
-                                                                                    }
-                                                                                ]
-                                                                            })
-                                                                                .map(findNotificationRes => {
-                                                                                    req.app.parent.io.emit("FRONT_NOTIFICATION", {
-                                                                                        ...findNotificationRes.toJSON()
-                                                                                    });
-                                                                                    return findNotificationRes.toJSON();
-                                                                                })
-                                                                                .then(() => {
-                                                                                    async.map(
-                                                                                        notificationArr,
-                                                                                        ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                                            if (receiveEmail === 1) {
-                                                                                                let html = "<p>" + message + "</p>";
-                                                                                                html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
-                                                                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                                                html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
-                                                                                                    global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                                                html += `<p>Date:<br>${moment().format("LLL")}</p>`;
+                                        await sendNotification({
+                                            notificationSocket: req.app.parent.io,
+                                            sender: sender,
+                                            receiver: receiver,
+                                            notificationType: "taskFollowingCompleted",
+                                            notificationData: { task: updatedResponse },
+                                            projectId: updatedResponse.projectId,
+                                            workstreamId: updatedResponse.workstreamId,
+                                        });
 
-                                                                                                const mailOptions = {
-                                                                                                    from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                                                    to: `${emailAddress}`,
-                                                                                                    subject: "[CLOUD-CFO]",
-                                                                                                    html: html
-                                                                                                };
-                                                                                                global.emailtransport(mailOptions);
-                                                                                            }
-                                                                                            mapCallback(null);
-                                                                                        },
-                                                                                        () => {
-                                                                                            statusParallelCallback(null);
-                                                                                        }
-                                                                                    );
-                                                                                });
-                                                                        });
-                                                                });
-                                                        });
-                                                    } else {
-                                                        statusParallelCallback(null);
-                                                    }
-                                                } catch (err) {
-                                                    console.error(err);
+                                        const taskTeamLeaderReceiver = await UsersTeam.findAll({
+                                            where: { usersId: sender.id },
+                                            include: [
+                                                {
+                                                    model: Teams,
+                                                    as: "team",
+                                                    required: false
                                                 }
-                                            },
-                                            notificationTeamLeader: statusParallelCallback => {
-                                                try {
-                                                    if (body.status === "Completed") {
-                                                        Users.findOne({
-                                                            where: {
-                                                                id: body.userId
-                                                            }
-                                                        }).then(async o => {
-                                                            const sender = o.toJSON();
-                                                            const receiver = await UsersTeam.findAll({
-                                                                where: { usersId: sender.id },
-                                                                include: [
-                                                                    {
-                                                                        model: Teams,
-                                                                        as: "team",
-                                                                        required: false
-                                                                    }
-                                                                ]
-                                                            })
-                                                                .map(o => {
-                                                                    return o.toJSON().team.teamLeaderId;
-                                                                })
-                                                                .then(o => {
-                                                                    return o;
-                                                                });
+                                            ]
+                                        }).map(o => {
+                                            return o.toJSON().team.teamLeaderId;
+                                        }).then(o => {
+                                            return o;
+                                        });
 
-                                                            UsersNotificationSetting.findAll({
-                                                                where: { usersId: _.union(receiver) },
-                                                                include: [
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "notification_setting",
-                                                                        required: false
-                                                                    }
-                                                                ]
-                                                            })
-                                                                .map(response => {
-                                                                    return response.toJSON();
-                                                                })
-                                                                .then(async response => {
-                                                                    let notificationArr = await _.filter(response, nSetting => {
-                                                                        return nSetting.taskMemberCompleted === 1;
-                                                                    }).map(nSetting => {
-                                                                        return {
-                                                                            usersId: nSetting.usersId,
-                                                                            createdBy: sender.id,
-                                                                            projectId: updatedResponse.projectId,
-                                                                            taskId: updatedResponse.id,
-                                                                            workstreamId: updatedResponse.workstreamId,
-                                                                            type: "taskMemberCompleted",
-                                                                            message: `Team member has completed a task ${updatedResponse.task}.`,
-                                                                            emailAddress: nSetting.notification_setting.emailAddress,
-                                                                            receiveEmail: nSetting.receiveEmail
-                                                                        };
-                                                                    });
+                                        await sendNotification({
+                                            notificationSocket: req.app.parent.io,
+                                            sender: sender,
+                                            receiver: taskTeamLeaderReceiver,
+                                            notificationType: "taskMemberCompleted",
+                                            notificationData: { task: updatedResponse },
+                                            projectId: updatedResponse.projectId,
+                                            workstreamId: updatedResponse.workstreamId,
+                                        });
+                                    }
 
-                                                                    Notification.bulkCreate(notificationArr)
-                                                                        .map(notificationRes => {
-                                                                            return notificationRes.id;
-                                                                        })
-                                                                        .then(notificationRes => {
-                                                                            Notification.findAll({
-                                                                                where: { id: notificationRes },
-                                                                                include: [
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "to",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "from",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Projects,
-                                                                                        as: "project_notification",
-                                                                                        required: false,
-                                                                                        include: [
-                                                                                            {
-                                                                                                model: Type,
-                                                                                                as: "type",
-                                                                                                required: false,
-                                                                                                attributes: ["type"]
-                                                                                            }
-                                                                                        ]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Document,
-                                                                                        as: "document_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["origin"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Workstream,
-                                                                                        as: "workstream_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["workstream"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Tasks,
-                                                                                        as: "task_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["task"]
-                                                                                    }
-                                                                                ]
-                                                                            })
-                                                                                .map(findNotificationRes => {
-                                                                                    req.app.parent.io.emit("FRONT_NOTIFICATION", {
-                                                                                        ...findNotificationRes.toJSON()
-                                                                                    });
-                                                                                    return findNotificationRes.toJSON();
-                                                                                })
-                                                                                .then(() => {
-                                                                                    async.map(
-                                                                                        notificationArr,
-                                                                                        ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                                            if (receiveEmail === 1) {
-                                                                                                let html = "<p>" + message + "</p>";
-                                                                                                html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
-                                                                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                                                html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
-                                                                                                    global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                                                html += `<p>Date:<br>${moment().format("LLL")}</p>`;
+                                    /* Task Approver Notification */
+                                    if (body.status == "For Approval") {
+                                        const userFindResult = await Users.findOne({ where: { id: body.userId } });
+                                        const sender = userFindResult.toJSON();
+                                        const receiver = updatedResponse.approverId;
 
-                                                                                                const mailOptions = {
-                                                                                                    from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                                                    to: `${emailAddress}`,
-                                                                                                    subject: "[CLOUD-CFO]",
-                                                                                                    html: html
-                                                                                                };
-                                                                                                global.emailtransport(mailOptions);
-                                                                                            }
-                                                                                            mapCallback(null);
-                                                                                        },
-                                                                                        () => {
-                                                                                            statusParallelCallback(null);
-                                                                                        }
-                                                                                    );
-                                                                                });
-                                                                        });
-                                                                });
-                                                        });
-                                                    } else {
-                                                        statusParallelCallback(null);
-                                                    }
-                                                } catch (err) {
-                                                    console.error(err);
+                                        await sendNotification({
+                                            notificationSocket: req.app.parent.io,
+                                            sender: sender,
+                                            receiver: receiver,
+                                            notificationType: "taskApprover",
+                                            notificationData: { task: updatedResponse },
+                                            projectId: updatedResponse.projectId,
+                                            workstreamId: updatedResponse.workstreamId,
+                                        });
+
+                                    }
+
+                                    /* Activity Logs */
+
+                                    ActivityLogs.create({
+                                        usersId: body.userId,
+                                        linkType: "task",
+                                        linkId: body.id,
+                                        actionType: body.status == "Completed" ? "completed" : body.status == "Rejected" ? "rejected" : body.status == "In Progress" && currentTask.status == "For Approval" ? "approved" : "modified",
+                                        old: JSON.stringify({ task_status: _.pick(currentTask, objectKeys) }),
+                                        new: JSON.stringify({ task_status: newObject }),
+                                        title: updatedResponse.task,
+                                        notes: body.message
+                                    }).then(activityLogResponse => {
+                                        const responseObj = activityLogResponse.toJSON();
+                                        return ActivityLogs.findOne({
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: "user",
+                                                    attributes: ["firstName", "lastName"]
                                                 }
-                                            },
-                                            notificationTaskForApproval: statusParallelCallback => {
-                                                try {
-                                                    if (body.status == "For Approval") {
-                                                        Users.findOne({
-                                                            where: {
-                                                                id: body.userId
-                                                            }
-                                                        }).then(o => {
-                                                            const sender = o.toJSON();
-                                                            const receiver = updatedResponse.approverId;
-
-                                                            UsersNotificationSetting.findAll({
-                                                                where: { usersId: receiver },
-                                                                include: [
-                                                                    {
-                                                                        model: Users,
-                                                                        as: "notification_setting",
-                                                                        required: false
-                                                                    }
-                                                                ]
-                                                            })
-                                                                .map(response => {
-                                                                    return response.toJSON();
-                                                                })
-                                                                .then(async response => {
-                                                                    const notificationArr = await _.filter(response, nSetting => {
-                                                                        return nSetting.taskFollowingCompleted === 1;
-                                                                    }).map(nSetting => {
-                                                                        return {
-                                                                            usersId: nSetting.usersId,
-                                                                            createdBy: sender.id,
-                                                                            projectId: updatedResponse.projectId,
-                                                                            taskId: updatedResponse.id,
-                                                                            workstreamId: updatedResponse.workstreamId,
-                                                                            type: "taskApprover",
-                                                                            message: "Needs your approval to complete a task",
-                                                                            emailAddress: nSetting.notification_setting.emailAddress,
-                                                                            receiveEmail: nSetting.receiveEmail
-                                                                        };
-                                                                    });
-
-                                                                    Notification.bulkCreate(notificationArr)
-                                                                        .map(notificationRes => {
-                                                                            return notificationRes.id;
-                                                                        })
-                                                                        .then(notificationRes => {
-                                                                            Notification.findAll({
-                                                                                where: { id: notificationRes },
-                                                                                include: [
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "to",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Users,
-                                                                                        as: "from",
-                                                                                        required: false,
-                                                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Projects,
-                                                                                        as: "project_notification",
-                                                                                        required: false,
-                                                                                        include: [
-                                                                                            {
-                                                                                                model: Type,
-                                                                                                as: "type",
-                                                                                                required: false,
-                                                                                                attributes: ["type"]
-                                                                                            }
-                                                                                        ]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Document,
-                                                                                        as: "document_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["origin"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Workstream,
-                                                                                        as: "workstream_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["workstream"]
-                                                                                    },
-                                                                                    {
-                                                                                        model: Tasks,
-                                                                                        as: "task_notification",
-                                                                                        required: false,
-                                                                                        attributes: ["task"]
-                                                                                    }
-                                                                                ]
-                                                                            })
-                                                                                .map(findNotificationRes => {
-                                                                                    req.app.parent.io.emit("FRONT_NOTIFICATION", {
-                                                                                        ...findNotificationRes.toJSON()
-                                                                                    });
-                                                                                    return findNotificationRes.toJSON();
-                                                                                })
-                                                                                .then(() => {
-                                                                                    async.map(
-                                                                                        notificationArr,
-                                                                                        ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                                            if (receiveEmail === 1) {
-                                                                                                let html = "<p>" + message + "</p>";
-                                                                                                html += '<p style="margin-bottom:0">Title: ' + message + "</p>";
-                                                                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                                                html += ` <a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${
-                                                                                                    global.site_url
-                                                                                                }account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                                                html += `<p>Date:<br>${moment().format("LLL")}</p>`;
-
-                                                                                                const mailOptions = {
-                                                                                                    from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                                                    to: `${emailAddress}`,
-                                                                                                    subject: "[CLOUD-CFO]",
-                                                                                                    html: html
-                                                                                                };
-                                                                                                global.emailtransport(mailOptions);
-                                                                                            }
-                                                                                            mapCallback(null);
-                                                                                        },
-                                                                                        () => {
-                                                                                            statusParallelCallback(null);
-                                                                                        }
-                                                                                    );
-                                                                                });
-                                                                        });
-                                                                });
-                                                        });
-                                                    } else {
-                                                        statusParallelCallback(null);
-                                                    }
-                                                } catch (err) {
-                                                    console.error(err);
-                                                }
-                                            },
-                                            activity_logs: statusParallelCallback => {
-                                                ActivityLogs.create({
-                                                    usersId: body.userId,
-                                                    linkType: "task",
-                                                    linkId: body.id,
-                                                    actionType: body.status == "Completed" ? "completed" : body.status == "Rejected" ? "rejected" : body.status == "In Progress" && currentTask.status == "For Approval" ? "approved" : "modified",
-                                                    old: JSON.stringify({ task_status: _.pick(currentTask, objectKeys) }),
-                                                    new: JSON.stringify({ task_status: newObject }),
-                                                    title: updatedResponse.task,
-                                                    notes: body.message
-                                                })
-                                                    .then(response => {
-                                                        const responseObj = response.toJSON();
-                                                        return ActivityLogs.findOne({
-                                                            include: [
-                                                                {
-                                                                    model: Users,
-                                                                    as: "user",
-                                                                    attributes: ["firstName", "lastName"]
-                                                                }
-                                                            ],
-                                                            where: { id: responseObj.id }
-                                                        });
-                                                    })
-                                                    .then(response => {
-                                                        const responseObj = response.toJSON();
-                                                        const assignedTaskMembers = _.filter(updatedResponse.task_members, member => {
-                                                            return member.memberType == "assignedTo";
-                                                        });
-                                                        const data = {
-                                                            ...updatedResponse,
-                                                            assignedTo: assignedTaskMembers.length > 0 ? assignedTaskMembers[0].userTypeLinkId : ""
-                                                        };
-                                                        statusParallelCallback(null, { task: data, activity_log: responseObj });
-                                                    });
-                                            }
-                                        },
-                                        (err, { activity_logs }) => {
-                                            parallelCallback(null, activity_logs);
-                                        }
-                                    );
+                                            ],
+                                            where: { id: responseObj.id }
+                                        });
+                                    }).then(activityLogResponse => {
+                                        const responseObj = activityLogResponse.toJSON();
+                                        const assignedTaskMembers = _.filter(updatedResponse.task_members, member => {
+                                            return member.memberType == "assignedTo";
+                                        });
+                                        const data = {
+                                            ...updatedResponse,
+                                            assignedTo: assignedTaskMembers.length > 0 ? assignedTaskMembers[0].userTypeLinkId : ""
+                                        };
+                                        parallelCallback(null, { task: data, activity_log: responseObj });
+                                    });
                                 });
                         });
                     },
@@ -3437,7 +2798,7 @@ exports.delete = {
                                         status = updateResponse.isCompleted == 1 ? "Complete" : "Not Complete";
 
                                         const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
-                                        const objectKeys = _.map(newObject, function(value, key) {
+                                        const objectKeys = _.map(newObject, function (value, key) {
                                             return key;
                                         });
                                         const bulkActivities = [
@@ -3485,7 +2846,7 @@ exports.delete = {
                             }
                         });
                     });
-                    Promise.all(checklistPromise).then(function(values) {
+                    Promise.all(checklistPromise).then(function (values) {
                         cb({
                             status: true,
                             data: {
