@@ -76,7 +76,7 @@ module.exports = async (params) => {
         // EMAIL NOTIFICATION
 
         const emailNotificationData = filter(usersNotificationSettingFindResult, nSetting => {
-            return nSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1;
+            return nSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
         })
 
         switch (notificationType) {

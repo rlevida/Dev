@@ -398,7 +398,7 @@ export default class ProjectForm extends React.Component {
                                                 }}
                                             />
                                             <span class="checkmark" />
-                                            App notification
+                                            In-App notification
                                         </label>
                                         <label class="custom-checkbox ml20">
                                             <input
