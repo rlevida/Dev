@@ -98,6 +98,9 @@ export default class ProjectForm extends React.Component {
         let { dispatch, project } = this.props;
         let Selected = Object.assign({}, project.Selected);
         Selected[name] = value;
+        if (name === "appNotification" && !value) {
+            Selected["emailNotification"] = false;
+        }
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected });
     }
 
@@ -332,6 +335,7 @@ export default class ProjectForm extends React.Component {
                 "id"
             );
         }
+
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -388,30 +392,34 @@ export default class ProjectForm extends React.Component {
                                             <span class="checkmark" />
                                             Active
                                         </label>
-                                        <label class="custom-checkbox ml20">
-                                            <input
-                                                type="checkbox"
-                                                checked={project.Selected.appNotification ? true : false}
-                                                onChange={() => { }}
-                                                onClick={f => {
-                                                    this.handleCheckbox("appNotification", project.Selected.appNotification ? 0 : 1);
-                                                }}
-                                            />
-                                            <span class="checkmark" />
-                                            In-App notification
-                                        </label>
-                                        <label class="custom-checkbox ml20">
-                                            <input
-                                                type="checkbox"
-                                                checked={project.Selected.emailNotification ? true : false}
-                                                onChange={() => { }}
-                                                onClick={f => {
-                                                    this.handleCheckbox("emailNotification", project.Selected.emailNotification ? 0 : 1);
-                                                }}
-                                            />
-                                            <span class="checkmark" />
-                                            Email notification
-                                        </label>
+                                        {loggedUser.data.userRole < 4 &&
+                                            <span>
+                                                <label class="custom-checkbox ml20">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={project.Selected.appNotification ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={f => {
+                                                            this.handleCheckbox("appNotification", project.Selected.appNotification ? 0 : 1);
+                                                        }}
+                                                    />
+                                                    <span class="checkmark" />
+                                                    In-App notification
+                                                </label>
+                                                <label class={`custom-checkbox ml20 ${project.Selected.appNotification ? "" : "p-event-none"}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={project.Selected.emailNotification ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={f => {
+                                                            this.handleCheckbox("emailNotification", project.Selected.emailNotification ? 0 : 1);
+                                                        }}
+                                                    />
+                                                    <span class="checkmark" />
+                                                    Email notification
+                                                </label>
+                                            </span>
+                                        }
                                     </div>
                                     <div class="form-group">
                                         <label for="project-name">
