@@ -22,7 +22,6 @@ var serverAuth = require("./auth");
 require("./script/backup");
 require("./script/taskOverdueNotificationScript");
 require("./script/taskBeforeDueNotificationScript");
-require("./script/projectDeleteScript");
 
 // get
 var index = require("./routes");
@@ -51,7 +50,7 @@ app.use("/node_modules", express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
 
 // manage token
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     if (typeof req.cookies["app.sid"] == "undefined") {
         const TokenGenerator = require("uuid-token-generator");
         res.cookie("app.sid", new TokenGenerator(256).generate(), { httpOnly: true });
@@ -65,14 +64,14 @@ app.use("/createPassword", createPassword);
 app.use("/auth", auth);
 app.use("/", index);
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     var err = new Error("Not Found");
     err.status = 404;
     next(err);
 });
 
 if (app.get("env") === "development") {
-    app.use(function(err, req, res, next) {
+    app.use(function (err, req, res, next) {
         res.status(err.status || 500);
         res.render("error", {
             message: err.message,
@@ -81,7 +80,7 @@ if (app.get("env") === "development") {
     });
 }
 
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render("error", {
         message: err.message,
