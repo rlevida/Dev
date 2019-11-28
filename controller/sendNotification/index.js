@@ -1,6 +1,6 @@
-const { filter } = require("lodash");
+const { filter, omit } = require("lodash");
 const models = require("../../modelORM");
-const { Notification, UsersNotificationSetting, Projects, Users, Conversation } = models;
+const { Notification, UsersNotificationSetting, Projects, Users } = models;
 
 const { notificationIncludes } = require("../includes/notification");
 const getNotificationMessage = require("./message");
@@ -38,9 +38,9 @@ module.exports = async (params) => {
             const notificationSetting = notificationSettingResponse.toJSON();
 
             return {
+                notificationSetting,
                 from: sender,
                 to: notificationSetting.user_notification_setting,
-                messageSend: notificationSetting.messageSend,
                 receiveEmail: notificationSetting.receiveEmail,
                 usersId: notificationSetting.usersId,
                 projectId: projectId,
@@ -55,8 +55,10 @@ module.exports = async (params) => {
             }
         })
 
-        const appNotificationData = filter(usersNotificationSettingFindResult, nSetting => {
-            return nSetting.messageSend === 1 && projectFindResult.appNotification === 1;
+        const appNotificationData = filter(usersNotificationSettingFindResult, notificationDataObj => {
+            return notificationDataObj.notificationSetting[notificationType] === 1 && projectFindResult.appNotification === 1;
+        }).map((notificationDataObj) => {
+            return omit(notificationDataObj, ["notificationSetting"]);
         })
 
         // APP NOTIFICATION
@@ -79,8 +81,10 @@ module.exports = async (params) => {
 
         // EMAIL NOTIFICATION
 
-        const emailNotificationData = filter(usersNotificationSettingFindResult, nSetting => {
-            return nSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
+        const emailNotificationData = filter(usersNotificationSettingFindResult, notificationDataObj => {
+            return notificationDataObj.notificationSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
+        }).map((notificationDataObj) => {
+            return omit(notificationDataObj, ["notificationSetting"]);
         })
 
         if (emailNotificationData.length > 0) {
