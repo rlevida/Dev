@@ -13,6 +13,7 @@ const fileNewUploadNotification = require("./template/fileNewUpload");
 const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
 const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
 const taskApproverNotification = require("./template/taskApprover");
+const taskBeforeDeadline = require("./template/taskBeforeDeadline");
 
 // const getNotificationSubject = require("./subject");
 
@@ -29,15 +30,16 @@ module.exports = async (params) => {
             include: [
                 {
                     model: Users,
-                    as: "notification_setting",
+                    as: "user_notification_setting",
                     required: false
                 }
             ]
         }).map(notificationSettingResponse => {
             const notificationSetting = notificationSettingResponse.toJSON();
+
             return {
                 from: sender,
-                to: notificationSetting.notification_setting,
+                to: notificationSetting.user_notification_setting,
                 messageSend: notificationSetting.messageSend,
                 receiveEmail: notificationSetting.receiveEmail,
                 usersId: notificationSetting.usersId,
@@ -67,9 +69,11 @@ module.exports = async (params) => {
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
-            notificationSocket.emit("FRONT_NOTIFICATION", {
-                ...findNotificationRes.toJSON()
-            });
+            if (notificationSocket) {
+                notificationSocket.emit("FRONT_NOTIFICATION", {
+                    ...findNotificationRes.toJSON()
+                });
+            }
             return findNotificationRes.toJSON();
         })
 
@@ -79,40 +83,50 @@ module.exports = async (params) => {
             return nSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
         })
 
-        switch (notificationType) {
-            case "messageSend":
-            case "messageMentioned":
-                await messageSendNotification({ emailNotificationData });
-                break;
-            case "fileTagged":
-                await filetaggedNotification({ emailNotificationData });
-                break;
-            case "taskTagged":
-                await taskTaggedNotification({ emailNotificationData });
-                break;
-            case "commentReplies":
-            case "taskAssignedComment":
-                await taskAssignedCommentNotification({ emailNotificationData });
-                break;
-            case "taskAssigned":
-                await taskAssignedNotification({ emailNotificationData });
-                break;
-            case "fileNewUpload":
-                await fileNewUploadNotification({ emailNotificationData });
-                break;
-            case "taskFollowingCompleted":
-                await taskFollowingCompletedNotification({ emailNotificationData });
-                break;
-            case "taskMemberCompleted":
-                await taskMemberCompletedNotification({ emailNotificationData });
-                break;
-            case "taskApprover":
-                await taskApproverNotification({ emailNotificationData });
-            default: return
+        if (emailNotificationData.length > 0) {
+            switch (notificationType) {
+                case "messageSend":
+                case "messageMentioned":
+                    await messageSendNotification({ emailNotificationData });
+                    break;
+                case "fileTagged":
+                    await filetaggedNotification({ emailNotificationData });
+                    break;
+                case "taskTagged":
+                    await taskTaggedNotification({ emailNotificationData });
+                    break;
+                case "commentReplies":
+                case "taskAssignedComment":
+                    await taskAssignedCommentNotification({ emailNotificationData });
+                    break;
+                case "taskAssigned":
+                    await taskAssignedNotification({ emailNotificationData });
+                    break;
+                case "fileNewUpload":
+                    await fileNewUploadNotification({ emailNotificationData });
+                    break;
+                case "taskFollowingCompleted":
+                    await taskFollowingCompletedNotification({ emailNotificationData });
+                    break;
+                case "taskMemberCompleted":
+                    await taskMemberCompletedNotification({ emailNotificationData });
+                    break;
+                case "taskApprover":
+                    await taskApproverNotification({ emailNotificationData });
+                case "taskBeforeDeadline":
+                case "taskResponsibleBeforeDeadline":
+                case "taskTeamLeaderDeadline":
+                case "taskAssignedDeadline":
+                case "taskResponsibleDeadline":
+                case "taskFollowerDeadline":
+                    await taskBeforeDeadline({ emailNotificationData });
+                default: return
+            }
+        } else {
+            return
         }
-        return
     } catch (error) {
-        console.log(error)
+        console.error(error)
     }
 
     /* NEW SETUP */

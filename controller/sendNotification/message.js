@@ -23,6 +23,18 @@ module.exports = async (params) => {
             return `Team member has completed a task ${task.task}.`;
         case "taskApprover":
             return `Needs your approval to complete a task`;
+        case "taskBeforeDeadline":
+            return `Task about to be due`
+        case "taskResponsibleBeforeDeadline":
+            return `Task about to be due as responsible`;
+        case "taskDeadline":
+            return `You seem to have missed a deadline.`;
+        case "taskTeamDeadline":
+            return `Team member seem to have missed a deadline.`;
+        case "taskFollowingDeadline":
+            return `Task following seem to have missed a deadline.`;
+        case "taskResponsibleDeadline":
+            return `Task seem to have missed a deadline as a responsible.`;
         default:
             return "";
     }
