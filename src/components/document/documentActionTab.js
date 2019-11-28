@@ -41,6 +41,10 @@ class DocumentActionTab extends React.Component {
             dispatch({ type: "RESET_DOCUMENT_FILTER", filter: {} });
 
             delayTimer = setTimeout(() => {
+                
+                /* Remove pending request */
+                window.stop();
+
                 if (ActiveTab !== "activities") {
                     let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
@@ -130,71 +134,71 @@ class DocumentActionTab extends React.Component {
         return (
             <div class="container-fluid filter mb20">
                 <div class="row content-row">
-                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="flex-row tab-row mb0">
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "active" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("active")}>
-                                    Active Files
+                    <div class="col-md-12 col-sm-12 col-xs-12 pd0">
+                        <div class="flex">
+                            <div class="flex-row tab-row mb0">
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "active" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("active")}>
+                                        Active Files
                                 </a>
-                            </div>
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "library" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("library")}>
-                                    Library
+                                </div>
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "library" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("library")}>
+                                        Library
                                 </a>
-                            </div>
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "sort" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("sort")}>
-                                    Sort Files
+                                </div>
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "sort" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("sort")}>
+                                        Sort Files
                                 </a>
-                            </div>
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "trash" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("trash")}>
-                                    Trash
+                                </div>
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "trash" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("trash")}>
+                                        Trash
                                 </a>
-                            </div>
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "archived" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("archived")}>
-                                    Archived
+                                </div>
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "archived" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("archived")}>
+                                        Archived
                                 </a>
-                            </div>
-                            <div class="flex-col">
-                                <a class={document.ActiveTab === "activities" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("activities")}>
-                                    Activities
+                                </div>
+                                <div class="flex-col">
+                                    <a class={document.ActiveTab === "activities" && document.Loading === "" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("activities")}>
+                                        Activities
                                 </a>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        {document.ActiveTab !== "trash" && document.ActiveTab !== "archived" && document.ActiveTab !== "activities" && (
-                            <div class="button-action">
-                                {document.Loading === "" && (
-                                    <a class="btn btn-default mr10" onClick={() => dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Upload" })}>
-                                        <span>
-                                            <i class="fa fa-plus mr10" aria-hidden="true" />
-                                            Add New File
+                            {document.ActiveTab !== "trash" && document.ActiveTab !== "archived" && document.ActiveTab !== "activities" && (
+                                <div class="button-action">
+                                    {document.Loading === "" && (
+                                        <a class="btn btn-default mr10" onClick={() => dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Upload" })}>
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true" />
+                                                Add New File
                                         </span>
-                                    </a>
-                                )}
-                                {document.ActiveTab !== "active" && document.Loading === "" && (
-                                    <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
-                                        <span>
-                                            <i class="fa fa-folder fa-lg mr10" />
-                                            Add New Folder
+                                        </a>
+                                    )}
+                                    {document.ActiveTab !== "active" && document.Loading === "" && (
+                                        <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
+                                            <span>
+                                                <i class="fa fa-folder fa-lg mr10" />
+                                                Add New Folder
                                         </span>
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                        {document.ActiveTab === "trash" && (
-                            <div class="button-action">
-                                <a class="btn btn-default" data-toggle="modal" data-target="#deleteModal">
-                                    <span>
-                                        <i class="fa fa-trash fa-lg mr10" />
-                                        Empty
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+                            {document.ActiveTab === "trash" && (
+                                <div class="button-action">
+                                    <a class="btn btn-default" data-toggle="modal" data-target="#deleteModal">
+                                        <span>
+                                            <i class="fa fa-trash fa-lg mr10" />
+                                            Empty
                                     </span>
-                                </a>
-                            </div>
-                        )}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

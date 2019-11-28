@@ -16,7 +16,9 @@ export default function reducer(
         SelectedFields: [],
         LastSelectedIndex: -1,
         SelectedFieldsDragging: [],
-        uploadType: null
+        uploadType: null,
+        SubFolders: [],
+        SelectedFolderOptions: {},
     },
     action
 ) {
@@ -40,17 +42,6 @@ export default function reducer(
         case "SET_DOCUMENT_EDIT_TYPE": {
             return { ...state, EditType: action.EditType };
         }
-        case "SET_DOCUMENT_STATUS": {
-            let List = state.List.map((e, i) => {
-                if (e.id == action.record.id) {
-                    e.Active = action.record.status;
-                    return e;
-                } else {
-                    return e;
-                }
-            });
-            return { ...state, List: List };
-        }
         case "SET_DOCUMENT_LOADING": {
             return { ...state, Loading: action.Loading };
         }
@@ -64,9 +55,6 @@ export default function reducer(
         }
         case "RESET_DOCUMENT_FILTER": {
             return { ...state, Filter: {} };
-        }
-        case "SET_DOCUMENT_STATUS_COUNT": {
-            return { ...state, Count: { ...Count, [action.status]: action.count } };
         }
         case "SET_DOCUMENT_ACTIVE_TAB": {
             return { ...state, ActiveTab: action.active };
@@ -110,8 +98,13 @@ export default function reducer(
             });
             return { ...state, List: list };
         }
-        case "CLEAR_DOCUMENT": {
-            return { ...state, List: [], Selected: {} };
+        case "SET_SUB_FOLDERS": {
+            return {
+                ...state, SubFolders: action.list, SelectedFolderOptions: { ...state.SelectedFolderOptions, [action.selectedFolderId]: action.list }
+            }
+        }
+        case "RESET_DOCUMENT": {
+            return { ...state, ...action }
         }
         default:
             return state;

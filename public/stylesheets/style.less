@@ -287,6 +287,7 @@ li {
 .dropdown-menu li {
     padding: 5px 0 5px 0px;
 }
+
 .tree-view ul {
     padding-left: 1em;
 }
@@ -1486,6 +1487,10 @@ td {
     flex-direction: column;
 }
 
+.flex {
+    display: flex;
+}
+
 .menu-bar,
 .content-div {
     flex: 1;
@@ -1531,7 +1536,6 @@ td {
 .head .action {
     margin-left: auto;
 }
-
 
 .new-menu {
     width: 100px !important;
@@ -2539,7 +2543,7 @@ textarea::-webkit-scrollbar-thumb {
     position: relative;
 }
 
-.project-title-wrapper{
+.project-title-wrapper {
     font-size: 20px;
     float: left;
     margin: -26px 0 0 -473px;
@@ -3658,7 +3662,7 @@ td .display-flex {
     background-color: #fff;
 }
 #projectActionTab {
-    z-index: 2!important;
+    z-index: 2 !important;
     background-color: #fff;
     padding: 20px;
     width: 100%;
@@ -3676,4 +3680,22 @@ td .display-flex {
 
 #main-nav-bar {
     padding-left: 300px;
+}
+
+.document-action-dropdown {
+    right: 85px !important;
+    top: 60px;
+}
+
+.dropdown-menu-right {
+    right: 120px !important;
+    z-index: 1000;
+    padding: 5px 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
 }

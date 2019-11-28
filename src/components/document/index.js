@@ -18,9 +18,7 @@ export default class DocumentComponent extends React.Component {
     }
     componentWillUnmount() {
         const { dispatch } = this.props;
-        dispatch({ type: "CLEAR_DOCUMENT" });
-        dispatch({ type: "SET_DOCUMENT_ACTIVE_TAB", active: "" });
-        dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+        dispatch({ type: "RESET_DOCUMENT", List: [], Selected: {}, active: "active", count: { current_page: 0, last_page: 0, total_page: 0 } });
         dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] });
         dispatch({ type: "SET_FOLDER_LIST", list: [] });
         dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });

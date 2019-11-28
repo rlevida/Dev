@@ -192,7 +192,7 @@ export default class WorkstreamForm extends React.Component {
         } else {
             postData(`/api/workstream`, dataToBeSubmitted, c => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
+                    dispatch({ type: "ADD_WORKSTREAM", data: c.data });
                     showToast("success", "Workstream successfully updated.");
                 } else {
                     showToast("error", "Something went wrong please try again later.");

@@ -22,6 +22,11 @@ export default function reducer(
         case "SET_WORKSTREAM_LIST": {
             return { ...state, List: action.list, ...(typeof action.Count != "undefined" ? { Count: action.Count } : {}) };
         }
+        case "ADD_WORKSTREAM": {
+            const List = state.List.slice();
+            List.unshift(action.data);
+            return { ...state, List: List, FormActive: "List", Selected: {} };
+        }
         case "UPDATE_WORKSTREAM_LIST": {
             const { List } = { ...state };
             const updatedList = [...List, ...action.list];
