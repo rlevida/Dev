@@ -82,7 +82,7 @@ module.exports = async (params) => {
         // EMAIL NOTIFICATION
 
         const emailNotificationData = filter(usersNotificationSettingFindResult, notificationDataObj => {
-            return notificationDataObj.notificationSetting.receiveEmail === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
+            return notificationDataObj.notificationSetting.receiveEmail === 1 && notificationDataObj.notificationSetting[notificationType] === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
         }).map((notificationDataObj) => {
             return omit(notificationDataObj, ["notificationSetting"]);
         })
