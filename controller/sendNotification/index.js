@@ -7,13 +7,19 @@ const getNotificationMessage = require("./message");
 const messageSendNotification = require("./template/messageSend");
 const taskTaggedNotification = require("./template/taskTagged");
 const filetaggedNotification = require("./template/fileTagged");
+const taskAssignedCommentNotification = require("./template/taskAssignedComment");
+const taskAssignedNotification = require("./template/taskAssigned");
+const fileNewUploadNotification = require("./template/fileNewUpload");
+const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
+const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
+const taskApproverNotification = require("./template/taskApprover");
 
 // const getNotificationSubject = require("./subject");
 
 module.exports = async (params) => {
     try {
         const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationSocket } = { ...params };
-
+        console.log(params)
         const projectFindResult = await Projects.findOne({ where: { id: projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
         const message = await getNotificationMessage({ notificationType, sender, task: notificationData.task });
@@ -80,12 +86,30 @@ module.exports = async (params) => {
                 break;
             case "fileTagged":
                 await filetaggedNotification({ emailNotificationData });
+                break;
             case "taskTagged":
                 await taskTaggedNotification({ emailNotificationData });
+                break;
             case "commentReplies":
-            default: break
+            case "taskAssignedComment":
+                await taskAssignedCommentNotification({ emailNotificationData });
+                break;
+            case "taskAssigned":
+                await taskAssignedNotification({ emailNotificationData });
+                break;
+            case "fileNewUpload":
+                await fileNewUploadNotification({ emailNotificationData });
+                break;
+            case "taskFollowingCompleted":
+                await taskFollowingCompletedNotification({ emailNotificationData });
+                break;
+            case "taskMemberCompleted":
+                await taskMemberCompletedNotification({ emailNotificationData });
+                break;
+            case "taskApprover":
+                await taskApproverNotification({ emailNotificationData });
+            default: return
         }
-
         return
     } catch (error) {
         console.log(error)
