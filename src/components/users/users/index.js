@@ -55,6 +55,7 @@ export default class Component extends React.Component {
                                                                 dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
                                                                 dispatch({ type: "SET_TEAM_LOADING", Loading: "RETRIEVING" });
                                                                 dispatch({ type: "SET_TEAM_LIST", list: [], Count: {} });
+                                                                dispatch({ type: "SET_USER_FILTER", filter: { name: "" } });
                                                             }}
                                                         >
                                                             Teams
