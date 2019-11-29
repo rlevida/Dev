@@ -1,11 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
-import _ from "lodash";
-import moment from "moment";
 import { withRouter } from "react-router";
 import { getData, showToast, setDatePicker, getParameterByName } from "../../globalFunction";
 let delayTimer = "";
-let keyTimer = "";
 
 @connect(store => {
     return {
@@ -29,6 +26,7 @@ class DocumentActionTab extends React.Component {
         const projectId = match.params.projectId;
 
         if (_.isEqual(prevProps.document.ActiveTab, document.ActiveTab) == false && !getParameterByName("folder-id")) {
+
             clearTimeout(delayTimer);
 
             if (_.isEmpty(folder.Selected) === false) {
@@ -37,15 +35,15 @@ class DocumentActionTab extends React.Component {
             }
             const { ActiveTab } = { ...document };
 
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
+            dispatch({ type: "RESET_DOCUMENT", List: [], Loading: "RETRIEVING", SubFolders: [] });
             dispatch({ type: "RESET_DOCUMENT_FILTER", filter: {} });
 
             delayTimer = setTimeout(() => {
-                
+
                 /* Remove pending request */
-                window.stop();
 
                 if (ActiveTab !== "activities") {
+
                     let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
                     if (ActiveTab === "trash") {
