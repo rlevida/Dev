@@ -16,7 +16,7 @@ const sendNotification = require("../controller/sendNotification");
  **/
 
 var job = new CronJob(
-    "*/15 * * * * *",
+    "0 7 * * *",
     async () => {
         const models = require("../modelORM");
         const { Tasks, Members, Workstream, Users } = models;
