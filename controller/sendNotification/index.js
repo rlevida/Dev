@@ -119,6 +119,7 @@ module.exports = async (params) => {
                     await taskApproverNotification({ emailNotificationData });
                 case "taskBeforeDeadline":
                 case "taskResponsibleBeforeDeadline":
+                case "taskDeadline":
                 case "taskTeamLeaderDeadline":
                 case "taskAssignedDeadline":
                 case "taskResponsibleDeadline":

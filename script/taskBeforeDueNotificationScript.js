@@ -1,8 +1,7 @@
 const async = require("async"),
     moment = require("moment"),
-    _ = require("lodash"),
     CronJob = require("cron").CronJob;
-
+const { find } = require("lodash")
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
@@ -14,14 +13,14 @@ const sendNotification = require("../controller/sendNotification");
  *   s    i    H    DM    M   DW
  *
  **/
-
+let keyTimer = 0;
 var job = new CronJob(
     "0 7 * * *",
     async () => {
         const models = require("../modelORM");
-        const { Tasks, Members, Workstream, Users } = models;
+        const { Tasks, Members, Workstream, Users, Projects } = models;
 
-        const taskFindResult = await Tasks.findAll({
+        let tasks = await Tasks.findAll({
             where: {
                 dueDate: moment()
                     .utc()
@@ -50,7 +49,11 @@ var job = new CronJob(
                 {
                     model: Workstream,
                     as: "workstream",
-                    required: false,
+                    required: true,
+                    where: {
+                        isDeleted: 0,
+                        isActive: 1
+                    },
                     include: [
                         {
                             model: Members,
@@ -59,34 +62,59 @@ var job = new CronJob(
                             required: false
                         }
                     ]
+                },
+                {
+                    model: Projects,
+                    as: "task_project",
+                    required: true,
+                    where: {
+                        isActive: 1,
+                        isDeleted: 0,
+                        appNotification: 1
+                    }
                 }
             ]
         }).map(res => {
             return res.toJSON();
         })
 
-        taskFindResult.forEach(async taskObj => {
-            const sender = await Users.findOne({ where: { id: taskObj.assignee[0].userTypeLinkId }, raw: true });
-            const receiver = taskObj.workstream.responsible[0].userTypeLinkId;
+        /* SEND NOTIFICATION EVERY 10 SECONDS */
+        keyTimer = setInterval(() => {
+            if (tasks.length > 0) {
+                const taskNotificationData = tasks.slice(0, 10);
+                taskNotificationData.forEach(async taskObj => {
+                    const sender = await Users.findOne({ where: { id: taskObj.assignee[0].userTypeLinkId }, raw: true });
 
-            await sendNotification({
-                sender: sender,
-                receiver: receiver,
-                notificationType: "taskResponsibleBeforeDeadline",
-                notificationData: { task: taskObj, },
-                projectId: taskObj.projectId,
-                workstreamId: taskObj.workstreamId,
-            });
+                    /* TASK ASSIGNEE NOTIFICATION */
+                    await sendNotification({
+                        sender: sender,
+                        receiver: taskObj.assignee[0].userTypeLinkId,
+                        notificationType: "taskBeforeDeadline",
+                        notificationData: { task: taskObj, },
+                        projectId: taskObj.projectId,
+                        workstreamId: taskObj.workstreamId,
+                    });
 
-            await sendNotification({
-                sender: sender,
-                receiver: taskObj.assignee[0].userTypeLinkId,
-                notificationType: "taskBeforeDeadline",
-                notificationData: { task: taskObj, },
-                projectId: taskObj.projectId,
-                workstreamId: taskObj.workstreamId,
-            });
-        })
+                    /* TASK RESPONSIBLE NOTIFICATION */
+                    await sendNotification({
+                        sender: sender,
+                        receiver: taskObj.workstream.responsible[0].userTypeLinkId,
+                        notificationType: "taskResponsibleBeforeDeadline",
+                        notificationData: { task: taskObj, },
+                        projectId: taskObj.projectId,
+                        workstreamId: taskObj.workstreamId,
+                    });
+                })
+
+                tasks = tasks.filter(taskObj => {
+                    return !find(taskNotificationData, { id: taskObj.id });
+                })
+
+            } else {
+                clearInterval(keyTimer);
+            }
+        }, 10000);
+
     },
     null,
     true,
