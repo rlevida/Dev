@@ -6,6 +6,7 @@ const async = require("async"),
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
+const sendNotification = require("../controller/sendNotification");
 /**
  *
  * Comment : Manage notification before task duedate
@@ -15,10 +16,10 @@ const Op = Sequelize.Op;
  **/
 
 var job = new CronJob(
-    "0 7 * * *",
+    "*/15 * * * * *",
     async () => {
         const models = require("../modelORM");
-        const { Tasks, Members, Workstream } = models;
+        const { Tasks, Members, Workstream, Users } = models;
 
         const taskFindResult = await Tasks.findAll({
             where: {
@@ -65,7 +66,7 @@ var job = new CronJob(
         })
 
         taskFindResult.forEach(async taskObj => {
-            const sender = await Users.findOne({ where: { id: e.assignee[0].userTypeLinkId }, raw: true });
+            const sender = await Users.findOne({ where: { id: taskObj.assignee[0].userTypeLinkId }, raw: true });
             const receiver = taskObj.workstream.responsible[0].userTypeLinkId;
 
             await sendNotification({
@@ -79,7 +80,7 @@ var job = new CronJob(
 
             await sendNotification({
                 sender: sender,
-                receiver: e.assignee[0].userTypeLinkId,
+                receiver: taskObj.assignee[0].userTypeLinkId,
                 notificationType: "taskBeforeDeadline",
                 notificationData: { task: taskObj, },
                 projectId: taskObj.projectId,
