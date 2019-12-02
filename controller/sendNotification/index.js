@@ -67,7 +67,7 @@ module.exports = async (params) => {
                 return notificationRes.id;
             })
 
-        await Notification.findAll({
+        const notificationFindResult = await Notification.findAll({
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
@@ -81,10 +81,10 @@ module.exports = async (params) => {
 
         // EMAIL NOTIFICATION
 
-        const emailNotificationData = filter(usersNotificationSettingFindResult, notificationDataObj => {
-            return notificationDataObj.notificationSetting.receiveEmail === 1 && notificationDataObj.notificationSetting[notificationType] === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
+        const emailNotificationData = filter(notificationFindResult, notificationDataObj => {
+            return notificationDataObj.to.notification_setting[0].receiveEmail === 1 && notificationDataObj.to.notification_setting[0][notificationType] === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
         }).map((notificationDataObj) => {
-            return omit(notificationDataObj, ["notificationSetting"]);
+            return omit(notificationDataObj, ["notification_setting"]);
         })
 
         if (emailNotificationData.length > 0) {

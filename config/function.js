@@ -1,5 +1,7 @@
 var sequence = require("sequence").Sequence;
 var moment = require('moment');
+var parse = require("html-react-parser");
+
 var randomString = exports.randomString = (length) => {
     var result = '';
     var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -98,4 +100,32 @@ var changedObjAttributes = exports.changedObjAttributes = (object, base) => {
 
 var isArrayEqual = exports.isArrayEqual = (x, y) => {
     return _(x).xorWith(y, _.isEqual).isEmpty();
+};
+
+var MentionConvert = exports.MentionConvert = (string) => {
+    const split = string.split(/{([^}]+)}/g).filter(Boolean);
+    return (
+        `<p style="margin:0">
+            ${split.map((o, index) => {
+            const regEx = /\[([^\]]+)]/;
+            if (regEx.test(o)) {
+                let mentionString = o.replace(/[\[\]']+/g, "");
+                return (
+                    `
+                    <strong key={index}>
+                        <span style="color:#789ce4;">${mentionString.replace(/[(^0-9)]/g, "")}</span>
+                    </strong>
+                    `
+                );
+            } else if (o.match(/^http\:\//) || o.match(/^https\:\//)) {
+                return (
+                    `<a>
+                            ${o.replace(/\r?\n/g, "<br />")}
+                        </a>`
+                );
+            } else {
+                return parse(o.replace(/\r?\n/g, "<br />"));
+            }
+        }).join("")}
+        </p>`);
 };
