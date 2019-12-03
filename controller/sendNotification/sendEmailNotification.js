@@ -3,29 +3,29 @@ const moment = require("moment")
 module.exports = (mail) => {
     const cloudLogo = {
         filename: 'blue-logo.png',
-        path: `https://cloudcfo.mobbizapps.com/images/blue-logo.png`,
+        path: `https://app.cloudcfo.ph/images/blue-logo.png`,
         cid: 'cloud-cfo-logo'
     }
     const clientProject = {
         filename: 'fa-users.png',
-        path: `https://cloudcfo.mobbizapps.com/images/fa-users.png`,
+        path: `https://app.cloudcfo.ph/images/fa-users.png`,
         cid: 'client-project-icon'
     }
     const privateProject = {
         filename: 'fa-lock.png',
-        path: `https://cloudcfo.mobbizapps.com/images/fa-lock.png`,
+        path: `https://app.cloudcfo.ph/images/fa-lock.png`,
         cid: 'private-project-icon'
     }
     const internalProject = {
         filename: 'fa-cloud.png',
-        path: `https://cloudcfo.mobbizapps.com/images/fa-cloud.png`,
+        path: `https://app.cloudcfo.ph/images/fa-cloud.png`,
         cid: 'internal-project-icon'
     }
 
     let iconType = [cloudLogo]
 
-    if (mail.icon) {
-        let mailIcon = mail.icon.map((type) => {
+    if (mail.icons) {
+        let mailIcon = mail.icons.map((type) => {
             return type == "Private" ? privateProject : type == "Client" ? clientProject : internalProject
         })
         iconType = [...iconType, ...mailIcon]

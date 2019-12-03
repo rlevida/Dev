@@ -133,3 +133,9 @@ var MentionConvert = exports.MentionConvert = (string) => {
 var toCapitalizeFirstLetter = exports.toCapitalizeFirstLetter = (value) => {
     return value.charAt(0).toUpperCase() + value.substring(1)
 }
+
+var daysRemaining = exports.daysRemaining = (date) => {
+    var eventdate = moment(moment(date).format("YYYY-MM-DD"));
+    var todaysdate = moment(moment().format("YYYY-MM-DD"));
+    return eventdate.diff(todaysdate, 'days');
+}
