@@ -1,7 +1,6 @@
 const moment = require("moment")
 
 module.exports = (mail) => {
-    console.log(mail)
     const cloudLogo = {
         filename: 'blue-logo.png',
         path: `https://cloudcfo.mobbizapps.com/images/blue-logo.png`,

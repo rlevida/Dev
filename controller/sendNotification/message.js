@@ -1,5 +1,5 @@
 module.exports = async (params) => {
-    const { notificationType, sender, task } = { ...params }
+    const { notificationType, sender, task, notificationApproverType } = { ...params }
     switch (notificationType) {
         case "messageSend":
             return `${sender.firstName} ${sender.lastName} sent you a message`;
@@ -22,7 +22,7 @@ module.exports = async (params) => {
         case "taskMemberCompleted":
             return `Team member has completed a task ${task.task}.`;
         case "taskApprover":
-            return `Needs your approval to complete a task`;
+            return notificationApproverType === "approval" ? `${sender.firstName} needs your approval to complete a task` : `${sender.firstName} have been assigned as an approver of a task.`;
         case "taskBeforeDeadline":
             return `Task about to be due`
         case "taskResponsibleBeforeDeadline":

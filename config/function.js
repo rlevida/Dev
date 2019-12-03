@@ -129,3 +129,7 @@ var MentionConvert = exports.MentionConvert = (string) => {
         }).join("")}
         </p>`);
 };
+
+var toCapitalizeFirstLetter = exports.toCapitalizeFirstLetter = (value) => {
+    return value.charAt(0).toUpperCase() + value.substring(1)
+}
