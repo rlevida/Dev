@@ -20,8 +20,8 @@ var config = require("./config");
 var serverAuth = require("./auth");
 
 require("./script/backup");
-require("./script/taskOverdueNotificationScript");
-require("./script/taskBeforeDueNotificationScript");
+require("./script/taskCompletedNotification");
+require("./script/taskDuedateNotification");
 
 // get
 var index = require("./routes");

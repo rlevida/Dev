@@ -1,11 +1,10 @@
-const
-    moment = require("moment"),
-    { omit } = require("lodash"),
-    CronJob = require("cron").CronJob, func = global.initFunc();
-
+const moment = require("moment");
+const { omit, uniqBy, find } = require("lodash");
+const CronJob = require("cron").CronJob;
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const notificationTemplate = global.notificationEmailTemplate()
+
+const taskCompletedNotification = require("../controller/sendNotification//template/taskCompletedNotification")
 
 /**
  *
@@ -24,7 +23,7 @@ var job = new CronJob(
             const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam } = models;
 
             /* Get all task that are completed yesterday under my team */
-            const usersTasks = await Users.findAll({
+            let usersTasks = await Users.findAll({
                 where: { isActive: 1, isDeleted: 0, firstName: { [Op.ne]: "default" } },
                 include: [
                     {
@@ -75,7 +74,7 @@ var job = new CronJob(
                                             model: Projects,
                                             as: "task_project",
                                             required: true,
-                                            where: { isActive: 1 },
+                                            where: { isActive: 1, isDeleted: 0, appNotification: 1 },
                                             include: [{
                                                 model: Type,
                                                 as: "type",
@@ -111,16 +110,39 @@ var job = new CronJob(
                     ...omit(usersTasksResponse.toJSON(), "members", "task_team_leader"), teamLeaderTasks
                 }
             })
+
             /* Send email notification to task assigned, task follower, task assigned team leader */
-            usersTasks.forEach((user) => {
-                if (user.user_notification_setting.receiveEmail) {
-                    if (user.teamLeaderTasks.length > 0) {
-                        const taskTeamLeaderEmail = notificationTemplate.taskCompletedNotification({ ...user, tasks: user.teamLeaderTasks, message: "Some tasks under your team have been completed", memberType: "myTeam" });
-                        const mailOptions = func.MailOptions({ to: `${user.emailAddress}`, html: taskTeamLeaderEmail, subject: "Completed tasks under my team" })
-                        global.emailtransport(mailOptions);
-                    }
+            /* SEND NOTIFICATION EVERY 10 SECONDS */
+
+            keyTimer = setInterval(() => {
+                if (usersTasks.length > 0) {
+                    const taskNotificationData = usersTasks.slice(0, 10);
+
+                    taskNotificationData.forEach(async user => {
+                        if (user.user_notification_setting.receiveEmail) {
+                            if (user.teamLeaderTasks.length > 0) {
+                                const tasks = user.teamLeaderTasks.filter((taskObj => { return taskObj.task_project.emailNotification }));
+                                const message = "Some tasks under your team have been completed";
+                                const memberType = "myTeam";
+                                const subject = "Completed tasks under my team";
+                                const receiver = user.emailAddress;
+                                const icons = tasks.map((taskObj) => {
+                                    return taskObj.task_project.type.type
+                                })
+                                taskCompletedNotification({ ...user, tasks, message, memberType, subject, receiver, icons: uniqBy(icons) });
+                            }
+                        }
+                    })
+
+                    usersTasks = usersTasks.filter(user => {
+                        return !find(taskNotificationData, { id: user.id });
+                    })
+
+                } else {
+                    clearInterval(keyTimer);
                 }
-            })
+            }, 10000);
+
         } catch (err) {
             console.error(err)
         }
@@ -139,7 +161,7 @@ var job = new CronJob(
             const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type } = models;
 
             /* Get all task that are completed yesterday under my team */
-            const usersTasks = await Users.findAll({
+            let usersTasks = await Users.findAll({
                 where: { isActive: 1, isDeleted: 0, firstName: { [Op.ne]: "default" } },
                 include: [
                     {
@@ -180,7 +202,7 @@ var job = new CronJob(
                                     model: Projects,
                                     as: "task_project",
                                     required: true,
-                                    where: { isActive: 1 },
+                                    where: { isActive: 1, isDeleted: 0, appNotification: 1 },
                                     include: [{
                                         model: Type,
                                         as: "type",
@@ -212,15 +234,35 @@ var job = new CronJob(
             })
 
             /* Send email notification to task assigned, task follower, task assigned team leader */
-            usersTasks.forEach((user) => {
-                if (user.user_notification_setting.receiveEmail) {
-                    if (user.followerTasks.length > 0) {
-                        const taskFollowerEmail = notificationTemplate.taskCompletedNotification({ ...user, tasks: user.followerTasks, message: "Some tasks you are following have been completed", memberType: "following" });
-                        const mailOptions = func.MailOptions({ to: user.emailAddress, html: taskFollowerEmail, subject: "Tasks you are following have been completed" });
-                        global.emailtransport(mailOptions);
-                    }
+            /* SEND NOTIFICATION EVERY 10 SECONDS */
+
+            keyTimer = setInterval(() => {
+                if (usersTasks.length > 0) {
+                    const taskNotificationData = usersTasks.slice(0, 10);
+                    taskNotificationData.forEach(async user => {
+                        if (user.user_notification_setting.receiveEmail) {
+                            if (user.followerTasks.length > 0) {
+                                const tasks = user.followerTasks.filter((taskObj => { return taskObj.task_project.emailNotification }));
+                                const message = "Some tasks you are following have been completed";
+                                const memberType = "following";
+                                const subject = "Tasks you are following have been completed";
+                                const receiver = user.emailAddress;
+                                const icons = tasks.map((taskObj) => {
+                                    return taskObj.task_project.type.type
+                                })
+                                taskCompletedNotification({ ...user, tasks, message, memberType, subject, receiver, icons: uniqBy(icons) });
+                            }
+                        }
+                    })
+
+                    usersTasks = usersTasks.filter(user => {
+                        return !find(taskNotificationData, { id: user.id });
+                    })
+
+                } else {
+                    clearInterval(keyTimer);
                 }
-            })
+            }, 10000);
         } catch (err) {
             console.error(err)
         }

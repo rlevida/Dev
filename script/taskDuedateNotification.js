@@ -1,13 +1,10 @@
-const
-    moment = require("moment"),
-    { omit, uniqBy, find } = require("lodash"),
-    CronJob = require("cron").CronJob, func = global.initFunc();
-
+const moment = require("moment");
+const { omit, uniqBy, find } = require("lodash");
+const CronJob = require("cron").CronJob;
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 const taskDuedateNotification = require("../controller/sendNotification//template/taskDuedateNotification")
-// const notificationTemplate = global.notificationEmailTemplate()
 
 /**
  *
@@ -197,8 +194,8 @@ var job = new CronJob(
                                 const memberType = "assignedToMe";
                                 const subject = "Tasks due tomorrow!";
                                 const receiver = user.emailAddress;
-                                const icons = user.assignedTasks.map((task) => {
-                                    return task.task_project.type.type
+                                const icons = tasks.map((taskObj) => {
+                                    return taskObj.task_project.type.type
                                 })
                                 taskDuedateNotification({ ...user, tasks, message, memberType, receiver, subject, icons: uniqBy(icons) });
                             }
@@ -208,16 +205,16 @@ var job = new CronJob(
                                 const message = "Some tasks are about to be due";
                                 const subject = "Tasks due tomorrow!";
                                 const receiver = user.emailAddress;
-                                const icons = user.responsibleTasks.map((task) => {
-                                    return task.task_project.type.type
+                                const icons = tasks.map((taskObj) => {
+                                    return taskObj.task_project.type.type
                                 })
                                 taskDuedateNotification({ ...user, tasks, message, receiver, subject, icons: uniqBy(icons) });
                             }
                         }
                     })
 
-                    usersTasks = usersTasks.filter(taskObj => {
-                        return !find(taskNotificationData, { id: taskObj.id });
+                    usersTasks = usersTasks.filter(user => {
+                        return !find(taskNotificationData, { id: user.id });
                     })
 
                 } else {
@@ -500,32 +497,32 @@ var job = new CronJob(
                             const memberType = "assignedToMe";
                             const subject = "You have missed some tasks due";
                             const receiver = user.emailAddress;
-                            const icons = user.assignedTasks.map((task) => {
-                                return task.task_project.type.type
+                            const icons = tasks.map((taskObj) => {
+                                return taskObj.task_project.type.type
                             })
                             taskDuedateNotification({ ...user, tasks, message, memberType, receiver, subject, icons: uniqBy(icons) });
                         }
 
                         if (user.followerTasks.length > 0) {
-                            const tasks = user.followerTasks;
+                            const tasks = user.followerTasks.filter(taskObj => { return taskObj.task_project.emailNotification });
                             const message = "Some tasks you are following are past due";
                             const memberType = "following";
                             const subject = "Tasks you are following are already past due";
                             const receiver = user.emailAddress;
-                            const icons = user.followerTasks.map((task) => {
-                                return task.task_project.type.type
+                            const icons = tasks.map((taskObj) => {
+                                return taskObj.task_project.type.type
                             })
                             taskDuedateNotification({ ...user, tasks, message, memberType, receiver, subject, icons: uniqBy(icons) });
                         }
 
                         if (user.teamLeaderTasks.length > 0) {
-                            const tasks = user.teamLeaderTasks;
+                            const tasks = user.teamLeaderTasks.filter(taskObj => { return taskObj.task_project.emailNotification });
                             const message = "Some tasks of your team are past due";
                             const memberType = "following";
                             const subject = "Your team missed some tasks due";
                             const receiver = user.emailAddress;
-                            const icons = user.teamLeaderTasks.map((task) => {
-                                return task.task_project.type.type
+                            const icons = tasks.map((taskObj) => {
+                                return taskObj.task_project.type.type
                             })
                             taskDuedateNotification({ ...user, tasks, message, memberType, receiver, subject, icons: uniqBy(icons) });
                         }
