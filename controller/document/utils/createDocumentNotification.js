@@ -10,7 +10,6 @@ const sendNotification = require("../../sendNotification");
 module.exports = async (params) => {
     const { documents, tagWorkstream, usersId, projectId, req } = { ...params }
     const workstreamIds = tagWorkstream.map(({ value }) => { return value });
-    // let taskNotificationBulkCreateData = [], workstreamNotificationBulkCreateData = [];
 
     /* Task Members */
 
@@ -58,11 +57,7 @@ module.exports = async (params) => {
         return taskMemberNotification;
     })
 
-    documentTaskMemberNotificationData = uniqBy(flatten(findTaskMembersResult), "receiver");
-
-    documentTaskMemberNotificationData.forEach(async notificationObj => {
-        await sendNotification(notificationObj);
-    })
+    const documentTaskMemberNotificationData = uniqBy(flatten(findTaskMembersResult), "receiver");
 
     /* Workstream Members */
 
@@ -100,9 +95,11 @@ module.exports = async (params) => {
         return taskWorkstreamMmbemrNotification
     })
 
-    workstreamDocumentNotificationData = uniqBy(flatten(findWorkstreamMemberResult), "receiver");
+    const workstreamDocumentNotificationData = uniqBy(flatten(findWorkstreamMemberResult), "receiver");
 
-    workstreamDocumentNotificationData.forEach(async notificationObj => {
+    const documentNotification = uniqBy([...workstreamDocumentNotificationData, documentTaskMemberNotificationData], "receiver")
+
+    documentNotification.forEach(async notificationObj => {
         await sendNotification(notificationObj);
     })
 

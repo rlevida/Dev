@@ -55,9 +55,10 @@ class Main extends React.Component {
     }
     componentDidMount() {
         const self = this;
-        $(".notif-wrapper").scroll(function() {
+        $(".notif-wrapper").scroll(function () {
             const { notification, dispatch } = { ...self.props };
-            if (this.scrollHeight - this.scrollTop < this.clientHeight + 50 && notification.Filter.last_page > notification.Filter.current_page) {
+
+            if (this.scrollHeight - this.scrollTop < this.clientHeight + 50 && notification.Count.last_page > notification.Count.current_page) {
                 dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
 
                 keyTimer && clearTimeout(keyTimer);
@@ -240,14 +241,14 @@ class Main extends React.Component {
 
     fetchNotification(page) {
         const { user, dispatch, notification } = { ...this.props };
-        if (_.isEmpty(notification.Count)) {
-            dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
-            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
-                const { count, result } = { ...c.data };
-                dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
-                dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "" });
-            });
-        }
+        // if (_.isEmpty(notification.Count)) {
+        dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "RETRIEVING" });
+        getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0&page=${page}`, {}, c => {
+            const { count, result } = { ...c.data };
+            dispatch({ type: "SET_NOTIFICATION_LIST", list: result, count: count });
+            dispatch({ type: "SET_NOTIFICATION_LOADING", loading: "" });
+        });
+        // }
     }
 
     render() {
@@ -359,11 +360,11 @@ class Main extends React.Component {
                                     </a>
                                 </div>
                                 <div class="title item">{_.isEmpty(currentPage) == false && currentPage.label != "Projects" && <h3 style={{ textTransform: "capitalize", marginTop: 0, marginBottom: 0 }}>{currentPage.label}</h3>}</div>
-                                {showProjectMenu && (                                    
-                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">                                 
+                                {showProjectMenu && (
+                                    <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
                                         {_.map(projectMenu, (o, index) => {
                                             return (
-                                                <div class="flex-col vh-center flex-center" key={index}>                                                    
+                                                <div class="flex-col vh-center flex-center" key={index}>
                                                     <Link to={`/projects/${project.Selected.id + o.link}`} class={`${currentProjectPage == o.label.toLowerCase() ? "active" : ""}`}>
                                                         {o.label == "Info" ? (
                                                             <div class="project-image-wrapper">
@@ -372,8 +373,8 @@ class Main extends React.Component {
                                                                 </span>
                                                             </div>
                                                         ) : (
-                                                            o.label
-                                                        )}
+                                                                o.label
+                                                            )}
                                                     </Link>
                                                 </div>
                                             );
@@ -396,7 +397,7 @@ class Main extends React.Component {
                                             </a>
                                         )}
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell" id="test">
-                                            <div class={` ${notification.Loading === "RETRIEVING" || (notification.List.length == 0 && notification.Loading != "RETRIEVING") ? "notif-wrapper-nr" : "notif-wrapper"}`}>
+                                            <div class="notif-wrapper">
                                                 {notification.List.length > 0 &&
                                                     _.orderBy(notification.List, ["isRead", "dateUpdated"], ["asc", "desc"]).map((e, i) => {
                                                         const { from, dateAdded } = { ...e };
@@ -409,10 +410,10 @@ class Main extends React.Component {
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
                                                                             <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
                                                                         ) : (
-                                                                            <span class="n-tod-warning">
-                                                                                <i class="fa fa-exclamation-circle" />
-                                                                            </span>
-                                                                        )}
+                                                                                <span class="n-tod-warning">
+                                                                                    <i class="fa fa-exclamation-circle" />
+                                                                                </span>
+                                                                            )}
                                                                     </div>
                                                                     <div class="ml10 w100">
                                                                         <p class="m0 ">
@@ -422,11 +423,11 @@ class Main extends React.Component {
                                                                                     <strong>{notificationType(e.type)}</strong>
                                                                                 </span>
                                                                             ) : (
-                                                                                <span>
-                                                                                    {`${notificationType(e.type)} `}
-                                                                                    <strong>{`Checkout the task ${e.task_notification.task}`}</strong>
-                                                                                </span>
-                                                                            )}
+                                                                                    <span>
+                                                                                        {`${notificationType(e.type)} `}
+                                                                                        <strong>{`Checkout the task ${e.task_notification.task}`}</strong>
+                                                                                    </span>
+                                                                                )}
                                                                         </p>
                                                                         <p class="note m0">{date}</p>
                                                                         {e.project_notification && (
@@ -448,7 +449,7 @@ class Main extends React.Component {
                                                     </p>
                                                 )}
                                                 {notification.List.length == 0 && notification.Loading != "RETRIEVING" && (
-                                                    <p class="mb0 text-center lh-35">
+                                                    <p class="mb0 text-center lh-200">
                                                         <strong>No Records Found</strong>
                                                     </p>
                                                 )}

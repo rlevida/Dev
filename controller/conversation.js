@@ -823,7 +823,7 @@ exports.post = {
             })
 
             /* COMMENT REPLIES NOTIFICATION ( IMPROVE LATER ) */
-            const userFindResult = await Users.findOne({ where: { id: body.userId } })
+            const userFindResult = await Users.findOne({ where: { id: req.user.id } });
 
             const sender = userFindResult.toJSON();
 
@@ -831,12 +831,12 @@ exports.post = {
                 where: {
                     linkType: bodyData.linkType,
                     linkId: bodyData.linkId,
-                    usersId: { [Op.notIn]: [body.userId] }
+                    usersId: { [Op.notIn]: [req.user.id] }
                 },
                 group: ["usersId"]
             }).map(response => {
                 return response.toJSON().usersId;
-            })
+            });
 
             if (bodyData.linkType === "task") {
 
@@ -874,8 +874,8 @@ exports.post = {
 
 
             /* TAGGED NOTIFICATION ( IMPROVE LATER )*/
-            const taggedReceiver = _.filter(body.reminderList, o => {
-                return o !== body.userId;
+            const taggedReceiver = _.filter(body.reminderList, taggedUserId => {
+                return taggedUserId !== req.user.id;
             });
 
             if (taggedReceiver.length > 0) {
@@ -902,16 +902,16 @@ exports.post = {
                     });
                 }
 
-                if (bodyData.linkType === "document") {
-                    await sendNotification({
-                        notificationSocket: req.app.parent.io,
-                        sender: sender,
-                        receiver: taggedReceiver,
-                        notificationType: "fileTagged",
-                        notificationData: { document: { id: bodyData.linkId } },
-                        projectId: body.projectId,
-                    });
-                }
+                // if (bodyData.linkType === "document") {
+                //     await sendNotification({
+                //         notificationSocket: req.app.parent.io,
+                //         sender: sender,
+                //         receiver: taggedReceiver,
+                //         notificationType: "fileTagged",
+                //         notificationData: { document: { id: bodyData.linkId } },
+                //         projectId: body.projectId,
+                //     });
+                // }
             }
 
             /*  Task Comment */
@@ -933,17 +933,19 @@ exports.post = {
                 });
 
                 const taskObj = taskFindResult.toJSON();
-                const commentReceiver = taskObj.assignee[0].userTypeLinkId;
+                const commentReceiver = req.user.id !== taskObj.assignee[0].userTypeLinkId ? taskObj.assignee[0].userTypeLinkId : "";
 
-                await sendNotification({
-                    notificationSocket: req.app.parent.io,
-                    sender: sender,
-                    receiver: commentReceiver,
-                    notificationType: "taskAssignedComment",
-                    notificationData: { task: taskObj },
-                    projectId: body.projectId,
-                    workstreamId: taskObj.workstreamId,
-                });
+                if (commentReceiver) {
+                    await sendNotification({
+                        notificationSocket: req.app.parent.io,
+                        sender: sender,
+                        receiver: commentReceiver,
+                        notificationType: "taskAssignedComment",
+                        notificationData: { task: taskObj },
+                        projectId: body.projectId,
+                        workstreamId: taskObj.workstreamId,
+                    });
+                }
             }
 
             /* Document Activity log */

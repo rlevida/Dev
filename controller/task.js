@@ -1323,17 +1323,35 @@ exports.post = {
                             async function (err, result) {
                                 const userFindResult = await Users.findOne({ where: { id: body.userId } });
                                 const sender = userFindResult.toJSON();
+                                const receiver = body.assignedTo !== sender.id ? body.assignedTo : [];
 
                                 result.forEach(async taskObj => {
+
+                                    /* Task Assigned Notification */
                                     await sendNotification({
                                         notificationSocket: req.app.parent.io,
                                         sender: sender,
-                                        receiver: [body.assignedTo, body.approverId],
+                                        receiver: receiver,
                                         notificationType: "taskAssigned",
                                         notificationData: { task: taskObj },
                                         projectId: body.projectId,
                                         workstreamId: taskObj.workstreamId,
                                     });
+
+                                    /* Task Approver Notification */
+
+                                    if (taskObj.approverId) {
+                                        await sendNotification({
+                                            notificationSocket: req.app.parent.io,
+                                            sender: sender,
+                                            receiver: taskObj.approverId,
+                                            notificationType: "taskApprover",
+                                            notificationData: { task: taskObj },
+                                            projectId: taskObj.projectId,
+                                            workstreamId: taskObj.workstreamId,
+                                            notificationApproverType: "approver"
+                                        });
+                                    }
                                 })
                                 cb({ status: true, data: result });
                             }
@@ -2581,7 +2599,7 @@ exports.put = {
                                 },
                                 { where: { id: body.id } }
                             )
-                                .then(response => {
+                                .then(() => {
                                     return Tasks.findOne({ ...options, where: { id: body.id } });
                                 })
                                 .then(async response => {
@@ -2604,48 +2622,48 @@ exports.put = {
 
                                     /* Follower Notification */
 
-                                    if (body.status === "Completed") {
-                                        const userFindResult = await Users.findOne({ where: { id: body.userId } });
-                                        const sender = userFindResult.toJSON();
-                                        const receiver = updatedResponse.follower.map(e => {
-                                            return e.userTypeLinkId;
-                                        });
+                                    // if (body.status === "Completed") {
+                                    //     const userFindResult = await Users.findOne({ where: { id: body.userId } });
+                                    //     const sender = userFindResult.toJSON();
+                                    //     const receiver = updatedResponse.follower.map(e => {
+                                    //         return e.userTypeLinkId;
+                                    //     });
 
-                                        await sendNotification({
-                                            notificationSocket: req.app.parent.io,
-                                            sender: sender,
-                                            receiver: receiver,
-                                            notificationType: "taskFollowingCompleted",
-                                            notificationData: { task: updatedResponse },
-                                            projectId: updatedResponse.projectId,
-                                            workstreamId: updatedResponse.workstreamId,
-                                        });
+                                    //     await sendNotification({
+                                    //         notificationSocket: req.app.parent.io,
+                                    //         sender: sender,
+                                    //         receiver: receiver,
+                                    //         notificationType: "taskFollowingCompleted",
+                                    //         notificationData: { task: updatedResponse },
+                                    //         projectId: updatedResponse.projectId,
+                                    //         workstreamId: updatedResponse.workstreamId,
+                                    //     });
 
-                                        const taskTeamLeaderReceiver = await UsersTeam.findAll({
-                                            where: { usersId: sender.id },
-                                            include: [
-                                                {
-                                                    model: Teams,
-                                                    as: "team",
-                                                    required: false
-                                                }
-                                            ]
-                                        }).map(o => {
-                                            return o.toJSON().team.teamLeaderId;
-                                        }).then(o => {
-                                            return o;
-                                        });
+                                    //     const taskTeamLeaderReceiver = await UsersTeam.findAll({
+                                    //         where: { usersId: sender.id },
+                                    //         include: [
+                                    //             {
+                                    //                 model: Teams,
+                                    //                 as: "team",
+                                    //                 required: false
+                                    //             }
+                                    //         ]
+                                    //     }).map(o => {
+                                    //         return o.toJSON().team.teamLeaderId;
+                                    //     }).then(o => {
+                                    //         return o;
+                                    //     });
 
-                                        await sendNotification({
-                                            notificationSocket: req.app.parent.io,
-                                            sender: sender,
-                                            receiver: taskTeamLeaderReceiver,
-                                            notificationType: "taskMemberCompleted",
-                                            notificationData: { task: updatedResponse },
-                                            projectId: updatedResponse.projectId,
-                                            workstreamId: updatedResponse.workstreamId,
-                                        });
-                                    }
+                                    //     await sendNotification({
+                                    //         notificationSocket: req.app.parent.io,
+                                    //         sender: sender,
+                                    //         receiver: taskTeamLeaderReceiver,
+                                    //         notificationType: "taskMemberCompleted",
+                                    //         notificationData: { task: updatedResponse },
+                                    //         projectId: updatedResponse.projectId,
+                                    //         workstreamId: updatedResponse.workstreamId,
+                                    //     });
+                                    // }
 
                                     /* Task Approver Notification */
                                     if (body.status == "For Approval") {
@@ -2661,6 +2679,7 @@ exports.put = {
                                             notificationData: { task: updatedResponse },
                                             projectId: updatedResponse.projectId,
                                             workstreamId: updatedResponse.workstreamId,
+                                            notificationApproverType: "approval"
                                         });
 
                                     }

@@ -1,13 +1,13 @@
 const { filter, omit } = require("lodash");
 const models = require("../../modelORM");
-const { Notification, UsersNotificationSetting, Projects, Users } = models;
+const { Notification, UsersNotificationSetting, Projects, Users, Conversation } = models;
 
 const { notificationIncludes } = require("../includes/notification");
 const getNotificationMessage = require("./message");
 const messageSendNotification = require("./template/messageSend");
-const taskTaggedNotification = require("./template/taskTagged");
+const messageMentionedNotification = require("./template/messageMentioned");
 const filetaggedNotification = require("./template/fileTagged");
-const taskAssignedCommentNotification = require("./template/taskAssignedComment");
+const taskComment = require("./template/taskComment");
 const taskAssignedNotification = require("./template/taskAssigned");
 const fileNewUploadNotification = require("./template/fileNewUpload");
 const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
@@ -15,15 +15,16 @@ const taskMemberCompletedNotification = require("./template/taskMemberCompleted"
 const taskApproverNotification = require("./template/taskApprover");
 const taskBeforeDeadline = require("./template/taskBeforeDeadline");
 
+
 // const getNotificationSubject = require("./subject");
 
 module.exports = async (params) => {
     try {
-        const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationSocket } = { ...params };
+        const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationSocket, notificationApproverType } = { ...params };
 
         const projectFindResult = await Projects.findOne({ where: { id: projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
-        const message = await getNotificationMessage({ notificationType, sender, task: notificationData.task });
+        const message = await getNotificationMessage({ notificationType, sender, task: notificationData.task, notificationApproverType });
 
         const usersNotificationSettingFindResult = await UsersNotificationSetting.findAll({
             where: { usersId: receiver },
@@ -67,7 +68,7 @@ module.exports = async (params) => {
                 return notificationRes.id;
             })
 
-        await Notification.findAll({
+        const notificationFindResult = await Notification.findAll({
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
@@ -76,32 +77,37 @@ module.exports = async (params) => {
                     ...findNotificationRes.toJSON()
                 });
             }
-            return findNotificationRes.toJSON();
+            return {
+                ...findNotificationRes.toJSON(),
+                users_conversation: findNotificationRes.toJSON().from.users_conversation,
+            }
         })
 
         // EMAIL NOTIFICATION
 
-        const emailNotificationData = filter(usersNotificationSettingFindResult, notificationDataObj => {
-            return notificationDataObj.notificationSetting.receiveEmail === 1 && notificationDataObj.notificationSetting[notificationType] === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
+        const emailNotificationData = filter(notificationFindResult, notificationDataObj => {
+            return notificationDataObj.to.notification_setting[0].receiveEmail === 1 && notificationDataObj.to.notification_setting[0][notificationType] === 1 && projectFindResult.emailNotification === 1 && projectFindResult.appNotification === 1;
         }).map((notificationDataObj) => {
-            return omit(notificationDataObj, ["notificationSetting"]);
+            return omit(notificationDataObj, ["notification_setting"]);
         })
 
         if (emailNotificationData.length > 0) {
+
             switch (notificationType) {
                 case "messageSend":
-                case "messageMentioned":
                     await messageSendNotification({ emailNotificationData });
+                    break;
+                case "messageMentioned":
+                    const conversationsResponse = await Conversation.findAll({ where: { linkType: "notes", linkId: notificationData.note.id }, raw: true })
+                    await messageMentionedNotification({ emailNotificationData, conversations: conversationsResponse })
                     break;
                 case "fileTagged":
                     await filetaggedNotification({ emailNotificationData });
                     break;
                 case "taskTagged":
-                    await taskTaggedNotification({ emailNotificationData });
-                    break;
                 case "commentReplies":
                 case "taskAssignedComment":
-                    await taskAssignedCommentNotification({ emailNotificationData });
+                    await taskComment({ emailNotificationData, type: notificationType });
                     break;
                 case "taskAssigned":
                     await taskAssignedNotification({ emailNotificationData });
@@ -116,7 +122,8 @@ module.exports = async (params) => {
                     await taskMemberCompletedNotification({ emailNotificationData });
                     break;
                 case "taskApprover":
-                    await taskApproverNotification({ emailNotificationData });
+                    await taskApproverNotification({ emailNotificationData, type: notificationApproverType });
+                    break;
                 case "taskBeforeDeadline":
                 case "taskResponsibleBeforeDeadline":
                 case "taskDeadline":
@@ -125,13 +132,15 @@ module.exports = async (params) => {
                 case "taskResponsibleDeadline":
                 case "taskFollowerDeadline":
                     await taskBeforeDeadline({ emailNotificationData });
+                    break;
                 default: return
             }
         } else {
             return
         }
     } catch (error) {
-        console.error(error)
+        console.error(error);
+        return;
     }
 
     /* NEW SETUP */
