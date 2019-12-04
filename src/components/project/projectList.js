@@ -39,7 +39,7 @@ export default class ProjectList extends React.Component {
         this.fetchProject();
         this.fetchFormField();
 
-        window.onscroll = function() {
+        window.onscroll = function () {
             let element = document.getElementById("projectTable");
             if (element) {
                 let actionTabElement = document.getElementById("projectActionTab");
@@ -217,7 +217,7 @@ export default class ProjectList extends React.Component {
                                         <tbody>
                                             {_.map(projectList, (projectElem, index) => {
                                                 const { id, project, workstream, members, numberOfTasks, completion_rate, type, isDeleted, team, completionRate } = { ...projectElem };
-                                                const memberList = [
+                                                const memberList = _.uniqBy([
                                                     ..._.map(members, ({ firstName, lastName, avatar }) => {
                                                         return {
                                                             name: firstName + " " + lastName,
@@ -234,7 +234,7 @@ export default class ProjectList extends React.Component {
                                                             });
                                                         })
                                                     )
-                                                ];
+                                                ], "name");
                                                 return (
                                                     <tr key={index}>
                                                         <td data-label="Project Name" class={`td-left table-name tdWidth${index}`}>
@@ -244,60 +244,6 @@ export default class ProjectList extends React.Component {
                                                                 <Link to={`/projects/${id}`}>{project}</Link>
                                                             </p>
                                                         </td>
-                                                        {/* <td data-label="Status">
-                                                                {numberOfTasks > 0 && isDeleted == 0 && <div>{this.renderStatus({ workstream, render_type: "text" })}</div>}
-                                                                {isDeleted == 1 && <p class="m0 text-red">Archived</p>}
-                                                            </td> */}
-                                                        {/* <td data-label="Type">
-                                                                {typeof updates != "undefined" && updates.count > 0 && (
-                                                                    <a data-tip data-for={`update-${index}`}>
-                                                                        <p class="mb0 text-blue">
-                                                                            {updates.count} update{updates.count > 1 ? "s" : ""}
-                                                                        </p>
-                                                                    </a>
-                                                                )}
-                                                                <ReactTooltip id={`update-${index}`} aria-haspopup="true" type={"light"} class="updates-tooltip">
-                                                                    <div class="wrapper">
-                                                                        {_.map(
-                                                                            _.groupBy(updates.list, ({ type }) => {
-                                                                                return type;
-                                                                            }),
-                                                                            (o, key) => {
-                                                                                return (
-                                                                                    <div key={key}>
-                                                                                        <div class="header">
-                                                                                            <p class="text-left m0">
-                                                                                                <strong>{key}</strong>
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div class="list">
-                                                                                            {_.map(o, ({ title, sub_title = "", image = "", date = "" }, key) => {
-                                                                                                return (
-                                                                                                    <div class="tooltip-details display-flex vh-center" key={key}>
-                                                                                                        {image != "" && (
-                                                                                                            <div class="thumbnail-profile mr5" key={index}>
-                                                                                                                <img src={image} alt="Profile Picture" class="img-responsive" />
-                                                                                                            </div>
-                                                                                                        )}
-                                                                                                        <div>
-                                                                                                            <p class="m0 text-left title">
-                                                                                                                {title.substring(0, 30)}
-                                                                                                                {title.length > 30 ? "..." : ""}
-                                                                                                            </p>
-                                                                                                            {sub_title != "" && <p class="m0 text-left sub-title">{sub_title}</p>}
-                                                                                                        </div>
-                                                                                                        {date != "" && <p class="m0 flex-right note">{moment(date).format("MMM DD, YYYY")}</p>}
-                                                                                                    </div>
-                                                                                                );
-                                                                                            })}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                </ReactTooltip>
-                                                            </td> */}
                                                         <td className={`tdWidth${index + 2}`} data-label="Workstreams">
                                                             {workstream.length}
                                                         </td>
