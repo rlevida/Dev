@@ -20,7 +20,7 @@ var job = new CronJob(
     async () => {
         try {
             const models = require("../modelORM");
-            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Notification } = models;
+            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Notification, Workstream } = models;
 
             /* Use as sender of email or notifcation */
             const noReplyUser = await Users.findOne({ where: { firstName: "default", lastName: "default", }, raw: true })
@@ -76,6 +76,16 @@ var job = new CronJob(
                                         attributes: ["type"]
                                     }]
                                 },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    },
+                                    attributes: ["id"]
+                                }
                             ]
                         }],
                     },
@@ -121,6 +131,16 @@ var job = new CronJob(
                                         attributes: ["type"]
                                     }]
                                 },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    },
+                                    attributes: ["id"]
+                                }
                             ]
                         }],
                     }
@@ -237,7 +257,7 @@ var job = new CronJob(
     async () => {
         try {
             const models = require("../modelORM");
-            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam, Notification } = models;
+            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam, Notification, Workstream } = models;
 
             /* Use as sender of email or notifcation */
             const noReplyUser = await Users.findOne({ where: { firstName: "default", lastName: "default", }, raw: true });
@@ -293,6 +313,16 @@ var job = new CronJob(
                                         attributes: ["type"]
                                     }]
                                 },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    },
+                                    attributes: ["id"]
+                                }
                             ]
                         }],
                     },
@@ -339,6 +369,16 @@ var job = new CronJob(
                                         attributes: ["type"]
                                     }]
                                 },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    },
+                                    attributes: ["id"]
+                                }
                             ]
                         }]
                     },
@@ -395,6 +435,16 @@ var job = new CronJob(
                                                 attributes: ["type"]
                                             }]
                                         },
+                                        {
+                                            model: Workstream,
+                                            as: "workstream",
+                                            required: true,
+                                            where: {
+                                                isActive: 1,
+                                                isDeleted: 0
+                                            },
+                                            attributes: ["id"]
+                                        }
                                     ]
                                 }],
                             }]

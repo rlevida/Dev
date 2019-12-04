@@ -20,7 +20,7 @@ var job = new CronJob(
     async () => {
         try {
             const models = require("../modelORM");
-            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam } = models;
+            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam, Workstream } = models;
 
             /* Get all task that are completed yesterday under my team */
             let usersTasks = await Users.findAll({
@@ -82,6 +82,16 @@ var job = new CronJob(
                                                 attributes: ["type"]
                                             }]
                                         },
+                                        {
+                                            model: Workstream,
+                                            as: "workstream",
+                                            required: true,
+                                            where: {
+                                                isActive: 1,
+                                                isDeleted: 0
+                                            },
+                                            attributes: ["id"]
+                                        }
                                     ]
                                 }],
                             }]
@@ -158,7 +168,7 @@ var job = new CronJob(
     async () => {
         try {
             const models = require("../modelORM");
-            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type } = models;
+            const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Workstream } = models;
 
             /* Get all task that are completed yesterday under my team */
             let usersTasks = await Users.findAll({
@@ -210,6 +220,16 @@ var job = new CronJob(
                                         attributes: ["type"]
                                     }]
                                 },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    },
+                                    attributes: ["id"]
+                                }
                             ]
                         }]
                     },
