@@ -28,8 +28,7 @@ export default class ProjectActionTab extends React.Component {
             const dueDateMoment = moment().format("YYYY-MM-DD");
             let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
 
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-            dispatch({ type: "SET_PROJECT_LIST", list: [] });
+            dispatch({ type: "RESET_PROJECT", List: [], Loading: "RETRIEVING" });
 
             if (projectProgress) {
                 fetchUrl += `&projectProgress=${projectProgress}`;

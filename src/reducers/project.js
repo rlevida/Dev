@@ -110,6 +110,9 @@ export default function reducer(
         case "SET_PROJECT_ACTIVE_CATEGORY": {
             return { ...state, Category: { ...state.Category, Active: action.ActiveCategory } };
         }
+        case "RESET_PROJECT": {
+            return { ...state, ...action }
+        }
         default:
             return state;
     }

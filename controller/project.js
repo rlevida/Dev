@@ -1190,7 +1190,7 @@ exports.post = {
             //     cb({ status: false, error: "Unauthorized Access" });
             //     return;
             // }
-            
+
             let projectType = queryString.projectType;
 
             if (usersType == "users") {
@@ -1297,7 +1297,8 @@ exports.post = {
                                             userTypeLinkId: userIds,
                                             usersType: "users",
                                             linkType: "project",
-                                            linkId: linkId
+                                            linkId: linkId,
+                                            memberType: { [Op.ne]: "project manager" }
                                         }
                                     }
                                 ).then(res => {
