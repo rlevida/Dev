@@ -49,7 +49,8 @@ const associationStack = [
         as: "responsible",
         required: false,
         where: {
-            linkType: "workstream"
+            linkType: "workstream",
+            isDeleted: 0
         },
         include: [
             {
@@ -133,12 +134,12 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.workstream != "undefined" && queryString.workstream != ""
                 ? {
-                      [Sequelize.Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
-                          })
-                      ]
-                  }
+                    [Sequelize.Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
+                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
+                        })
+                    ]
+                }
                 : {})
         };
 
@@ -226,12 +227,14 @@ exports.get = {
                             as: "document",
                             where: { isDeleted: 0 }
                         }
-                    ]
+                    ],
+                    separate: true
                 },
                 {
                     model: Notes,
                     as: "workstreamNotes",
-                    required: false
+                    required: false,
+                    separate: true
                 }
             );
         }
@@ -270,8 +273,8 @@ exports.get = {
                                 task
                             ON task.workstreamId = workstream.id
                             WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
-                                .utc()
-                                .format("YYYY-MM-DD HH:mm")}" 
+                                    .utc()
+                                    .format("YYYY-MM-DD HH:mm")}" 
                             AND (task.status != "Completed" OR task.status IS NULL)
                             )`)
                         }
@@ -287,8 +290,8 @@ exports.get = {
                             task
                         ON task.workstreamId = workstream.id
                         WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
-                            .utc()
-                            .format("YYYY-MM-DD HH:mm")}"
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")}"
                         AND (task.status = "In Progress" OR task.status IS NULL)
                     )`)
                     };
@@ -299,7 +302,7 @@ exports.get = {
 
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Workstream.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then(response => {
                             const pageData = {
@@ -313,7 +316,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Workstream.findAll({
                             where: whereObj,
@@ -405,7 +408,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -582,12 +585,12 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.workstream != "undefined" && queryString.workstream != ""
                 ? {
-                      [Sequelize.Op.and]: [
-                          Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
-                              [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
-                          })
-                      ]
-                  }
+                    [Sequelize.Op.and]: [
+                        Sequelize.where(Sequelize.fn("lower", Sequelize.col("workstream")), {
+                            [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.workstream}%`)
+                        })
+                    ]
+                }
                 : {})
         };
 
@@ -652,7 +655,7 @@ exports.get = {
 
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Workstream.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then(response => {
                             const pageData = {
@@ -666,7 +669,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Workstream.findAll({
                             where: whereObj,
@@ -739,7 +742,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
@@ -764,7 +767,7 @@ exports.post = {
 
                 async.parallel(
                     {
-                        template: function(callback) {
+                        template: function (callback) {
                             if (typeof body.workstreamTemplate != "undefined" && body.workstreamTemplate != "") {
                                 Workstream.findOne({
                                     where: {
@@ -898,13 +901,13 @@ exports.post = {
                                 callback(null, "");
                             }
                         },
-                        members: function(callback) {
+                        members: function (callback) {
                             Members.create(responsible).then(response => {
                                 callback(null, response);
                             });
                         }
                     },
-                    function(err, results) {
+                    function (err, results) {
                         Workstream.findOne({ where: { id: resultObj.id }, ...options }).then(response => {
                             const resultObj = response.toJSON();
                             const completedTasks = _.filter(resultObj.task, taskObj => {
@@ -1001,138 +1004,121 @@ exports.post = {
 };
 
 exports.put = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const body = req.body;
         const workstreamId = req.params.id;
         const options = {
             include: associationStack
         };
-        try {
-            Workstream.update(_.omit(body, ["dateUpdated"]), { where: { id: workstreamId } })
-                .then(response => {
-                    return Workstream.findOne({ where: { id: workstreamId }, ...options });
-                })
-                .then(response => {
-                    const resultObj = response.toJSON();
-                    Members.update(
-                        { isDeleted: 1 },
-                        {
-                            where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
-                        }
-                    ).then(response => {
-                        const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
 
-                        Members.create(responsible).then(response => {
-                            return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then(response => {
-                                const resultObj = response.toJSON();
-                                const completedTasks = _.filter(resultObj.task, taskObj => {
-                                    return taskObj.status == "Completed";
-                                });
-                                const issuesTasks = _.filter(resultObj.task, taskObj => {
-                                    const dueDateMoment = moment(taskObj.dueDate);
-                                    const currentDateMoment = moment.utc();
-                                    return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
-                                });
-                                const pendingTasks = _.filter(resultObj.task, taskObj => {
-                                    const dueDateMoment = moment(taskObj.dueDate);
-                                    const currentDateMoment = moment.utc();
-                                    return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
-                                });
-                                const dueTodayTask = _.filter(resultObj.task, taskObj => {
-                                    const dueDateMoment = moment(taskObj.dueDate);
-                                    const currentDateMoment = moment.utc();
-                                    return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
-                                });
-                                const newDoc = _.filter(resultObj.tag, tagObj => {
-                                    return tagObj.document && tagObj.document.status == "new";
-                                });
-                                const members = [
-                                    ...resultObj.responsible,
-                                    ..._(resultObj.task)
-                                        .map(o => {
-                                            return o.task_members;
-                                        })
-                                        .flatten()
-                                        .uniqBy(e => {
-                                            return e.user.id;
-                                        })
-                                        .value()
-                                ];
-                                const forApproval = _.filter(resultObj.task, taskObj => {
-                                    return taskObj.status == "For Approval";
-                                });
-                                const responsible = _.filter(members, member => {
-                                    return member.memberType == "responsible";
-                                });
-                                async.parallel(
-                                    {
-                                        projects: parallelCallback => {
-                                            Projects.update(
-                                                { dateUpdated: body.dateUpdated },
-                                                {
-                                                    where: { id: resultObj.projectId }
-                                                }
-                                            ).then(res => {
-                                                parallelCallback(null);
-                                            });
-                                        },
-                                        workstream: parallelCallback => {
-                                            Workstream.update(
-                                                { dateUpdated: body.dateUpdated },
-                                                {
-                                                    where: { id: resultObj.id }
-                                                }
-                                            ).then(res => {
-                                                parallelCallback(null);
-                                            });
-                                        }
-                                    },
-                                    () => {
-                                        cb({
-                                            status: true,
-                                            data: {
-                                                ...resultObj,
-                                                pending: pendingTasks,
-                                                completed: completedTasks,
-                                                issues: issuesTasks.length,
-                                                dueToday: dueTodayTask.length,
-                                                for_approval: forApproval.length,
-                                                new_documents: newDoc.length,
-                                                numberOfTasks: resultObj.task.length,
-                                                completion_rate: {
-                                                    tasks_due_today: {
-                                                        value: dueTodayTask.length > 0 ? (dueTodayTask.length / resultObj.task.length) * 100 : 0,
-                                                        color: "#f6dc64",
-                                                        count: dueTodayTask.length
-                                                    },
-                                                    tasks_for_approval: {
-                                                        value: forApproval.length > 0 ? (forApproval.length / resultObj.task.length) * 100 : 0,
-                                                        color: "#ff754a",
-                                                        count: forApproval.length
-                                                    },
-                                                    delayed_task: {
-                                                        value: issuesTasks.length > 0 ? (issuesTasks.length / resultObj.task.length) * 100 : 0,
-                                                        color: "#f9003b",
-                                                        count: issuesTasks.length
-                                                    },
-                                                    completed: {
-                                                        value: completedTasks.length > 0 ? (completedTasks.length / resultObj.task.length) * 100 : 0,
-                                                        color: "#00e589",
-                                                        count: completedTasks.length
-                                                    }
-                                                },
-                                                members,
-                                                responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
-                                            }
-                                        });
-                                    }
-                                );
-                            });
-                        });
-                    });
-                });
-        } catch (err) {
-            cb({ status: false, error: "Something went wrong. Please try again later." });
+        const projectWorkstreamResult = await Workstream.findOne({ where: { id: workstreamId, projectId: req.body.projectId, }, ...options });
+
+        if (projectWorkstreamResult) {
+            const projectWorkstreamObj = projectWorkstreamResult.toJSON();
+
+            const workstreamUpdateData = _.omit(body, ["dateUpdated", "projectId"])
+
+            /* Update workstream */
+            await Workstream.update(workstreamUpdateData, { where: { id: workstreamId } });
+
+            /* Find updated workstream */
+            const workstreamFindResult = await Workstream.findOne({ where: { id: workstreamId }, ...options });
+            const workstreamObj = workstreamFindResult.toJSON();
+
+            /*Check previous and current workstream responsible */
+            const previousWorkstreamResponsible = projectWorkstreamObj.responsible[0].userTypeLinkId;
+            const currentWorkstreamResponsible = workstreamObj.responsible[0].userTypeLinkId;
+
+            if (previousWorkstreamResponsible !== currentWorkstreamResponsible) {
+                await Members.update(
+                    { isDeleted: 1 },
+                    {
+                        where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
+                    }
+                )
+                const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
+                await Members.create(responsible)
+            }
+
+            const completedTasks = _.filter(workstreamObj.task, taskObj => {
+                return taskObj.status == "Completed";
+            });
+            const issuesTasks = _.filter(workstreamObj.task, taskObj => {
+                const dueDateMoment = moment(taskObj.dueDate);
+                const currentDateMoment = moment.utc();
+                return dueDateMoment.isBefore(currentDateMoment, "day") && taskObj.status == "In Progress";
+            });
+            const pendingTasks = _.filter(workstreamObj.task, taskObj => {
+                const dueDateMoment = moment(taskObj.dueDate);
+                const currentDateMoment = moment.utc();
+                return dueDateMoment.isBefore(currentDateMoment, "day") == false && dueDateMoment.isSame(currentDateMoment, "day") == false && (taskObj.status != "Completed" && taskObj.status != "Rejected");
+            });
+            const dueTodayTask = _.filter(workstreamObj.task, taskObj => {
+                const dueDateMoment = moment(taskObj.dueDate);
+                const currentDateMoment = moment.utc();
+                return dueDateMoment.isSame(currentDateMoment, "day") == true && taskObj.status == "In Progress";
+            });
+            const newDoc = _.filter(workstreamObj.tag, tagObj => {
+                return tagObj.document && tagObj.document.status == "new";
+            });
+            const members = [
+                ...workstreamObj.responsible,
+                ..._(workstreamObj.task)
+                    .map(o => {
+                        return o.task_members;
+                    })
+                    .flatten()
+                    .uniqBy(e => {
+                        return e.user.id;
+                    })
+                    .value()
+            ];
+            const forApproval = _.filter(workstreamObj.task, taskObj => {
+                return taskObj.status == "For Approval";
+            });
+            const responsible = _.filter(members, member => {
+                return member.memberType == "responsible";
+            });
+
+            cb({
+                status: true,
+                data: {
+                    ...workstreamObj,
+                    pending: pendingTasks,
+                    completed: completedTasks,
+                    issues: issuesTasks.length,
+                    dueToday: dueTodayTask.length,
+                    for_approval: forApproval.length,
+                    new_documents: newDoc.length,
+                    numberOfTasks: workstreamObj.task.length,
+                    completion_rate: {
+                        tasks_due_today: {
+                            value: dueTodayTask.length > 0 ? (dueTodayTask.length / workstreamObj.task.length) * 100 : 0,
+                            color: "#f6dc64",
+                            count: dueTodayTask.length
+                        },
+                        tasks_for_approval: {
+                            value: forApproval.length > 0 ? (forApproval.length / workstreamObj.task.length) * 100 : 0,
+                            color: "#ff754a",
+                            count: forApproval.length
+                        },
+                        delayed_task: {
+                            value: issuesTasks.length > 0 ? (issuesTasks.length / workstreamObj.task.length) * 100 : 0,
+                            color: "#f9003b",
+                            count: issuesTasks.length
+                        },
+                        completed: {
+                            value: completedTasks.length > 0 ? (completedTasks.length / workstreamObj.task.length) * 100 : 0,
+                            color: "#00e589",
+                            count: completedTasks.length
+                        }
+                    },
+                    members,
+                    responsible: responsible.length > 0 ? responsible[0].userTypeLinkId : ""
+                }
+            });
+        } else {
+            cb({ status: true, message: "Workstream does not exist" });
         }
     }
 };

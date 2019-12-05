@@ -31,6 +31,7 @@ export default class Component extends React.Component {
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_USER_SELECTED", Selected: "" });
+        window.stop();
     }
 
     componentDidMount() {

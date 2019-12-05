@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, postData, putData, showToast, deleteData, getParameterByName } from "../../globalFunction";
+import { getData } from "../../globalFunction";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import moment from "moment";
@@ -31,7 +31,7 @@ class DocumentActivities extends React.Component {
         const { dispatch, loggedUser, match, activities } = { ...this.props };
         const { projectId } = { ...match.params };
 
-        getData(`/api/activityLogDocument?page=${page}&userType=${loggedUser.userType}&projectId=${projectId}`, {}, c => {
+        getData(`/api/document/getDocumentActivityLog?page=${page}&userType=${loggedUser.userType}&projectId=${projectId}`, {}, c => {
             const { result, count } = { ...c.data };
             dispatch({ type: "SET_ACTIVITYLOG_DOCUMENT_LIST", list: activities.List.concat(result), count: count });
             dispatch({ type: "SET_ACTIVITYLOG_LOADING", loading: "" });

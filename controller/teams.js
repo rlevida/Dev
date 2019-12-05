@@ -1,5 +1,3 @@
-const dbName = "team";
-var { defaultPut, defaultDelete } = require("./")
 const sequence = require('sequence').Sequence;
 const async = require("async");
 const _ = require("lodash");
@@ -163,15 +161,6 @@ exports.get = {
                 cb({ status: false, error: err })
             } else {
                 cb({ status: true, data: results })
-            }
-        })
-    },
-    getById: (req, cb) => {
-        defaultGetById(dbName, req, (res) => {
-            if (res.status) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: res.error })
             }
         })
     },

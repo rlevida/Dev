@@ -1,6 +1,5 @@
 const _ = require("lodash");
 const dbName = "starred";
-const { defaultGet, defaultPut, defaultDelete } = require("./");
 const models = require("../modelORM");
 const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document, DocumentLink, Workstream, Tag, Sequelize } = models;
 
@@ -226,30 +225,6 @@ exports.post = {
                     cb({ status: true, data: { result: result, documentActivityLog: documentActivityLog } });
                 }
             );
-        });
-    }
-};
-
-exports.put = {
-    index: (req, cb) => {
-        defaultPut(dbName, req, res => {
-            if (res.success) {
-                cb({ status: true, data: res.data });
-            } else {
-                cb({ status: false, error: c.error });
-            }
-        });
-    }
-};
-
-exports.delete = {
-    index: (req, cb) => {
-        defaultDelete(dbName, req, res => {
-            if (res.success) {
-                cb({ status: true, data: res.data });
-            } else {
-                cb({ status: false, error: res.error });
-            }
         });
     }
 };

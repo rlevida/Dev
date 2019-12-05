@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 
-import { showToast, postData, putData, getData, deleteData, setDatePicker, displayDate } from "../../globalFunction";
+import { showToast, postData, putData, getData, deleteData } from "../../globalFunction";
 import { DropDown, DeleteModal } from "../../globalComponents";
 
 import TaskDependency from "./taskDependency";
@@ -22,7 +22,6 @@ let keyTimer = "";
         taskDependency: store.taskDependency,
         users: store.users,
         workstream: store.workstream,
-        document: store.document
     };
 })
 export default class TaskForm extends React.Component {
@@ -315,7 +314,7 @@ export default class TaskForm extends React.Component {
         let result = true;
 
         $("#task-form *").validator("validate");
-        $("#task-form .form-group").each(function() {
+        $("#task-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -432,9 +431,7 @@ export default class TaskForm extends React.Component {
     }
 
     render() {
-        const { dispatch, task, users, project, workstream, taskDependency, members, document, loggedUser } = { ...this.props };
-        const { currentData } = { ...this.state };
-        const { workstream: taskWorkstream = "" } = task.Selected;
+        const { dispatch, task, users, project, workstream, taskDependency, members, loggedUser } = { ...this.props };
         const taskDependencyValue = typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false ? taskDependency.task.task : "";
         let projectList = _.cloneDeep(project.SelectList);
         let workstreamList = _.cloneDeep(workstream.SelectList);
@@ -458,7 +455,7 @@ export default class TaskForm extends React.Component {
             }
 
             if (typeof userApprover != "undefined") {
-                approverList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastName, image: userAssigned.user.avatar });
+                approverList.push({ id: userApprover.user.id, name: userApprover.user.firstName + " " + userApprover.user.lastName, image: userApprover.user.avatar });
             }
         }
 
@@ -680,7 +677,7 @@ export default class TaskForm extends React.Component {
                                                 <input
                                                     type="checkbox"
                                                     checked={task.Selected.approvalRequired ? true : false}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     onClick={f => {
                                                         this.handleCheckbox("approvalRequired", task.Selected.approvalRequired ? 0 : 1);
                                                     }}
@@ -694,7 +691,7 @@ export default class TaskForm extends React.Component {
                                                 <label class="m0">
                                                     Approver:<span class="text-red">*</span>
                                                 </label>
-                                                <p class="note mb5">Select a project first.</p>
+                                                {/* <p class="note mb5">Select a project first.</p> */}
                                                 <div class={`input-inline ${(typeof task.Selected.projectId == "undefined" && typeof project.Selected.id == "undefined") || workstream.Loading == "RETRIEVING" ? "pointer-none" : ""}`}>
                                                     <DropDown
                                                         required={true}
@@ -733,7 +730,7 @@ export default class TaskForm extends React.Component {
                                                 <input
                                                     type="checkbox"
                                                     checked={task.Selected.periodic ? true : false}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     onClick={f => {
                                                         this.handleCheckbox("periodic", task.Selected.periodic ? 0 : 1);
                                                     }}
@@ -760,7 +757,7 @@ export default class TaskForm extends React.Component {
                                                                     class="form-control"
                                                                     placeholder="Enter number instance"
                                                                     onChange={this.handleChange}
-                                                                    // disabled={currentData.periodType}
+                                                                // disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>
@@ -783,7 +780,7 @@ export default class TaskForm extends React.Component {
                                                                     })}
                                                                     selected={typeof task.Selected.periodType == "undefined" ? "" : task.Selected.periodType}
                                                                     onChange={e => this.setDropDown("periodType", e.value)}
-                                                                    // disabled={currentData.periodType}
+                                                                // disabled={currentData.periodType}
                                                                 />
                                                             </div>
                                                         </div>

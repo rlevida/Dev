@@ -23,7 +23,7 @@ class Component extends React.Component {
     handleLogout() {
         const { loggedUser } = this.props;
         deleteData(`/api/login/${loggedUser.data.id}`, {}, c => {
-            setTimeout(function() {
+            setTimeout(function () {
                 window.location.replace("/");
             }, 1000);
             showToast("success", "Successfully logout.");
@@ -61,7 +61,7 @@ class Component extends React.Component {
         }
     }
     componentDidMount() {
-        $(document).on("click", ".dropdown-menu-wrapper", function(e) {
+        $(document).on("click", ".dropdown-menu-wrapper", function (e) {
             if ($(this).hasClass("keep-open-on-click")) {
                 e.stopPropagation();
             }
@@ -130,13 +130,15 @@ class Component extends React.Component {
                                                                 {_.map(_.uniqBy(project.Category[o].list, "id"), (e, i) => {
                                                                     return (
                                                                         <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
-                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, o)} class="ml50" title={e.project}>
-                                                                                <span>
-                                                                                    <i class="fa fa-square mr10" style={{ color: e.color }} />
-                                                                                </span>
-                                                                                {e.project.substring(0, 20)}
-                                                                                {e.project.length > 20 ? "..." : ""}
-                                                                            </a>
+                                                                            <Link to={`/projects/${e.id}`} title={e.project}>
+                                                                                <div class="ml15">
+                                                                                    <span>
+                                                                                        <i class="fa fa-square mr10" style={{ color: e.color }} />
+                                                                                    </span>
+                                                                                    {e.project.substring(0, 20)}
+                                                                                    {e.project.length > 20 ? "..." : ""}
+                                                                                </div>
+                                                                            </Link>
                                                                         </li>
                                                                     );
                                                                 })}

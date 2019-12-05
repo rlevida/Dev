@@ -24,6 +24,10 @@ export default class WorkstreamList extends React.Component {
         });
     }
 
+    componentWillUnmount(){
+        window.stop()
+    }
+
     componentDidMount() {
         const { workstream } = { ...this.props };
         if (_.isEmpty(workstream.Count)) {

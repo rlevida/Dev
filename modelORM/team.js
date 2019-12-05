@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const Teams = sequelize.define('team', {
     id: {
       type: DataTypes.BIGINT,
@@ -49,18 +49,28 @@ module.exports = function(sequelize, DataTypes) {
       as: 'users_team',
       foreignKey: 'teamId',
     });
-    Teams.belongsTo(models.Users,{
-      as:'teamLeader',
+    Teams.belongsTo(models.Users, {
+      as: 'teamLeader',
       foreignKey: 'teamLeaderId'
     })
-    Teams.hasMany(models.Members,{
-      as:'memberTeam',
+    Teams.hasMany(models.Members, {
+      as: 'memberTeam',
       foreignKey: 'userTypeLinkId'
     })
     Teams.hasMany(models.Members, {
       as: 'teamProjects',
       foreignKey: 'userTypeLinkId'
     });
+    Teams.belongsTo(models.Users, {
+      as: 'task_team_leader',
+      foreignKey: "teamLeaderId",
+      targetKey: "id"
+    })
+    Teams.hasMany(models.UsersTeam, {
+      as: 'task_team_member',
+      foreignKey: "teamId",
+      sourceKey: "id",
+    })
   };
 
   return Teams;

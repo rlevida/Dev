@@ -47,6 +47,7 @@ export default class ProjectForm extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
         dispatch({ type: "SET_TEAM_LIST", list: [], count: {} });
         dispatch({ type: "SET_MEMBERS_LIST", list: [], count: {} });
+        window.stop();
     }
 
     deleteMember(value) {
@@ -98,6 +99,9 @@ export default class ProjectForm extends React.Component {
         let { dispatch, project } = this.props;
         let Selected = Object.assign({}, project.Selected);
         Selected[name] = value;
+        if (name === "appNotification" && !value) {
+            Selected["emailNotification"] = false;
+        }
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected });
     }
 
@@ -105,7 +109,7 @@ export default class ProjectForm extends React.Component {
         const { project, loggedUser, dispatch } = this.props;
         let result = true;
         $("#project-form *").validator("validate");
-        $("#project-form .form-group").each(function() {
+        $("#project-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -156,7 +160,9 @@ export default class ProjectForm extends React.Component {
                     projectManagerId: project.Selected.projectManagerId,
                     color: project.Selected.color,
                     updatedBy: loggedUser.data.id,
-                    dateUpdated: moment().format("YYYY-MM-DD HH:mm:ss")
+                    dateUpdated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    appNotification: project.Selected.appNotification,
+                    emailNotification: project.Selected.emailNotification
                 };
                 putData(`/api/project/${project.Selected.id}`, dataToSubmit, c => {
                     showToast("success", "Successfully Updated.");
@@ -330,6 +336,7 @@ export default class ProjectForm extends React.Component {
                 "id"
             );
         }
+
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -378,7 +385,7 @@ export default class ProjectForm extends React.Component {
                                             <input
                                                 type="checkbox"
                                                 checked={project.Selected.isActive ? true : false}
-                                                onChange={() => {}}
+                                                onChange={() => { }}
                                                 onClick={f => {
                                                     this.handleCheckbox("isActive", project.Selected.isActive ? 0 : 1);
                                                 }}
@@ -386,6 +393,34 @@ export default class ProjectForm extends React.Component {
                                             <span class="checkmark" />
                                             Active
                                         </label>
+                                        {loggedUser.data.userRole < 4 &&
+                                            <span>
+                                                <label class="custom-checkbox ml20">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={project.Selected.appNotification ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={f => {
+                                                            this.handleCheckbox("appNotification", project.Selected.appNotification ? 0 : 1);
+                                                        }}
+                                                    />
+                                                    <span class="checkmark" />
+                                                    In-App notification
+                                                </label>
+                                                <label class={`custom-checkbox ml20 ${project.Selected.appNotification ? "" : "p-event-none"}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={project.Selected.emailNotification ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={f => {
+                                                            this.handleCheckbox("emailNotification", project.Selected.emailNotification ? 0 : 1);
+                                                        }}
+                                                    />
+                                                    <span class="checkmark" />
+                                                    Email notification
+                                                </label>
+                                            </span>
+                                        }
                                     </div>
                                     <div class="form-group">
                                         <label for="project-name">
@@ -537,10 +572,10 @@ export default class ProjectForm extends React.Component {
                                                                 <td data-label="Members">
                                                                     {users_team.length > 0
                                                                         ? this.renderArrayTd(
-                                                                              _.map(users_team, ({ user }) => {
-                                                                                  return user.firstName + " " + user.lastName;
-                                                                              })
-                                                                          )
+                                                                            _.map(users_team, ({ user }) => {
+                                                                                return user.firstName + " " + user.lastName;
+                                                                            })
+                                                                        )
                                                                         : "N/A"}
                                                                 </td>
                                                                 <td data-label="Actions">

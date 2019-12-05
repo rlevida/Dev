@@ -70,7 +70,7 @@ class EditModal extends React.Component {
         let result = true;
 
         $(".form-container *").validator("validate");
-        $(".form-container .form-group").each(function() {
+        $(".form-container .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -158,13 +158,12 @@ class EditModal extends React.Component {
 
     render() {
         const { document, workstream } = this.props;
-
         return (
             <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="panel-title">DOCUMENT {document.Selected.id ? " > Edit > " + document.Selected.origin : " > Add"}</h3>
+                            <h3 class="panel-title" title={`${document.Selected.origin}`}>{document.Selected.id ? " Edit > " + `${document.Selected.origin.substring(0, 50)}${document.Selected.origin.length > 50 ? "..." : ""}` : " > Add"}</h3>
                         </div>
                         <div class="modal-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
