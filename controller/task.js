@@ -853,6 +853,7 @@ exports.get = {
             const { id } = mapObject.toJSON();
             return id;
         });
+
         const allTeams = await UsersTeam.findAll({ where: { teamId: teams, isDeleted: 0 } })
             .map(mapObject => {
                 const { usersId } = mapObject.toJSON();
@@ -884,6 +885,24 @@ exports.get = {
                                     as: "task_members",
                                     required: true,
                                     where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "assignedTo" }
+                                },
+                                {
+                                    model: Projects,
+                                    as: "task_project",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    }
+                                },
+                                {
+                                    model: Workstream,
+                                    as: "workstream",
+                                    required: true,
+                                    where: {
+                                        isActive: 1,
+                                        isDeleted: 0
+                                    }
                                 }
                             ],
                             attributes: [
