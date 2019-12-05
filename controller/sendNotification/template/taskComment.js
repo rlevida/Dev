@@ -20,7 +20,7 @@ module.exports = async (params) => {
         const url = `${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
 
         const subject = type === "taskTagged" ? "You have been tagged in a comment" : type === "commentReplies" ? "There is an update on a comment you posted" : "You received a comment on a task assigned to you.";
-        const message = type === "taskTagged" ? `You have been mentioned in a <strong>${task}</strong>` : `${from.firstName} commented on a task assigned to you.`
+        const message = type === "taskTagged" ? `You have been mentioned in a <strong>${task}</strong>` : `${from.firstName} commented on a task.`
         const html =
             `
     <body style='background-color: #2f51d0; font-family:  Arial; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.45em; margin: 0; padding: 50px; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%'>
