@@ -56,7 +56,7 @@ exports.get = {
             {
                 model: Workstream,
                 as: "workstream",
-                attributes: ["id"]
+                attributes: ["id"],
             },
             {
                 model: Members,
@@ -78,6 +78,7 @@ exports.get = {
             {
                 model: Members,
                 as: "team",
+                separate: true,
                 where: {
                     usersType: "team",
                     linkType: "project",

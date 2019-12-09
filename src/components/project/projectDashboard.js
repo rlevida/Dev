@@ -29,12 +29,11 @@ export default class ProjectDashboard extends React.Component {
     }
 
     componentDidMount() {
-        const { workstream } = { ...this.props };
-        this.fetchProjectStatus();
+        const { dispatch } = { ...this.props }
 
-        if (_.isEmpty(workstream.Count)) {
-            this.fetchCompletionRate(1);
-        }
+        dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
+        this.fetchProjectStatus();
+        this.fetchCompletionRate(1);
     }
 
     componentDidUpdate(prevProps) {
@@ -74,6 +73,7 @@ export default class ProjectDashboard extends React.Component {
         getData(`/api/task/projectTaskStatus?projectId=${projectId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, ({ status, data }) => {
             if (status == 200) {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: data });
+                dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
             } else {
                 showToast("error", "Something went wrong. Please try again later.");
             }
@@ -82,16 +82,19 @@ export default class ProjectDashboard extends React.Component {
 
     fetchCompletionRate(page) {
         const { dispatch, loggedUser, workstream, match } = this.props;
-        const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
+        const { typeId, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
         const requestUrl = `/api/workstream/completionRate?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&userRole=${
             loggedUser.data.userRole
-        }&typeId=${typeId}&isActive=1&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+            }&typeId=${typeId}&isActive=1&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, c => {
+            dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
+
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count });
+
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
@@ -145,7 +148,7 @@ export default class ProjectDashboard extends React.Component {
         const projectId = match.params.projectId;
         const requestUrl = `/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${
             loggedUser.data.id
-        }&type=document&folderId=null`;
+            }&type=document&folderId=null`;
         getData(requestUrl, {}, c => {
             const { count, result } = { ...c.data };
             dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });

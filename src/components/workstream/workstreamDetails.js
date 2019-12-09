@@ -24,6 +24,8 @@ export default class WorkstreamDetails extends React.Component {
         const workstreamId = match.params.workstreamId;
         const requestUrl = `/api/workstream?workstreamId=${workstreamId}`;
 
+        dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
+
         getData(requestUrl, {}, c => {
             if (c.status == 200) {
                 const selected = c.data.result.length > 0 ? c.data.result[0] : {};
@@ -31,17 +33,14 @@ export default class WorkstreamDetails extends React.Component {
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
+            dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
+
         });
     }
-    // componentWillUnmount() {
-    //     const { dispatch } = { ...this.props };
-    //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-    // }
     renderStatus({ issues, dueToday }) {
         const color = issues > 0 ? "text-red" : dueToday > 0 ? "text-yellow" : "text-green";
         return <span class={`fa fa-circle mb0 mr10 ${color}`} />;
     }
-
     render() {
         const { match, workstream, history } = { ...this.props };
         const projectId = match.params.projectId;

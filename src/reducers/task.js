@@ -114,6 +114,9 @@ export default function reducer(
             const updatedFilter = _.assign({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter };
         }
+        case "RESET_TASK": {
+            return { ...state, ...action }
+        }
         default:
             return state;
     }
