@@ -44,6 +44,7 @@ const associationStack = [
         model: Tag,
         as: "tag_task",
         required: false,
+        separate: true,
         where: { linkType: "task", isDeleted: 0 },
         include: [
             {
@@ -69,6 +70,7 @@ const associationStack = [
         model: Members,
         as: "task_members",
         required: false,
+        separate: true,
         where: { linkType: "task", isDeleted: 0 },
         include: [
             {
@@ -93,6 +95,7 @@ const associationStack = [
         model: TaskDependency,
         as: "task_dependency",
         required: false,
+        separate: true,
         where: { isDeleted: 0 },
         include: [
             {
@@ -105,6 +108,7 @@ const associationStack = [
         model: TaskDependency,
         as: "task_preceding",
         required: false,
+        separate: true,
         where: { isDeleted: 0 },
         include: [
             {
@@ -118,6 +122,7 @@ const associationStack = [
         as: "task_starred",
         where: { linkType: "task", isActive: 1 },
         required: false,
+        separate: true,
         include: [
             {
                 model: Users,
@@ -131,6 +136,7 @@ const associationStack = [
         as: "checklist",
         where: { isDeleted: 0 },
         required: false,
+        separate: true,
         include: [
             {
                 model: Users,
@@ -217,6 +223,7 @@ const associationStack = [
         model: Members,
         as: "follower",
         required: false,
+        separate: true,
         attributes: ["userTypeLinkId"],
         where: { linkType: "task", memberType: "follower" }
     }
@@ -234,8 +241,8 @@ exports.get = {
             {
                 model: Projects,
                 as: "task_project",
-                required: false,
-                where: { isActive: 1 },
+                required: true,
+                where: { isActive: 1, isDeleted: 0 },
                 /* Check if user is a member of project */
                 include: [
                     {
@@ -368,6 +375,11 @@ exports.get = {
             {
                 model: Workstream,
                 as: "workstream",
+                required: true,
+                where: {
+                    isActive: 1,
+                    isDeleted: 0
+                },
                 include: [
                     {
                         model: Projects,
