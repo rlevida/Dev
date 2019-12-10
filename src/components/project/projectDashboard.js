@@ -40,12 +40,13 @@ export default class ProjectDashboard extends React.Component {
         const { dispatch, loggedUser } = { ...this.props };
 
         if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
+            dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
+
             if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
                 history.push(`/projects/${loggedUser.data.projectId[0]}`);
             } else {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
-                dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
-                dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+                dispatch({ type: "RESET_WORKSTREAM", List: [], Count: {}, Loading: "RETRIEVING" })
                 dispatch({ type: "SET_STARRED_LIST", list: [], count: {} });
                 _.map(["task", "notes", "document"], type => {
                     dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
