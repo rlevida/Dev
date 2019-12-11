@@ -251,10 +251,18 @@ var job = new CronJob(
     "Asia/Manila"
 );
 
+var ctr = 0;
+
 /* TASK OVERDUE NOTIFICATION */
 var job = new CronJob(
-    "0 7 * * *",
+    "*/15 * * * * *",
     async () => {
+        if (ctr > 0) {
+            return
+        }
+
+        ctr += 1
+        console.log(`here`)
         try {
             const models = require("../modelORM");
             const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam, Notification, Workstream } = models;
@@ -538,9 +546,7 @@ var job = new CronJob(
             keyTimer = setInterval(() => {
                 if (usersTasks.length > 0) {
                     const taskNotificationData = usersTasks.slice(0, 10);
-
                     taskNotificationData.forEach(async user => {
-
                         if (user.assignedTasks.length > 0) {
                             const tasks = user.assignedTasks.filter(taskObj => { return taskObj.task_project.emailNotification });
                             const message = "You have some tasks that are due";
