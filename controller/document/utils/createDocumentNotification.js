@@ -95,8 +95,7 @@ module.exports = async (params) => {
 
     const workstreamDocumentNotificationData = uniqBy(flatten(findWorkstreamMemberResult), "receiver");
 
-    const documentNotification = uniqBy([...workstreamDocumentNotificationData, documentTaskMemberNotificationData], "receiver")
-
+    const documentNotification = uniqBy([...workstreamDocumentNotificationData, ...documentTaskMemberNotificationData], "receiver")
     documentNotification.forEach(async notificationObj => {
         await sendNotification(notificationObj);
     })
