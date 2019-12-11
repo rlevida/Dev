@@ -255,14 +255,9 @@ var ctr = 0;
 
 /* TASK OVERDUE NOTIFICATION */
 var job = new CronJob(
-    "*/15 * * * * *",
+    "0 7 * * *",
     async () => {
-        if (ctr > 0) {
-            return
-        }
 
-        ctr += 1
-        console.log(`here`)
         try {
             const models = require("../modelORM");
             const { Tasks, Members, Users, Projects, UsersNotificationSetting, Type, Teams, UsersTeam, Notification, Workstream } = models;
