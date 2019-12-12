@@ -10,9 +10,9 @@ module.exports = async (params) => {
     emailNotificationData.forEach(async emailObj => {
         const {
             to, from, projectId, noteId,
-            workstream_notification: { workstream = null },
-            project_notification: { project = null },
-            note_notification: { note = null },
+            workstream_notification: { workstream },
+            project_notification: { project },
+            note_notification: { note },
         } = { ...emailObj }
 
         const userCommentHistory = conversations.slice(conversations.length - 4);
