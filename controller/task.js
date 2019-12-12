@@ -223,7 +223,6 @@ const associationStack = [
         model: Members,
         as: "follower",
         required: false,
-        separate: true,
         attributes: ["userTypeLinkId"],
         where: { linkType: "task", memberType: "follower" }
     }
