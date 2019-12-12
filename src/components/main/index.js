@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { HashRouter as Router } from "react-router-dom";
 import App from "./app";
 import NetworkChecker from "./internetChecker";
+import ScreenLoader from "./screenLoader";
 @connect(store => {
     return {
         user: store.loggedUser.data,
@@ -19,4 +20,4 @@ class Main extends React.Component {
     }
 }
 
-export default NetworkChecker(Main);
+export default NetworkChecker(ScreenLoader(Main));

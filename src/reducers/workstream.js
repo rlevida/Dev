@@ -93,6 +93,9 @@ export default function reducer(
         case "SET_WORKSTREAM_SELECT_LIST": {
             return { ...state, SelectList: action.List };
         }
+        case "RESET_WORKSTREAM": {
+            return { ...state, ...action }
+        }
         default:
             return state;
     }

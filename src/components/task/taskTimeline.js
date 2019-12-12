@@ -45,6 +45,8 @@ export default class TaskTimeline extends React.Component {
         const { dispatch, workstream_id } = this.props;
         let requestUrl = `/api/task?workstreamId=${workstream_id}&page=${page}&listType=timeline&status=${JSON.stringify({ opt: "not", value: "Completed" })}&isActive=1`;
 
+        dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
+
         getData(requestUrl, {}, c => {
             const { task } = { ...this.props };
             const { Timeline } = task;
@@ -55,6 +57,7 @@ export default class TaskTimeline extends React.Component {
                     type: "SET_TASK_TIMELINE",
                     list: taskStack
                 });
+                dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
             });
         });
     }

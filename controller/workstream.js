@@ -820,9 +820,11 @@ exports.post = {
                                             projectId: body.projectId
                                         };
                                     });
+
                                     const workstreamTaskArray = workstreamTaskNonPeriodic.concat(newPeriodicTask);
 
                                     Users.findOne({ where: { username: "default" } }).then(userReturn => {
+                                        const defaultSubTaskAssigned = req.user.id;
                                         const defaultTaskAssigned = userReturn.toJSON().id;
                                         async.map(
                                             workstreamTaskArray,
@@ -855,7 +857,7 @@ exports.post = {
                                                                 });
                                                                 const newPeriodicTaskChecklist = newPeriodicTaskId.map(o => {
                                                                     return taskObjChecklistArray.map(c => {
-                                                                        return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: o, createdBy: defaultTaskAssigned };
+                                                                        return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: o, createdBy: defaultSubTaskAssigned };
                                                                     });
                                                                 });
                                                                 mapCallback(null, { members: newPeriodicTaskMembers, checklist: _.flatten(newPeriodicTaskChecklist) });
@@ -863,7 +865,7 @@ exports.post = {
                                                     } else {
                                                         const newTaskMembers = [{ linkType: "task", linkId: taskReturn.id, userTypeLinkId: defaultTaskAssigned, usersType: "users", memberType: "assignedTo" }];
                                                         const newTaskchecklist = taskObjChecklistArray.map(c => {
-                                                            return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id, createdBy: defaultTaskAssigned, dateAdded: moment().format() };
+                                                            return { ..._.omit(c, ["id", "taskId", "documents", "periodChecklist"]), isCompleted: 0, taskId: taskReturn.id, createdBy: defaultSubTaskAssigned, dateAdded: moment().format() };
                                                         });
                                                         mapCallback(null, { members: newTaskMembers, checklist: newTaskchecklist });
                                                     }
