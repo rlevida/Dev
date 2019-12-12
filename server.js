@@ -20,8 +20,11 @@ var config = require("./config");
 var serverAuth = require("./auth");
 
 require("./script/backup");
-require("./script/taskCompletedNotification");
-require("./script/taskDuedateNotification");
+
+if (process.env.ENABLE_CRON == 1) {
+    require("./script/taskCompletedNotification");
+    require("./script/taskDuedateNotification");
+}
 
 // get
 var index = require("./routes");
