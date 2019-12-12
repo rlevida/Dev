@@ -177,8 +177,8 @@ export default class TaskListCategory extends React.Component {
 
         if (date === "Succeeding month" || date === "This month") {
             const weekFrom = moment()
-                    .add("days", 1)
-                    .format("YYYY-MM-DD"),
+                .add("days", 1)
+                .format("YYYY-MM-DD"),
                 weekTo = moment()
                     .endOf("week")
                     .format("YYYY-MM-DD");
@@ -197,6 +197,7 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
         getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, c => {
             if (c.status == 200) {
                 const { data } = c;
@@ -215,6 +216,7 @@ export default class TaskListCategory extends React.Component {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
                 $(`#task-details`).modal("show");
             }
         });
@@ -299,7 +301,7 @@ export default class TaskListCategory extends React.Component {
                                             (loggedUser.data.userRole >= 4 && project.type.type == "Client" && assigned.user.userType == "External") ||
                                             (loggedUser.data.userRole >= 4 && project.type.type == "Internal" && assigned.user.user_role[0].roleId == 4)) &&
                                         approvalRequired == 0) ||
-                                    (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)
+                                        (status != "In Progress" && status != "Rejected" && approvalRequired == 1 && approverId == loggedUser.data.id)
                                         ? 0
                                         : 30
                             }}
@@ -323,7 +325,7 @@ export default class TaskListCategory extends React.Component {
                                     ? "Today"
                                     : Math.abs(daysRemaining) + `${daysRemaining < 1 ? `  day${Math.abs(daysRemaining) > 1 ? "s" : ""} delayed` : ` day${Math.abs(daysRemaining) > 1 ? "s" : ""}`}`
                                 : "N/A"
-                        }`}
+                            }`}
                     </p>
                 </td>
                 {Filter.type != "assignedToMe" && (
