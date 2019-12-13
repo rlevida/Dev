@@ -626,14 +626,16 @@ exports.get = {
                             {
                                 usersType: "users",
                                 userTypeLinkId: userId,
-                                linkType: "project"
+                                linkType: "project",
+                                isDeleted: 0
                             },
                             {
                                 usersType: "team",
                                 userTypeLinkId: _.map(userTeam, o => {
                                     return o.teamId;
                                 }),
-                                linkType: "project"
+                                linkType: "project",
+                                isDeleted: 0
                             }
                         ]
                     }
