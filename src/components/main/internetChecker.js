@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-export default function(ComposedComponent) {
+export default function (ComposedComponent) {
     class NetworkChecker extends Component {
         state = {
             isDisconnected: false
@@ -33,7 +33,6 @@ export default function(ComposedComponent) {
                 }, 2000);
                 return;
             }
-
             return this.setState({ isDisconnected: true });
         };
 
