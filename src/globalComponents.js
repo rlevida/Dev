@@ -236,7 +236,7 @@ export class ColorPicker extends React.Component {
 export class Searchbar extends React.Component {
     constructor(props) {
         super(props);
-        ["handleShowSearch", "handleChange"]).forEach(fn => {
+        ["handleShowSearch", "handleChange"].forEach(fn => {
             this[fn] = this[fn].bind(this);
         });
     }
