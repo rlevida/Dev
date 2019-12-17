@@ -65,6 +65,7 @@ export default class ProjectDashboard extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} });
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
+        window.stop();
     }
 
     fetchProjectStatus() {
@@ -74,7 +75,6 @@ export default class ProjectDashboard extends React.Component {
         getData(`/api/task/projectTaskStatus?projectId=${projectId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, ({ status, data }) => {
             if (status == 200) {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: data });
-                dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
             } else {
                 showToast("error", "Something went wrong. Please try again later.");
             }
@@ -91,15 +91,13 @@ export default class ProjectDashboard extends React.Component {
             }&typeId=${typeId}&isActive=1&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, c => {
-            dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
-
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count });
-
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+            dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
         });
     }
 
