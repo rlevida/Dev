@@ -141,7 +141,7 @@ exports.get = {
 
                     Session.findAll({ where: { usersId: user.id } }).then(res => {
                         if (ipBlockData.length > 0) {
-                            IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => {});
+                            IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => { });
                         }
                         if (res.length == 0) {
                             delete user.password;
@@ -291,8 +291,8 @@ exports.post = {
                                         isActive: 1,
                                         ...(response.user_role[0].roleId > 4
                                             ? {
-                                                  typeId: 1
-                                              }
+                                                typeId: 1
+                                            }
                                             : {})
                                     }
                                 }).map(o => {
@@ -344,7 +344,7 @@ exports.post = {
 
                     Session.findAll({ where: { usersId: user.id } }).then(res => {
                         if (ipBlockData.length > 0) {
-                            IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => {});
+                            IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => { });
                         }
                         if (res.length == 0) {
                             delete user.password;
@@ -380,6 +380,9 @@ exports.post = {
                         cb({ status: false, error: err });
                     }
                 } else {
+                    req.app.parent.io.emit("FRONT_LOGIN", {
+                        ...userDetails
+                    });
                     cb({ status: true, message: "Successfully Login", userDetails, type: userDetails.userType });
                 }
             });
