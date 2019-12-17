@@ -12,6 +12,9 @@ export class DropDown extends React.Component {
             disabled: this.props.disabled ? true : false,
             noResultsText: "No Results Found"
         };
+        ["onInputChange", "onFocus"].forEach(fn => {
+            this[fn] = this[fn].bind(this);
+        })
     }
     componentWillReceiveProps(props) {
         var records = props.options.map((d, index) => {
@@ -233,8 +236,7 @@ export class ColorPicker extends React.Component {
 export class Searchbar extends React.Component {
     constructor(props) {
         super(props);
-
-        _.map(["handleShowSearch", "handleChange"], fn => {
+        ["handleShowSearch", "handleChange"]).forEach(fn => {
             this[fn] = this[fn].bind(this);
         });
     }
