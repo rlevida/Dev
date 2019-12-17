@@ -1,21 +1,19 @@
 import React from "react";
 import { SketchPicker } from "react-color";
 import Select from "react-select";
-import Tooltip from "react-tooltip";
-import { saveData, showToast } from "./globalFunction";
-import { relative } from "path";
 import parse from "html-react-parser";
 
-export const DropDown = React.createClass({
-    getInitialState: function() {
-        return {
+export class DropDown extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
             records: [],
             selected: this.props.multiple ? [] : "",
             disabled: this.props.disabled ? true : false,
             noResultsText: "No Results Found"
         };
-    },
-    componentWillReceiveProps: function(props) {
+    }
+    componentWillReceiveProps(props) {
         var records = props.options.map((d, index) => {
             return { value: d.id, label: d.name, image: typeof d.image != "undefined" ? d.image : "" };
         });
@@ -35,8 +33,8 @@ export const DropDown = React.createClass({
                 this.setState({ selected: props.selected });
             }
         }
-    },
-    componentWillMount: function() {
+    }
+    componentWillMount() {
         var records = this.props.options.map((d, index) => {
             return { value: d.id, label: d.name, image: typeof d.image != "undefined" ? d.image : "" };
         });
@@ -53,22 +51,22 @@ export const DropDown = React.createClass({
                 this.setState({ selected: this.props.selected });
             }
         }
-    },
-    onInputChange: function(option) {
+    }
+    onInputChange(option) {
         if (typeof this.props.onInputChange != "undefined" && option != "") {
             this.props.onInputChange(option);
             this.setState({ noResultsText: "Loading ..." });
         }
-    },
-    onFocus: function() {
+    }
+    onFocus() {
         if (typeof this.props.onFocus != "undefined") {
             this.props.onFocus();
             this.setState({ noResultsText: "Loading ..." });
         }
-    },
-    render: function() {
+    }
+    render() {
         var self = this;
-        var handleChange = function(option) {
+        var handleChange = function (option) {
             self.props.onChange(option);
             self.setState({ selected: self.props.multiple ? option : option ? option.value : "" });
         };
@@ -97,11 +95,11 @@ export const DropDown = React.createClass({
             </div>
         );
     }
-});
+};
 
 export class OnOffSwitch extends React.Component {
     render() {
-        let { Active, Action, custom_class = "" } = this.props;
+        let { Active, Action } = this.props;
         return (
             <label class="switch ">
                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox success" onClick={Action} defaultChecked={Active == 1} />
@@ -110,193 +108,6 @@ export class OnOffSwitch extends React.Component {
         );
     }
 }
-
-export const HeaderButtonContainer = React.createClass({
-    getInitialState: function() {
-        return {};
-    },
-    render: function() {
-        return (
-            <div>
-                <div class="FooterButtonContainer" style={{ marginTop: "100px" }}>
-                    <ul class="bottom-icon-action-container">{this.props.children}</ul>
-                </div>
-            </div>
-        );
-    }
-});
-
-export const HeaderButton = React.createClass({
-    getInitialState: function() {
-        return {};
-    },
-    render: function() {
-        return (
-            <li class="side-icon-action" data-tip={this.props.title} onClick={this.props.action}>
-                <span class={this.props.iconClass} />
-                <Tooltip />
-            </li>
-        );
-    }
-});
-
-export const FilterContainer = React.createClass({
-    getInitialState: function() {
-        return {
-            hideContent: true
-        };
-    },
-    componentDidUpdate: function() {
-        if (typeof this.props.onLoadFunction !== "undefined") {
-            this.props.onLoadFunction();
-        }
-    },
-    render: function() {
-        return (
-            <div class="FilterContainer ml10 mt10">
-                {this.state.hideContent && (
-                    <a onClick={e => this.setState({ hideContent: false })} class="btn btn-info btn-sm ml10">
-                        <span class="glyphicon glyphicon-search" /> Advance Search{" "}
-                    </a>
-                )}
-                {!this.state.hideContent && (
-                    <div>
-                        <a onClick={e => this.setState({ hideContent: true })} class="btn btn-info btn-sm ml10">
-                            <span class="glyphicon glyphicon-menu-left" /> Hide Filter{" "}
-                        </a>
-                        {this.props.children}
-                    </div>
-                )}
-            </div>
-        );
-    }
-});
-
-/**
- * Generic editable cell value.
- * State values :
- *      1. currentValue - the value displayed upon load.
- *      2. previousValue
- *      3. inputType - the type of input to be displayed. Values: "text" or "select". Ideally, select options would be loaded from db.
- *      4. isEditMode
- *      5. table - the table to be updated
- *      6. field - the field in the table to be updated
- *      7. tableId - the id of the row to be updated
- *
- */
-export const EditableCellDisplay = React.createClass({
-    getInitialState: function() {
-        return {
-            currentValue: this.props.initialValue,
-            previousValue: this.props.initialValue,
-            inputType: this.props.inputType,
-            isEditMode: false,
-            table: this.props.action,
-            field: this.props.fieldName,
-            tableId: this.props.id,
-            options: this.props.options ? this.props.options : [],
-            disabled: this.props.disabled ? true : false
-        };
-    },
-
-    handleEditClick: function(e) {
-        e.preventDefault();
-        this.setState({
-            isEditMode: true
-        });
-    },
-
-    handleInputChange: function(e) {
-        if (e.target) {
-            this.setState({
-                currentValue: e.target.value
-            });
-        } else {
-            this.setState({
-                currentValue: e.value
-            });
-        }
-    },
-
-    handleCancelClick: function(e) {
-        e.preventDefault();
-        this.setState({
-            isEditMode: false,
-            currentValue: this.state.previousValue
-        });
-    },
-
-    handleSaveClick: function(e) {
-        e.preventDefault();
-        const params = {
-            id: this.state.tableId,
-            action: this.state.table
-        };
-        params[this.state.field] = this.state.currentValue;
-        saveData.callback({ data: params }, res => {
-            if (res.status) {
-                var _response = res.response;
-                this.setState({
-                    isEditMode: false,
-                    previousValue: this.state.currentValue
-                });
-                showToast("success", _response.responseText);
-            } else {
-                showToast("error", _response.responseText);
-            }
-        });
-    },
-    render: function() {
-        if (this.state.isEditMode) {
-            if (this.state.inputType == "text") {
-                return (
-                    <div>
-                        <input type="text" class="editable-cell-text" autoFocus="true" value={this.state.currentValue} onChange={this.handleInputChange} />
-                        <a href="#">
-                            <span class="glyphicon glyphicon-ban-circle pull-right" data-tip="CANCEL" data-for={"CANCEL-" + this.state.tableId} onClick={this.handleCancelClick}>
-                                <Tooltip id={"CANCEL-" + this.state.tableId} />
-                            </span>
-                        </a>
-                        <a href="#">
-                            <span class="glyphicon glyphicon-floppy-disk pull-right" data-tip="SAVE" data-for={"SAVE-" + this.state.tableId} onClick={this.handleSaveClick}>
-                                <Tooltip id={"SAVE-" + this.state.tableId} />
-                            </span>
-                        </a>
-                    </div>
-                );
-            } else {
-                return (
-                    <div>
-                        <DropDown multiple={false} options={this.state.options} selected={this.state.currentValue} onChange={this.handleInputChange} />
-                        <a href="#">
-                            <span style={{ padding: "2px" }} class="glyphicon glyphicon-ban-circle pull-right" data-tip="CANCEL" data-for={"CANCEL-" + this.state.tableId} onClick={this.handleCancelClick}>
-                                <Tooltip id={"CANCEL-" + this.state.tableId} />
-                            </span>
-                        </a>
-                        <a href="#">
-                            <span style={{ padding: "2px" }} class="glyphicon glyphicon-floppy-disk pull-right" data-tip="SAVE" data-for={"SAVE-" + this.state.tableId} onClick={this.handleSaveClick}>
-                                <Tooltip id={"SAVE-" + this.state.tableId} />
-                            </span>
-                        </a>
-                    </div>
-                );
-            }
-        } else {
-            return (
-                <p>
-                    {this.state.currentValue}
-                    {!this.state.disabled && (
-                        <a href="#" onClick={this.handleEditClick}>
-                            <span style={{ padding: "2px" }} data-tip="EDIT" data-for={"EDIT-" + this.state.tableId} class="glyphicon glyphicon-pencil pull-right">
-                                <Tooltip id={"EDIT-" + this.state.tableId} />
-                            </span>
-                        </a>
-                    )}
-                </p>
-            );
-        }
-    }
-});
 
 export const Loading = () => {
     return (
@@ -398,7 +209,7 @@ export class ColorPicker extends React.Component {
                     value={typeof color == "undefined" || color == null ? "" : color}
                     class="form-control"
                     onFocus={() => this.setState({ show_color_picker: true })}
-                    onChange={() => {}}
+                    onChange={() => { }}
                 />
                 <div
                     class="color-tab"
