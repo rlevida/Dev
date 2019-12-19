@@ -132,7 +132,7 @@ export default class TaskListCategory extends React.Component {
                     .format("YYYY-MM-DD");
                 break;
             case "Succeeding month":
-                const isNextYear = moment().endOf("month").add("days", 1).format("YYYY") !== moment().endOf("year").format("YYYY")
+                const isNextYear = moment().endOf("month").add("days", 1).format("YYYY") !== moment().endOf("year").format("YYYY");
                 fromDate = moment()
                     .endOf("month")
                     .add("days", 1)
@@ -140,8 +140,7 @@ export default class TaskListCategory extends React.Component {
                 toDate = isNextYear
                     ? moment()
                         .add("month", 1)
-                        .endOf("month")
-                        .add("days", 1)
+                        .endOf("year")
                         .format("YYYY-MM-DD")
                     : moment()
                         .endOf("year")
