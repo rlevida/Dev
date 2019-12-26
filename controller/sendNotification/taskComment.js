@@ -1,7 +1,7 @@
 const moment = require("moment");
 const ejs = require("ejs");
 const func = global.initFunc();
-const sendEmailNotification = require("../sendEmailNotification");
+const sendEmailNotification = require("./sendEmailNotification");
 
 module.exports = async (params) => {
     const { emailNotificationData, type } = { ...params };
@@ -22,7 +22,7 @@ module.exports = async (params) => {
         const subject = type === "taskTagged" ? "You have been tagged in a comment" : type === "commentReplies" ? "There is an update on a comment you posted" : "You received a comment on a task assigned to you.";
         const message = type === "taskTagged" ? `You have been mentioned in a <strong>${task}</strong>` : `${from.firstName} commented on a task.`
         const nameTo = func.toCapitalizeFirstLetter(to.firstName);
-        const html = await ejs.renderFile(`${__dirname}/../email-template/taskComment.ejs`,
+        const html = await ejs.renderFile(`${__dirname}/email-template/taskComment.ejs`,
             {
                 data: {
                     ...params,

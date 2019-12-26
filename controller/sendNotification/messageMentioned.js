@@ -1,7 +1,7 @@
 const moment = require("moment");
 const { orderBy } = require("lodash");
 const ejs = require("ejs");
-const sendEmailNotification = require("../sendEmailNotification");
+const sendEmailNotification = require("./sendEmailNotification");
 const func = global.initFunc();
 
 module.exports = async (params) => {
@@ -19,7 +19,7 @@ module.exports = async (params) => {
         const url = `${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}`;
         const nameTo = func.toCapitalizeFirstLetter(to.firstName);
         const nameFrom = func.toCapitalizeFirstLetter(from.firstName);
-        const html = await ejs.renderFile(`${__dirname}/../email-template/messageMentioned.ejs`,
+        const html = await ejs.renderFile(`${__dirname}/email-template/messageMentioned.ejs`,
             {
                 data: {
                     ...params,

@@ -1,6 +1,6 @@
 const moment = require("moment");
 const func = global.initFunc();
-const sendEmailNotification = require("../sendEmailNotification");
+const sendEmailNotification = require("./sendEmailNotification");
 const ejs = require("ejs");
 
 module.exports = async (params) => {
@@ -19,7 +19,7 @@ module.exports = async (params) => {
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         const nameTo = func.toCapitalizeFirstLetter(to.firstName);
         const nameFrom = func.toCapitalizeFirstLetter(from.firstName);
-        const html = await ejs.renderFile(`${__dirname}/../email-template/messageSend.ejs`,
+        const html = await ejs.renderFile(`${__dirname}/email-template/messageSend.ejs`,
             {
                 data: {
                     ...params,

@@ -1,7 +1,7 @@
 const { orderBy } = require("lodash");
 const ejs = require("ejs");
 const func = global.initFunc();
-const sendEmailNotification = require("../sendEmailNotification");
+const sendEmailNotification = require("./sendEmailNotification");
 
 module.exports = async (params) => {
     const { emailNotificationData } = { ...params }
@@ -14,7 +14,7 @@ module.exports = async (params) => {
 
         const name = func.toCapitalizeFirstLetter(to.firstName);
         const url = `${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?${taskId ? `task-id=${taskId}` : `tab=document`}`;
-        const html = await ejs.renderFile(`${__dirname}/../email-template/fileNewUpload.ejs`,
+        const html = await ejs.renderFile(`${__dirname}/email-template/fileNewUpload.ejs`,
             {
                 data: {
                     ...params,
