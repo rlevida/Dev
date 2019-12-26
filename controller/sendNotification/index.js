@@ -80,7 +80,9 @@ module.exports = async (params) => {
             // });
             return {
                 ...findNotificationRes.toJSON(),
-                users_conversation: findNotificationRes.toJSON().from.users_conversation,
+                ...findNotificationRes.toJSON().from.users_conversation ? {
+                    users_conversation: findNotificationRes.toJSON().from.users_conversation
+                } : {}
             }
         })
 

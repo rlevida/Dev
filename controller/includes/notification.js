@@ -39,6 +39,7 @@ exports.notificationIncludes = notificationIncludes = (params) => {
                 model: Conversation,
                 as: "users_conversation",
                 attributes: ["comment", "dateAdded"],
+                required: false,
                 where: {
                     ...(conversations ? { linkType: conversations.linkType } : {})
                 }
