@@ -11,9 +11,9 @@ var fileSources = {
             "node_modules/lodash/lodash.min.js",
             "node_modules/moment/moment.js",
             "node_modules/bootstrap-validator/dist/validator.js",
-            "public/javascripts/function.js",
-            "public/javascripts/picker.js",
-            "node_modules/react-mentions/lib/Highlighter.js"
+            // "public/javascripts/function.js",
+            // "public/javascripts/picker.js",
+            // "node_modules/react-mentions/lib/Highlighter.js"
         ]
     },
     vendorCSS: {
