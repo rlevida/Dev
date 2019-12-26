@@ -140,7 +140,7 @@ router.use(function (req, res, next) {
     if (req.loggedData.projectId.length === 0 && req.loggedData.userRole >= 4) {
         try {
             Members
-                .findAll({ where: { userTypeLinkId: req.userDetails.usersId, linkType: "project" } })
+                .findAll({ where: { userTypeLinkId: req.userDetails.usersId, linkType: "project", isDeleted: 0 } })
                 .then((ret) => {
                     if (ret.length > 0) {
                         req.memberDetails = ret

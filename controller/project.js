@@ -183,14 +183,16 @@ exports.get = {
                         {
                             usersType: "users",
                             userTypeLinkId: userId,
-                            linkType: "project"
+                            linkType: "project",
+                            isDeleted: 0
                         },
                         {
                             usersType: "team",
                             userTypeLinkId: _.map(userTeam, o => {
                                 return o.teamId;
                             }),
-                            linkType: "project"
+                            linkType: "project",
+                            isDeleted: 0
                         }
                     ]
                 }
@@ -624,14 +626,16 @@ exports.get = {
                             {
                                 usersType: "users",
                                 userTypeLinkId: userId,
-                                linkType: "project"
+                                linkType: "project",
+                                isDeleted: 0
                             },
                             {
                                 usersType: "team",
                                 userTypeLinkId: _.map(userTeam, o => {
                                     return o.teamId;
                                 }),
-                                linkType: "project"
+                                linkType: "project",
+                                isDeleted: 0
                             }
                         ]
                     }
@@ -1056,7 +1060,7 @@ exports.post = {
                 })
                 .then((nextThen, { project_result, workstream_result }) => {
                     let result = project_result;
-                    Members.bulkCreate([
+                    let projectMembersData = [
                         {
                             linkId: result.id,
                             linkType: "project",
@@ -1070,19 +1074,18 @@ exports.post = {
                             usersType: "users",
                             userTypeLinkId: d.projectManagerId,
                             memberType: "responsible"
-                        },
-                        {
-                            ...(result.typeId === 3
-                                ? {
-                                    linkId: result.id,
-                                    linkType: "project",
-                                    memberType: "assignedTo",
-                                    userTypeLinkId: d.projectManagerId,
-                                    usersType: "users"
-                                }
-                                : {})
                         }
-                    ]).then(res => {
+                    ];
+                    if (result.typeId === 3) {
+                        projectMembersData.push({
+                            linkId: result.id,
+                            linkType: "project",
+                            memberType: "assignedTo",
+                            userTypeLinkId: d.projectManagerId,
+                            usersType: "users"
+                        })
+                    }
+                    Members.bulkCreate(projectMembersData).then(res => {
                         Members.findAll({
                             where: {
                                 [Op.or]: [
