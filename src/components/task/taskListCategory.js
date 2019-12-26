@@ -132,16 +132,23 @@ export default class TaskListCategory extends React.Component {
                     .format("YYYY-MM-DD");
                 break;
             case "Succeeding month":
+                const isNextYear = moment().endOf("month").add("days", 1).format("YYYY") !== moment().endOf("year").format("YYYY");
                 fromDate = moment()
                     .endOf("month")
                     .add("days", 1)
                     .format("YYYY-MM-DD");
-                toDate = moment()
-                    .endOf("year")
-                    .format("YYYY-MM-DD");
+                toDate = isNextYear
+                    ? moment()
+                        .add("month", 1)
+                        .endOf("year")
+                        .format("YYYY-MM-DD")
+                    : moment()
+                        .endOf("year")
+                        .format("YYYY-MM-DD")
                 break;
             default:
         }
+
         if (typeof date != "undefined" && date != "" && date != null) {
             fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
         } else {
@@ -368,16 +375,12 @@ export default class TaskListCategory extends React.Component {
             switch (date) {
                 case "Today":
                     return given.isSameOrBefore(moment().endOf("day"));
-                    break;
                 case "This week":
                     return given.isAfter(moment().endOf("day")) && given.isBefore(moment().endOf("week"));
-                    break;
                 case "This month":
                     return given.isAfter(moment().endOf("week")) && given.isBefore(moment().endOf("month")) && !isInWeek;
-                    break;
                 case "Succeeding month":
-                    return given.isAfter(moment().endOf("month")) && given.isBefore(moment().endOf("year")) && !isInWeek;
-                    break;
+                    return given.isAfter(moment().endOf("month")) && !isInWeek;
                 default:
                     return dueDate == null;
             }
