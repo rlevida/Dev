@@ -19,8 +19,7 @@ process.env.TZ = "Asia/Manila"; // force node to use utc timezone on staging
 var config = require("./config");
 var serverAuth = require("./auth");
 
-
-if (process.env.ENABLE_CRON === 1) {
+if (process.env.ENABLE_CRON == 1) {
     require("./script/taskCompletedNotification");
     require("./script/taskDuedateNotification");
     require("./script/backup");
