@@ -109,9 +109,6 @@ export default class TaskListCategory extends React.Component {
         let fetchUrl = `/api/task?page=${page}`;
         switch (date) {
             case "Today":
-                fromDate = moment()
-                    .startOf("year")
-                    .format("YYYY-MM-DD");
                 toDate = moment().format("YYYY-MM-DD");
                 break;
             case "This week":
