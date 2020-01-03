@@ -84,11 +84,10 @@ export default class ProjectDashboard extends React.Component {
     fetchCompletionRate(page) {
         const { dispatch, loggedUser, workstream, match } = this.props;
         const { typeId, workstream: workstreamFilter } = workstream.Filter;
-        const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
         const requestUrl = `/api/workstream/completionRate?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&userRole=${
             loggedUser.data.userRole
-            }&typeId=${typeId}&isActive=1&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+            }&typeId=${typeId}&isActive=1&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, c => {
             if (c.status == 200) {
