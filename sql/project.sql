@@ -31,7 +31,7 @@ CREATE TABLE `project`
     `appNotification` TINYINT
 (1) DEFAULT '0',
    `emailNotification` TINYINT
-(1) DEFAULT '0'
+(1) DEFAULT '0',
     `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY
