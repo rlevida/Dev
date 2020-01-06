@@ -166,14 +166,14 @@ export default class TaskCalendar extends React.Component {
                             </div>
                         </span>
                     ) : (
-                        o.task
-                    );
+                            o.task
+                        );
                 return {
                     id: o.id,
                     title: title,
                     start: typeof o.startDate != "undefined" && o.startDate != null ? moment(o.startDate).toDate() : moment(o.dueDate).toDate(),
                     end: moment(o.dueDate)
-                        .add("days", 1)
+                        .add(1, "days")
                         .startOf("day")
                         .toDate(),
                     allday: true,
@@ -206,8 +206,8 @@ export default class TaskCalendar extends React.Component {
                             <div>{this.renderCalendar()}</div>
                         </div>
                     ) : (
-                        <div>{this.renderCalendar()}</div>
-                    )}
+                            <div>{this.renderCalendar()}</div>
+                        )}
                 </div>
             </div>
         );
