@@ -11,7 +11,7 @@ const { Projects, Document, Session, Members, Users, UsersRole, Roles } = models
  *
  */
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     let token = req.body.Token ? req.body.Token : req.params.Token ? req.params.Token : req.query.Token ? req.query.Token : req.cookies["app.sid"] ? req.cookies["app.sid"] : "";
     try {
         Session.findOne({
@@ -91,7 +91,7 @@ router.get("/downloadDocument", (req, res, next) => {
             } else {
                 fileStream.write(data.Body);
                 res.download(`${origin}`, `${origin}`, c => {
-                    fs.unlink(`${origin}`, t => {});
+                    fs.unlink(`${origin}`, t => { });
                 });
                 fileStream.end();
             }
@@ -108,7 +108,7 @@ router.get("/downloadFolder", (req, res, next) => {
     var s3 = new AWS.S3();
     allPath.push(parentDirectory);
 
-    fs.mkdir(parentDirectory, function(e) {
+    fs.mkdir(parentDirectory, function (e) {
         var getFolderDocument = folderId => {
             let currentPath = [];
             Document.findAll({
@@ -128,9 +128,9 @@ router.get("/downloadFolder", (req, res, next) => {
                         if (e.type == "document") {
                             let fileStream = fs.createWriteStream(
                                 `${
-                                    allPath.filter(d => {
-                                        return d.slice(d.lastIndexOf("/") + 1) === `${e.document_folder.origin}${e.document_folder.documentNameCount > 0 ? `(${e.document_folder.documentNameCount})` : ""}`;
-                                    })[0]
+                                allPath.filter(d => {
+                                    return d.slice(d.lastIndexOf("/") + 1) === `${e.document_folder.origin}${e.document_folder.documentNameCount > 0 ? `(${e.document_folder.documentNameCount})` : ""}`;
+                                })[0]
                                 }/${e.origin}${e.documentNameCount > 0 ? `(${e.documentNameCount})` : ""}`
                             );
                             s3.getObject(
@@ -154,9 +154,9 @@ router.get("/downloadFolder", (req, res, next) => {
                                 allPath.filter(d => {
                                     return d.slice(d.lastIndexOf("/") + 1) === `${e.document_folder.origin}${e.document_folder.documentNameCount > 0 ? `(${e.document_folder.documentNameCount})` : ""}`;
                                 })[0]
-                            }/${e.origin}${e.documentNameCount > 0 ? `(${e.documentNameCount})` : ""}`;
+                                }/${e.origin}${e.documentNameCount > 0 ? `(${e.documentNameCount})` : ""}`;
                             currentPath.push(directory);
-                            fs.mkdir(directory, function(e) {
+                            fs.mkdir(directory, function (e) {
                                 mapCallback(null);
                             });
                         }
@@ -176,16 +176,16 @@ router.get("/downloadFolder", (req, res, next) => {
                             const folderPath = path.join(__dirname, "../");
                             var zipFolder = require("zip-folder");
 
-                            zipFolder(`${folderPath}${parentDirectory}`, `${folderPath}${parentDirectory}.zip`, function(err) {
+                            zipFolder(`${folderPath}${parentDirectory}`, `${folderPath}${parentDirectory}.zip`, function (err) {
                                 if (err) {
                                     console.error("oh no!", err);
                                 } else {
                                     res.download(`${folderPath}${parentDirectory}.zip`, `${folderPath}${parentDirectory}.zip`, c => {
-                                        fs.unlink(`${folderPath}${parentDirectory}.zip`, t => {});
-                                        var deleteFolderRecursive = function(path) {
+                                        fs.unlink(`${folderPath}${parentDirectory}.zip`, t => { });
+                                        var deleteFolderRecursive = function (path) {
                                             // remove temp files
                                             if (fs.existsSync(path)) {
-                                                fs.readdirSync(path).forEach(function(file, index) {
+                                                fs.readdirSync(path).forEach(function (file, index) {
                                                     var curPath = path + "/" + file;
                                                     if (fs.lstatSync(curPath).isDirectory()) {
                                                         // recurse

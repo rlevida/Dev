@@ -11,8 +11,8 @@ const sequelize = new Sequelize(process.env.CLOUD_CFO_DB, process.env.CLOUD_CFO_
     pool: {
         max: 5,
         min: 0,
-        acquire: 30000,
-        idle: 10000
+        idle: 20000,
+        acquire: 30000
     },
     define: {
         timestamps: false

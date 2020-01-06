@@ -24,7 +24,7 @@ export default class WorkstreamList extends React.Component {
         });
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         window.stop()
     }
 
@@ -38,11 +38,10 @@ export default class WorkstreamList extends React.Component {
     getList(page) {
         const { dispatch, loggedUser, project: projectObj, workstream, match } = this.props;
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
-        const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = typeof projectObj.Selected.id != "undefined" ? projectObj.Selected.id : match.params.projectId;
         const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userId=${loggedUser.data.id}&userRole=${
             loggedUser.data.userRole
-        }&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+            }&typeId=${typeId}&workstreamStatus=${workstreamStatus}&workstream=${workstreamFilter}&isDeleted=0`;
 
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
 
@@ -234,8 +233,8 @@ export default class WorkstreamList extends React.Component {
                                 {this.renderList()}
                             </div>
                         ) : (
-                            this.renderList()
-                        )}
+                                this.renderList()
+                            )}
                     </div>
                 </div>
                 {/* Modals */}

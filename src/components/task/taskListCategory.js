@@ -113,7 +113,7 @@ export default class TaskListCategory extends React.Component {
                 break;
             case "This week":
                 fromDate = moment()
-                    .add("days", 1)
+                    .add(1, "days")
                     .format("YYYY-MM-DD");
                 toDate = moment()
                     .endOf("week")
@@ -122,17 +122,17 @@ export default class TaskListCategory extends React.Component {
             case "This month":
                 fromDate = moment()
                     .endOf("week")
-                    .add("days", 1)
+                    .add(1, "days")
                     .format("YYYY-MM-DD");
                 toDate = moment()
                     .endOf("month")
                     .format("YYYY-MM-DD");
                 break;
             case "Succeeding month":
-                const isNextYear = moment().endOf("month").add("days", 1).format("YYYY") !== moment().endOf("year").format("YYYY");
+                const isNextYear = moment().endOf("month").add(1, "days").format("YYYY") !== moment().endOf("year").format("YYYY");
                 fromDate = moment()
                     .endOf("month")
-                    .add("days", 1)
+                    .add(1, "days")
                     .format("YYYY-MM-DD");
                 toDate = isNextYear
                     ? moment()
@@ -181,7 +181,7 @@ export default class TaskListCategory extends React.Component {
 
         if (date === "Succeeding month" || date === "This month") {
             const weekFrom = moment()
-                .add("days", 1)
+                .add(1, "days")
                 .format("YYYY-MM-DD"),
                 weekTo = moment()
                     .endOf("week")
@@ -237,10 +237,12 @@ export default class TaskListCategory extends React.Component {
         const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
-        const given = moment(dueDate, "YYYY-MM-DD");
-        const current = moment().startOf("day");
+        const given = moment(dueDate).startOf("days");
+        const current = moment().endOf("days");
         const { project } = workstream;
-        let daysRemaining = dueDate != "" ? moment.duration(given.diff(current)).asDays() + 1 : 0;
+
+        let daysRemaining = dueDate !== "" ? Math.round(moment.duration(given.diff(current)).asDays() + 1) : 0;
+
         const isAssignedToMe = _.find(task_members, o => {
             return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id;
         });
@@ -327,7 +329,7 @@ export default class TaskListCategory extends React.Component {
                             dueDate != "" && dueDate != null && status != "Completed"
                                 ? daysRemaining == 0
                                     ? "Today"
-                                    : Math.abs(daysRemaining) + `${daysRemaining < 1 ? `  day${Math.abs(daysRemaining) > 1 ? "s" : ""} delayed` : ` day${Math.abs(daysRemaining) > 1 ? "s" : ""}`}`
+                                    : Math.abs(daysRemaining) + ` day${Math.abs(daysRemaining) > 1 ? "s" : ""} delayed`
                                 : "N/A"
                             }`}
                     </p>
