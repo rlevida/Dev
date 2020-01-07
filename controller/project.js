@@ -848,6 +848,7 @@ exports.get = {
                         include: [
                             {
                                 model: Teams,
+                                separate: true,
                                 as: "team_as_teamLeader",
                                 where: {
                                     isDeleted: 0
@@ -856,6 +857,7 @@ exports.get = {
                             },
                             {
                                 model: UsersRole,
+                                separate: true,
                                 as: "user_role",
                                 include: [
                                     {
@@ -868,6 +870,7 @@ exports.get = {
                             {
                                 model: UsersTeam,
                                 as: "users_team",
+                                separate: true,
                                 where: {
                                     isDeleted: 0
                                 },

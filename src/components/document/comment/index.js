@@ -62,7 +62,7 @@ class DocumentComment extends React.Component {
                     .value();
                 callback(projectMemberOptions);
             });
-        }, 1500);
+        }, 500);
     }
 
     handleSubmit() {
