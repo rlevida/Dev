@@ -329,7 +329,7 @@ export default class TaskListCategory extends React.Component {
                             dueDate != "" && dueDate != null && status != "Completed"
                                 ? daysRemaining == 0
                                     ? "Today"
-                                    : Math.abs(daysRemaining) + ` day${Math.abs(daysRemaining) > 1 ? "s" : ""} delayed`
+                                    : Math.abs(daysRemaining) + ` day${Math.abs(daysRemaining) > 1 ? "s" : ""} ${daysRemaining < 0 ? "delayed" : ""}`
                                 : "N/A"
                             }`}
                     </p>
