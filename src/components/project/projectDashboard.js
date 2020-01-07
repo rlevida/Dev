@@ -269,15 +269,17 @@ export default class ProjectDashboard extends React.Component {
                                 <div class={workstream.Loading == "RETRIEVING" && workstream.List.length == 0 ? "linear-background" : ""}>
                                     {workstream.List.length > 0 && (
                                         <div class="row content-row">
-                                            {_.map(chartData, (o, index) => {
+                                            {chartData.map(o => {
                                                 return (
-                                                    <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12" key={index}>
+                                                    <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
                                                         <div class="chart-wrapper">
                                                             <Chart chartType="PieChart" width="100%" height="auto" data={o.data} options={options} loader={<Loading />} />
                                                             <p class="total">{o.total}%</p>
                                                         </div>
                                                         <Link to={`${this.props.match.url}/workstreams/${o.id}`}>
-                                                            <h5 class="text-center title mt0">{o.title}</h5>
+                                                            <h5 class="text-center title mt0" title={o.title}>
+                                                                {o.title.substring(0, 20)}{o.title.length > 20 ? "..." : ""}
+                                                            </h5>
                                                         </Link>
                                                     </div>
                                                 );
