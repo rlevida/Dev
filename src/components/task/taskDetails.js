@@ -226,7 +226,7 @@ export default class TaskDetails extends React.Component {
         } else {
             putData(`/api/member/${id}`, { isDeleted: 1 }, c => {
                 if (c.status == 200) {
-                    const remainingMembers = _.remove(task_members, function(o) {
+                    const remainingMembers = _.remove(task_members, function (o) {
                         return o.id != id;
                     });
                     if (task.Filter.type == "following") {
@@ -333,7 +333,7 @@ export default class TaskDetails extends React.Component {
                     .value();
                 callback(projectMemberOptions);
             });
-        }, 1500);
+        }, 500);
     }
 
     addComment() {
@@ -611,7 +611,7 @@ export default class TaskDetails extends React.Component {
         ];
         const checklistDocuments = _(checklist)
             .flatMap(o => {
-                return _.map(o.tagDocuments, function(o) {
+                return _.map(o.tagDocuments, function (o) {
                     return {
                         id: o.document.id,
                         origin: o.document.origin,
@@ -734,13 +734,13 @@ export default class TaskDetails extends React.Component {
                                                         loggedUser.data.userRole >= 4 &&
                                                         (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
                                                         assigned.user.userType == "External")) && (
-                                                    <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-check" aria-hidden="true" />
-                                                            For Approval
+                                                        <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                            <span>
+                                                                <i class="fa mr10 fa-check" aria-hidden="true" />
+                                                                For Approval
                                                         </span>
-                                                    </a>
-                                                )}
+                                                        </a>
+                                                    )}
                                                 {loggedUser.data.userRole < 4 &&
                                                     ((Selected.status == "Completed" && Selected.approvalRequired == 0) || (Selected.status == "For Approval" && Selected.approvalRequired == 1 && typeof isAssignedToMe != "undefined")) && (
                                                         <a class="btn btn-default" onClick={() => this.completeTask("In Progress")} title="Undo">
@@ -921,8 +921,8 @@ export default class TaskDetails extends React.Component {
                                                                 );
                                                             })
                                                         ) : (
-                                                            <p class="m0">N/A</p>
-                                                        )}
+                                                                <p class="m0">N/A</p>
+                                                            )}
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
@@ -1049,18 +1049,18 @@ export default class TaskDetails extends React.Component {
                                                                                 <div class="flex-right">
                                                                                     {(((typeof document.Selected.action == "undefined" || document.Selected.action != "RENAME") && document.Selected.id != params.id) ||
                                                                                         document.Selected.action == "DELETE") && (
-                                                                                        <div>
-                                                                                            <a href="javascript:void(0);" onClick={e => this.deleteDocument(params)} class="btn btn-action">
-                                                                                                <span class="fa fa-trash" />
-                                                                                            </a>
-                                                                                            <a href="javascript:void(0);" onClick={e => this.editDocument(params)} class="btn btn-action">
-                                                                                                <span class="fa fa-pencil" />
-                                                                                            </a>
-                                                                                            <a href="javascript:void(0);" onClick={e => this.tagChecklist(params)} class="btn btn-action">
-                                                                                                <span class="fa fa-tags" />
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    )}
+                                                                                            <div>
+                                                                                                <a href="javascript:void(0);" onClick={e => this.deleteDocument(params)} class="btn btn-action">
+                                                                                                    <span class="fa fa-trash" />
+                                                                                                </a>
+                                                                                                <a href="javascript:void(0);" onClick={e => this.editDocument(params)} class="btn btn-action">
+                                                                                                    <span class="fa fa-pencil" />
+                                                                                                </a>
+                                                                                                <a href="javascript:void(0);" onClick={e => this.tagChecklist(params)} class="btn btn-action">
+                                                                                                    <span class="fa fa-tags" />
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        )}
                                                                                     {typeof document.Selected.action != "undefined" && document.Selected.id == params.id && document.Selected.action != "DELETE" && (
                                                                                         <div>
                                                                                             <a
@@ -1143,7 +1143,7 @@ export default class TaskDetails extends React.Component {
                                                         )}
                                                         <div id="checklist">
                                                             {_.map(
-                                                                _.sortBy(checklist, function(o) {
+                                                                _.sortBy(checklist, function (o) {
                                                                     return new moment(o.dateAdded);
                                                                 }).reverse(),
                                                                 (checklistObj, index) => {
@@ -1161,7 +1161,7 @@ export default class TaskDetails extends React.Component {
                                                                                 {isDocument == 1 && <span class="label label-success">Document</span>}
                                                                                 {status != "Completed" && (
                                                                                     <div>
-                                                                                        <input type="checkbox" checked={isCompleted ? true : false} onChange={() => {}} onClick={() => this.completeChecklist(id)} />
+                                                                                        <input type="checkbox" checked={isCompleted ? true : false} onChange={() => { }} onClick={() => this.completeChecklist(id)} />
                                                                                         <span class="checkmark" />
                                                                                     </div>
                                                                                 )}

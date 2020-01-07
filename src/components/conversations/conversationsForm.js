@@ -43,7 +43,6 @@ export default class ConversationForm extends React.Component {
                 "handleEditTitle",
                 "updateMessage",
                 "handleShowEmoticons",
-                "renderUsers",
                 "handleCommentChange"
             ],
             fn => {
@@ -380,11 +379,11 @@ export default class ConversationForm extends React.Component {
         const conversationList =
             typeof notes.Selected.id != "undefined" && notes.Selected.id != ""
                 ? _(conversation.List)
-                      .filter(o => {
-                          return o.linkType == "notes" && o.linkId == notes.Selected.id;
-                      })
-                      .sortBy("dateAdded")
-                      .value()
+                    .filter(o => {
+                        return o.linkType == "notes" && o.linkId == notes.Selected.id;
+                    })
+                    .sortBy("dateAdded")
+                    .value()
                 : [];
         const currentConversationPage = typeof conversation.Count.current_page != "undefined" ? conversation.Count.current_page : 1;
         const lastConversationPage = typeof conversation.Count.last_page != "undefined" ? conversation.Count.last_page : 1;
