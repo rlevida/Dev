@@ -1,8 +1,6 @@
-const dbName = "notes";
 const async = require("async");
-var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./");
+const socketIo = global.socketIo();
 const models = require("../modelORM");
-const moment = require("moment");
 const {
     Notes,
     Members,
@@ -15,14 +13,10 @@ const {
     Document,
     DocumentRead,
     DocumentLink,
-    Reminder,
     Projects,
     Starred,
     sequelize,
     Sequelize,
-    UsersNotificationSetting,
-    Notification,
-    Type,
     ActivityLogsDocument
 } = models;
 const Op = Sequelize.Op;
@@ -734,7 +728,6 @@ exports.post = {
                         });
 
                         await sendNotification({
-                            notificationSocket: req.app.parent.io,
                             sender: sender,
                             receiver: receiver,
                             notificationType: "messageSend",
@@ -745,7 +738,6 @@ exports.post = {
 
                         if (mentionedUsers.length > 0) {
                             await sendNotification({
-                                notificationSocket: req.app.parent.io,
                                 sender: sender,
                                 receiver: mentionedUsers,
                                 notificationType: "messageMentioned",
@@ -768,7 +760,7 @@ exports.post = {
                         })
                             .map(mapObject => {
                                 const responseObj = mapObject.toJSON();
-                                req.app.parent.io.emit("FRONT_NEW_NOTE", {
+                                socketIo.emit("FRONT_BROADCAST_NEW_NOTE", {
                                     ...responseObj,
                                     isStarred: 0
                                 });
@@ -851,7 +843,6 @@ exports.post = {
                 })
 
                 await sendNotification({
-                    notificationSocket: req.app.parent.io,
                     sender: sender,
                     receiver: receiver,
                     notificationType: "commentReplies",
@@ -863,7 +854,6 @@ exports.post = {
 
             if (bodyData.linkType === "document") {
                 await sendNotification({
-                    notificationSocket: req.app.parent.io,
                     sender: sender,
                     receiver: receiver,
                     notificationType: "commentReplies",
@@ -892,7 +882,6 @@ exports.post = {
                     })
 
                     await sendNotification({
-                        notificationSocket: req.app.parent.io,
                         sender: sender,
                         receiver: taggedReceiver,
                         notificationType: "taskTagged",
@@ -901,17 +890,6 @@ exports.post = {
                         workstreamId: taskFindResult.toJSON().workstreamId
                     });
                 }
-
-                // if (bodyData.linkType === "document") {
-                //     await sendNotification({
-                //         notificationSocket: req.app.parent.io,
-                //         sender: sender,
-                //         receiver: taggedReceiver,
-                //         notificationType: "fileTagged",
-                //         notificationData: { document: { id: bodyData.linkId } },
-                //         projectId: body.projectId,
-                //     });
-                // }
             }
 
             /*  Task Comment */
@@ -937,7 +915,6 @@ exports.post = {
 
                 if (commentReceiver) {
                     await sendNotification({
-                        notificationSocket: req.app.parent.io,
                         sender: sender,
                         receiver: commentReceiver,
                         notificationType: "taskAssignedComment",
@@ -1243,7 +1220,6 @@ exports.post = {
                             });
 
                             await sendNotification({
-                                notificationSocket: req.app.parent.io,
                                 sender: sender,
                                 receiver: receiver,
                                 notificationType: "messageSend",
@@ -1255,11 +1231,10 @@ exports.post = {
                             const memberUser = _.map([...members.new_members, ...members.removed_members], ({ linkId, member_type }) => {
                                 return { linkId, member_type };
                             });
-                            req.app.parent.io.emit("FRONT_COMMENT_LIST", { result: conversations, members: memberUser });
+                            socketIo.emit("FRONT_BROADCAST_COMMENT_LIST", { result: conversations, members: memberUser });
 
                             if (mentionedUsers.length > 0) {
                                 await sendNotification({
-                                    notificationSocket: req.app.parent.io,
                                     sender: sender,
                                     receiver: mentionedUsers,
                                     notificationType: "messageMentioned",
@@ -1333,15 +1308,6 @@ exports.put = {
 };
 
 exports.delete = {
-    index: (req, cb) => {
-        defaultDelete(dbName, req, res => {
-            if (res.success) {
-                cb({ status: true, data: res.data });
-            } else {
-                cb({ status: false, error: res.error });
-            }
-        });
-    },
     comment: (req, cb) => {
         const tablename = "conversation";
         const model = global.initModel(tablename);

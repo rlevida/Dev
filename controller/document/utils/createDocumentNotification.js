@@ -1,8 +1,8 @@
 
-const models = require("../../../modelORM");
 const Sequelize = require("sequelize");
 const { uniqBy, flatten } = require("lodash")
 const Op = Sequelize.Op;
+const models = require("../../../modelORM");
 const { Tasks, Members, Users, UsersNotificationSetting } = models;
 
 const sendNotification = require("../../sendNotification");
@@ -44,7 +44,6 @@ module.exports = async (params) => {
         documents.forEach((documentObj) => {
             const taskUsers = taskResponse.toJSON().task_members.map(({ user }) => {
                 return {
-                    notificationSocket: req.app.parent.io,
                     sender: req.user,
                     receiver: user.id,
                     notificationType: "fileNewUpload",
@@ -83,7 +82,6 @@ module.exports = async (params) => {
 
         let taskWorkstreamMmbemrNotification = documents.map((documentObj) => {
             return {
-                notificationSocket: req.app.parent.io,
                 sender: req.user,
                 receiver: user.id,
                 notificationType: "fileNewUpload",

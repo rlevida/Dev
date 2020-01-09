@@ -1,6 +1,4 @@
 const express = require('express');
-const sess = require('express-session');
-const jwt = require('jsonwebtoken');
 const router = express();
 const models = require('../modelORM');
 const {

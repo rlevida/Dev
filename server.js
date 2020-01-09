@@ -5,10 +5,9 @@
 var http = require("http"),
     express = require("express"),
     path = require("path"),
-    jwt = require("jsonwebtoken"),
     logger = require("morgan"),
     cookieParser = require("cookie-parser"),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser")
 
 // global configuration
 if (process.env.NODE_ENV !== "production") {
@@ -101,7 +100,7 @@ if (process.env.NODE_ENV == "production") {
 }
 
 var server = http.createServer(app);
-var io = require("socket.io")(server);
-app.io = io;
-require("./serverSocket")(io);
+
+require('./serverSocket').socketIo(server);
+
 server.listen(app.get("port"));

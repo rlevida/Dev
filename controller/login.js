@@ -4,6 +4,7 @@ const _ = require("lodash");
 const models = require("../modelORM");
 const { Users, IpBlock, Teams, UsersTeam, Members, UsersRole, Session, Roles, Projects } = models;
 const func = global.initFunc();
+const socketIo = global.socketIo();
 
 var updateIpBlock = (ipBlockData, ipAddress) => {
     let data = {};
@@ -380,9 +381,11 @@ exports.post = {
                         cb({ status: false, error: err });
                     }
                 } else {
-                    req.app.parent.io.emit("FRONT_LOGIN", {
-                        ...userDetails
-                    });
+
+                    socketIo.emit("FRONT_LOGIN_BROADCAST", {
+                        userDetails
+                    })
+
                     cb({ status: true, message: "Successfully Login", userDetails, type: userDetails.userType });
                 }
             });
