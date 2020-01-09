@@ -1359,7 +1359,6 @@ exports.post = {
 
                                     /* Task Assigned Notification */
                                     await sendNotification({
-                                        notificationSocket: req.app.parent.io,
                                         sender: sender,
                                         receiver: receiver,
                                         notificationType: "taskAssigned",
@@ -1372,7 +1371,6 @@ exports.post = {
 
                                     if (taskObj.approverId) {
                                         await sendNotification({
-                                            notificationSocket: req.app.parent.io,
                                             sender: sender,
                                             receiver: taskObj.approverId,
                                             notificationType: "taskApprover",
@@ -1509,7 +1507,6 @@ exports.post = {
 
                         documentUpload.forEach(async documentObj => {
                             await sendNotification({
-                                notificationSocket: req.app.parent.io,
                                 sender: sender,
                                 receiver: receiver,
                                 notificationType: "fileNewUpload",
@@ -2650,51 +2647,6 @@ exports.put = {
                                         return key;
                                     });
 
-                                    /* Follower Notification */
-
-                                    // if (body.status === "Completed") {
-                                    //     const userFindResult = await Users.findOne({ where: { id: body.userId } });
-                                    //     const sender = userFindResult.toJSON();
-                                    //     const receiver = updatedResponse.follower.map(e => {
-                                    //         return e.userTypeLinkId;
-                                    //     });
-
-                                    //     await sendNotification({
-                                    //         notificationSocket: req.app.parent.io,
-                                    //         sender: sender,
-                                    //         receiver: receiver,
-                                    //         notificationType: "taskFollowingCompleted",
-                                    //         notificationData: { task: updatedResponse },
-                                    //         projectId: updatedResponse.projectId,
-                                    //         workstreamId: updatedResponse.workstreamId,
-                                    //     });
-
-                                    //     const taskTeamLeaderReceiver = await UsersTeam.findAll({
-                                    //         where: { usersId: sender.id },
-                                    //         include: [
-                                    //             {
-                                    //                 model: Teams,
-                                    //                 as: "team",
-                                    //                 required: false
-                                    //             }
-                                    //         ]
-                                    //     }).map(o => {
-                                    //         return o.toJSON().team.teamLeaderId;
-                                    //     }).then(o => {
-                                    //         return o;
-                                    //     });
-
-                                    //     await sendNotification({
-                                    //         notificationSocket: req.app.parent.io,
-                                    //         sender: sender,
-                                    //         receiver: taskTeamLeaderReceiver,
-                                    //         notificationType: "taskMemberCompleted",
-                                    //         notificationData: { task: updatedResponse },
-                                    //         projectId: updatedResponse.projectId,
-                                    //         workstreamId: updatedResponse.workstreamId,
-                                    //     });
-                                    // }
-
                                     /* Task Approver Notification */
                                     if (body.status == "For Approval") {
                                         const userFindResult = await Users.findOne({ where: { id: body.userId } });
@@ -2702,7 +2654,6 @@ exports.put = {
                                         const receiver = updatedResponse.approverId;
 
                                         await sendNotification({
-                                            notificationSocket: req.app.parent.io,
                                             sender: sender,
                                             receiver: receiver,
                                             notificationType: "taskApprover",

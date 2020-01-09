@@ -1,4 +1,5 @@
 const { filter, omit } = require("lodash");
+const socketIo = global.socketIo();
 const models = require("../../modelORM");
 const { Notification, UsersNotificationSetting, Projects, Users, Conversation } = models;
 
@@ -20,7 +21,7 @@ const taskBeforeDeadline = require("./template/taskBeforeDeadline");
 
 module.exports = async (params) => {
     try {
-        const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationSocket, notificationApproverType } = { ...params };
+        const { receiver, sender, notificationType, notificationData, projectId = null, workstreamId = null, notificationApproverType } = { ...params };
 
         const projectFindResult = await Projects.findOne({ where: { id: projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
@@ -72,11 +73,9 @@ module.exports = async (params) => {
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
-            if (notificationSocket) {
-                notificationSocket.emit("FRONT_NOTIFICATION", {
-                    ...findNotificationRes.toJSON()
-                });
-            }
+            socketIo.emit("FRONT_BROADCAST_NOTIFICATION", {
+                ...findNotificationRes.toJSON()
+            });
             return {
                 ...findNotificationRes.toJSON(),
                 users_conversation: findNotificationRes.toJSON().from.users_conversation,

@@ -162,3 +162,15 @@ global.initAWSClient = exports.initAWSClient = function () {
 global.notificationEmailTemplate = exports.notificationEmailTemplate = function () {
     return require("./notificationEmailTemplate")
 }
+
+global.socketIo = exports.socketIo = function () {
+    let io = require('socket.io-client');
+
+    return io(((global.environment == "production") ? "https:" : "http:") + global.site_url, {
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 99999
+    });
+}
