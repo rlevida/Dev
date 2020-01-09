@@ -7,7 +7,8 @@ var http = require("http"),
     path = require("path"),
     logger = require("morgan"),
     cookieParser = require("cookie-parser"),
-    bodyParser = require("body-parser")
+    bodyParser = require("body-parser"),
+    expressSession = require("express-session");
 
 // global configuration
 if (process.env.NODE_ENV !== "production") {
@@ -49,6 +50,14 @@ app.use(cookieParser());
 app.use(require("less-middleware")(path.join(__dirname, "public")));
 app.use("/node_modules", express.static(path.join(__dirname, "node_modules")));
 app.use(express.static(path.join(__dirname, "public")));
+
+const session = expressSession({
+    secret: '2}asdjf9D45md93jDj3_=Cb-&a{buj28%',
+    resave: true,
+    saveUninitialized: true,
+});
+
+app.use(session);
 
 // manage token
 app.use(function (req, res, next) {
@@ -101,6 +110,6 @@ if (process.env.NODE_ENV == "production") {
 
 var server = http.createServer(app);
 
-require('./serverSocket').socketIo(server);
+require('./serverSocket').socketIo(server, session);
 
 server.listen(app.get("port"));
