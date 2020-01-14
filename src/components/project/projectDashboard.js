@@ -159,7 +159,7 @@ export default class ProjectDashboard extends React.Component {
         const { dispatch, match, task, loggedUser } = { ...this.props };
         const { Count } = task;
         const page = _.isEmpty(Count) ? 1 : Count.current_page + 1;
-        const today = moment().year(1920).format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
         let fetchUrl = `/api/task?projectId=${projectId}&page=${page}`;
 
@@ -179,7 +179,7 @@ export default class ProjectDashboard extends React.Component {
                 fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: "For Approval" })}`;
                 break;
             case "Delayed Tasks":
-                fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+                fetchUrl += `&dueDate=${JSON.stringify({ opt: "lt", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
                 break;
         }
 
