@@ -59,7 +59,8 @@ global.connectionDb = exports.connectionDb = new Sequelize(process.env.CLOUD_CFO
         min: 0,
         acquire: 30000,
         idle: 10000
-    }
+    },
+    logging: console.log
 });
 
 /*

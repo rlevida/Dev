@@ -3,3 +3,4 @@ node_modules/*
 /public/javascripts/app.min.js
 /public/javascripts/app.js
 /public/stylesheets/style.css
+.env
