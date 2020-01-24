@@ -19,6 +19,9 @@ describe('project controller', () => {
             .expect(200);
 
         console.log(JSON.stringify(result.body));
+        const firstResult = result.body.result[0];
+        expect(firstResult).toBeDefined();
+        expect(firstResult.isDeleted).toEqual(0);
         done();
 
 
