@@ -7,6 +7,7 @@
         "build": "gulp && webpack",
         "dev": "gulp & webpack --watch & nodemon server.js",
         "ui": "gulp & webpack --watch",
+        "test": "node node_modules/.bin/jest --forceExit",
         "manageORM": "sequelize-auto -o \"./temp\" -d cloud_cfo -h 192.168.10.187 -u root -p 3306 -x password -e mysql"
     },
     "dependencies": {
