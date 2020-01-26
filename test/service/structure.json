@@ -1,0 +1,73 @@
+{
+  "id": 89,
+  "project": "117 KL",
+  "isActive": 1,
+  "isDeleted": 0,
+  "projectType": null,
+  "color": "#82f50c",
+  "tinNo": null,
+  "picture": "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png",
+  "remindOnDuedate": 0,
+  "remindBeforeDuedate": 0,
+  "emailNotification": 0,
+  "newDocuments": 2,
+  "companyAddress": null,
+  "statusId": null,
+  "projectNameCount": 0,
+  "createdBy": 59,
+  "appNotification": 0,
+  "projectManagerId": "",
+  "classification": null,
+  "numberOfTasks": 36,
+  "dateAdded": "2019-09-03T06:10:12.000Z",
+  "dateUpdated": "2020-01-13T08:11:30.000Z",
+  "workstream": [
+    {
+      "id": 341
+    },
+    {
+      "id": 641
+    },
+    {
+      "id": 642
+    },
+    {
+      "id": 643
+    },
+    {
+      "id": 644
+    },
+    {
+      "id": 645
+    }
+  ],
+  "type": {
+    "type": "Client"
+  },
+  "members": [
+  ],
+  "completion_rate": {
+    "delayed_task": {
+      "value": 55.555555555555557,
+      "color": "#f9003b",
+      "count": 20
+    },
+    "tasks_due_today": {
+      "value": 5.5555555555555554,
+      "color": "#f6dc64",
+      "count": 2
+    },
+    "tasks_for_approval": {
+      "value": 0,
+      "color": "#ff754a",
+      "count": 0
+    },
+    "completed": {
+      "value": 22.222222222222221,
+      "color": "#00e589",
+      "count": 8
+    }
+  },
+  "team": [
+  ]
+}

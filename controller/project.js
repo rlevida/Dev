@@ -36,6 +36,8 @@ function projectAuth(authObj) {
     return hasAccess;
 }
 
+
+
 exports.get = {
     index: async (req, cb) => {
         // if (!req.user) {
