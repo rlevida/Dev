@@ -16,6 +16,7 @@ select project.id        as projectId,
        project.appNotification,
        project.classification,
        project.dateAdded,
+       project.dateUpdated,
        type.type         as type,
        stats.total,
        stats.delayedStart,
@@ -26,7 +27,12 @@ select project.id        as projectId,
 from project,
      type,
      tasks_summary_v stats
-where project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')
-  and project.typeId = type.id
-  and stats.projectId = project.id
+where
+   project.typeId = type.id
+  and stats.projectId = project.id 
+  and project.isActive = :isActive
+  and project.isDeleted = :isDeleted
+  {{adminWhereClause}}
+  {{typeIdWhereClause}}
 order by project.project
+  {{page}}

@@ -66,7 +66,7 @@ export default class List extends React.Component {
         const { dispatch, project, loggedUser } = { ...this.props };
         const { typeId, projectStatus } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        let requestUrl = `/api/v2project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, c => {
             const projectList = page == 1 ? c.data.result : [...project.List, ...c.data.result];
@@ -152,16 +152,16 @@ export default class List extends React.Component {
         const completionRate =
             completion_rate != ""
                 ? _(completion_rate)
-                      .mapValues(({ value, color, count }, key) => {
-                          return {
-                              label: `${key.replace(/[_-]/g, " ")}`,
-                              value: entity_type == "project" && workstream.length > 0 ? 0.0 : value.toFixed(1) + 0,
-                              color: color,
-                              count
-                          };
-                      })
-                      .values()
-                      .value()
+                    .mapValues(({ value, color, count }, key) => {
+                        return {
+                            label: `${key.replace(/[_-]/g, " ")}`,
+                            value: entity_type == "project" && workstream.length > 0 ? 0.0 : (value ? value.toFixed(1) : 0) + 0,
+                            color: color,
+                            count
+                        };
+                    })
+                    .values()
+                    .value()
                 : [];
         const completionValue = _.find(completionRate, o => {
             return o.label == "completed";
@@ -178,8 +178,8 @@ export default class List extends React.Component {
                             <strong>{name}</strong>
                         </a>
                     ) : (
-                        <p class="mb0 text-italic">{name}</p>
-                    )}
+                            <p class="mb0 text-italic">{name}</p>
+                        )}
                 </td>
                 <td data-label="Type">
                     <p class={`m0 ${entity_type == "workstream" ? "text-italic" : ""}`}>
@@ -287,10 +287,10 @@ export default class List extends React.Component {
                     .value()
             };
         });
-        const resultList = _.flatMap(projectList, function(o) {
+        const resultList = _.flatMap(projectList, function (o) {
             return [
                 o,
-                ..._.map(o.workstream, function(o) {
+                ..._.map(o.workstream, function (o) {
                     return o;
                 })
             ];

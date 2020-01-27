@@ -4,9 +4,9 @@ const projectSerivce = require('../../service/ProjectSummaryService');
 describe('ProjectSummaryService', () => {
 
     it('should list projects', async (done) => {
-        const results = await projectSerivce.listProjects(6, false, 1);
+        const results = await projectSerivce.listProjects(6, false, 1, 1, 0);
 
-        console.log(JSON.stringify(results));
+        console.log(JSON.stringify(results[0]));
 
         const firstResult = results[0];
 

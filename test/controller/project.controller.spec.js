@@ -8,14 +8,14 @@ describe('project controller', () => {
             .get('/api/project')
             .query({
                 page: 1,
-                typeId: '',
+                typeId: 1,
                 isActive: 1,
                 isDeleted: 0,
                 dueDate: '2020-01-24',
                 userId: 6,
                 userRole: 1
             })
-            .set('Cookie', 'app.sid=53oN3kha3mBMJ4G8vCnoQpTzmJ6wQJ8zpVcE7w4M9aga; connect.sid=s%3A4VQCVHzGvvs3Xe6UQTWQiSNPtcGksVY1.cwhD8yRtJpTe51oGvxGvX6tHi6c9GegAQG8eSYG3LFI; io=NWJqOURkkUQImGrQAAAD')
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
             .expect(200);
 
         expect(result.body.result).toHaveLength(25);
@@ -60,18 +60,35 @@ describe('project controller', () => {
         const result = await request(server)
             .get('/api/v2project')
             .query({
-                page: 2,
-                typeId: '',
+                page: 1,
+                typeId: 1,
                 isActive: 1,
                 isDeleted: 0,
-                dueDate: '2020-01-24',
                 userId: 6,
                 userRole: 1
             })
-            .set('Cookie', 'app.sid=53oN3kha3mBMJ4G8vCnoQpTzmJ6wQJ8zpVcE7w4M9aga; connect.sid=s%3A4VQCVHzGvvs3Xe6UQTWQiSNPtcGksVY1.cwhD8yRtJpTe51oGvxGvX6tHi6c9GegAQG8eSYG3LFI; io=NWJqOURkkUQImGrQAAAD')
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
             .expect(200);
 
         expect(result.body.result).toHaveLength(25);
+        console.log(JSON.stringify(result.body));
+    });
+
+    it('should return project details using new endpoint with project type private ', async () => {
+        const result = await request(server)
+            .get('/api/v2project')
+            .query({
+                page: 1,
+                typeId: 3,
+                isActive: 1,
+                isDeleted: 0,
+                userId: 6,
+                userRole: 1
+            })
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+            .expect(200);
+
+        expect(result.body.result).toHaveLength(6);
         console.log(JSON.stringify(result.body));
     });
 

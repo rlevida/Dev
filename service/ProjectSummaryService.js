@@ -1,5 +1,5 @@
 const sequelize = require('../modelORM').sequelize;
-const {QueryTypes} = require('sequelize');
+const { QueryTypes } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 
@@ -11,15 +11,19 @@ class ProjectSummaryService {
         this.sequelize = sequelize;
     }
 
-    async listProjects(userId, isAdmin = false, page = 1) {
-        const query = isAdmin ? this.adminQuery : this.summaryQuery;
-        const results = await this.sequelize.query(query + ` limit 25 offset ${(page - 1) * 25}`, {
-            replacements: {userId: userId},
+    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false) {
+
+        const query = this.summaryQuery
+            .replace('{{adminWhereClause}}', !isAdmin ? ` and project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')` : ``)
+            .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
+            .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
+
+        const results = await this.sequelize.query(query, {
+            replacements: { userId: userId, isActive, isDeleted },
             type: QueryTypes.SELECT
         });
         return this.mapResults(results);
     }
-
     mapResults(results) {
         return results.map(it => (
             {
@@ -67,7 +71,8 @@ class ProjectSummaryService {
                     }
                 },
                 numberOfTasks: it.total,
-                newDocuments: it.newDocuments
+                newDocuments: it.newDocuments,
+                dateUpdated: it.dateUpdated
             }
         ));
     }
