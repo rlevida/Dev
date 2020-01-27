@@ -1,7 +1,7 @@
 require('dotenv').config();
 const projectSerivce = require('../../service/ProjectSummaryService');
 
-describe('project controller', () => {
+describe('ProjectSummaryService', () => {
 
     it('should list projects', async (done) => {
         const results = await projectSerivce.listProjects(6, false, 1);
