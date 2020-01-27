@@ -21,7 +21,8 @@ select project.id        as projectId,
        stats.delayedStart,
        stats.dueToday,
        stats.forApproval,
-       stats.completed
+       stats.completed,
+       stats.newDocuments
 from project,
      type,
      tasks_summary_v stats
