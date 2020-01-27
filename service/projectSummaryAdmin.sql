@@ -25,7 +25,6 @@ select project.id        as projectId,
 from project,
      type,
      tasks_summary_v stats
-where project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')
-  and project.typeId = type.id
+where project.typeId = type.id
   and stats.projectId = project.id
 order by project.project
