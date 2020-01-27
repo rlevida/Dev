@@ -67,7 +67,7 @@ class ProjectSummaryService {
                     }
                 },
                 numberOfTasks: it.total,
-                newDocuments: 2
+                newDocuments: it.newDocuments
             }
         ));
     }
