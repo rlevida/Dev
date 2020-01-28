@@ -34,13 +34,20 @@ export default function reducer(
                 loading: "RETRIEVING"
             },
             Active: ""
-        }
+        },
+        Page: 0,
+        HasNextPage: true
     },
     action
 ) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined" ? { Count: action.count } : {}) };
+            return {
+                ...state, List: action.list,
+                ...(typeof action.count != "undefined" ? { Count: action.count } : {}),
+                ...(typeof action.hasNextPage != "undefined" ? { HasNextPage: action.hasNextPage } : {}),
+                ...(action.page ? { Page: action.page } : {})
+            };
         }
         case "SET_PROJECT_STATUS_COUNT": {
             return { ...state, StatusCount: action.count };

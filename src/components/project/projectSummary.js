@@ -50,7 +50,7 @@ export default class List extends React.Component {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
                 this.fetchProject(1);
-            }, 1000);
+            }, 300);
         }
     }
 
@@ -64,13 +64,13 @@ export default class List extends React.Component {
 
     fetchProject(page) {
         const { dispatch, project, loggedUser } = { ...this.props };
-        const { typeId, projectStatus } = project.Filter;
+        const { typeId } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
         let requestUrl = `/api/v2project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, c => {
-            const projectList = page == 1 ? c.data.result : [...project.List, ...c.data.result];
-            dispatch({ type: "SET_PROJECT_LIST", list: projectList, count: c.data.count });
+            const projectList = [...project.List, ...c.data.result];
+            dispatch({ type: "SET_PROJECT_LIST", list: projectList, page: page, hasNextPage: c.data.result.length >= 25 });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         });
     }
@@ -79,7 +79,7 @@ export default class List extends React.Component {
         const { project, dispatch } = { ...this.props };
         const { Count } = project;
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-        this.fetchProject(Count.current_page + 1);
+        this.fetchProject(project.Page + 1);
     }
 
     setFilter(name, e) {
@@ -331,7 +331,8 @@ export default class List extends React.Component {
                         </table>
                     )}
                     {project.Loading == "RETRIEVING" && project.List.length > 0 && <Loading />}
-                    {currentPage != lastPage && project.Loading != "RETRIEVING" && (
+                    {console.log(project.HasNextPage)}
+                    {project.HasNextPage && project.Loading != "RETRIEVING" && (
                         <p class="mb0 text-center">
                             <a onClick={() => this.getNextResult()}>Load More Projects</a>
                         </p>
