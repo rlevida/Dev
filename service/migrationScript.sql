@@ -76,3 +76,58 @@ from project
 
 select * from tasks_summary_v;
 
+create or replace view project_worsktreams_count_v as
+select  project.id as projectId,
+        count(workstream.id) as count 
+from  project, 
+      workstream 
+where workstream.projectId = project.id 
+      and workstream.isDeleted = 0 
+group By project.id;
+
+create or replace view project_members_v as
+select  members.linkId as projectId , 
+        users.firstName as firstName,
+        users.lastName as lastName,
+        users.avatar as avatar,
+        users.emailAddress as emailAddress
+from    project,members,users
+where project.id = members.linkId
+      and users.id = members.userTypeLinkId
+      and members.linkType = 'project'
+      and members.isDeleted = 0
+      and members.memberType = 'assignedTo';
+
+create or replace view teams_v as
+select  members.userTypeLinkId as teamId,
+        members.linkId as projectId
+from    members,
+        team
+where   
+      members.usersType = 'team'
+      and members.linkType = 'project'
+      and members.userTypeLinkId = team.id
+      and members.isDeleted = 0
+      and team.isDeleted = 0
+;
+
+create or replace view users_team_v as
+select  users_team.teamId as teamId,
+        users.firstName as firstName,
+        users.lastName as lastName,
+        users.avatar as avatar,
+        users.emailAddress as emailAddress
+from 
+      users,
+      users_team 
+where 
+      users.id = users_team.usersId
+      and users_team.isDeleted = 0;
+
+
+select teams_v.projectId,
+      teams_v.teamId as teamId,
+      users_team_v.firstname,
+      users_team_v.lastName
+from teams_v
+    left outer join users_team_v on teams_v.teamId = users_team_v.teamId
