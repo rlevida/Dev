@@ -102,6 +102,15 @@ where project.id = members.linkId
 
 create or replace view project_members_v as
 select projectId, JSON_ARRAYAGG(JSON_OBJECT('firstName',firstName,'lastName',lastName,'avatar',avatar)) as members from members_v group by projectId;
+
+create or replace view project_members_summary_v as
+select project.id as projectId, 
+  coalesce(project_members_v.members, '[]') as members
+from project 
+left outer join project_members_v on project.id = project_members_v.projectId order by id
+
+select * from project_members_summary_v;
+
 -------------PROJECT MEMBERS END-------------
 
 ----------PROJECT TEAM MEMBERS START---------
@@ -137,6 +146,16 @@ left outer join users_team_v on teams_v.teamId = users_team_v.teamId
 
 create or replace view project_team_members_v as
 select projectId, JSON_ARRAYAGG(JSON_OBJECT('firstName',firstName,'lastName',lastName,'avatar',avatar)) as members from project_teams_v group by projectId;
+
+
+create or replace view project_team_members_summary_v as
+select project.id as projectId, 
+  coalesce(project_team_members_v.members, '[]') as members
+from project 
+left outer join project_team_members_v on project.id = project_team_members_v.projectId order by id;
+
+select * from  project_team_members_summary_v
+
 ----------PROJECT TEAM MEMBERS END---------
 
 

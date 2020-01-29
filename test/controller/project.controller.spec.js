@@ -92,28 +92,27 @@ describe('project controller', () => {
     //     console.log(JSON.stringify(result.body));
     //     done();
     // });
-
+    // /api/project?page=1&userId=6&userRole=1&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1 
     it('should return project details using new endpoint with member and team field ', async (done) => {
         const result = await request(server)
             .get('/api/v2project')
             .query({
-                page: 1,
+                page: 3,
                 typeId: 1,
                 isActive: 1,
                 isDeleted: 0,
-                userId: 6,
+                userId: 1,
                 userRole: 1,
                 hasMembers:1
             })
             .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
             .expect(200);
-
-        const firstResult = result.body.result[0];
-        expect(firstResult).toBeDefined();
-        expect(firstResult.member[0].avatar).toEqual('https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png')
-        expect(firstResult.member[0].firstName).toEqual('Mailer')
-        expect(firstResult.member[0].lastName).toEqual('Tester')
-        console.log(firstResult)
+        expect(result.body.result).toHaveLength(25);
+        // const firstResult = result.body.result[0];
+        // expect(firstResult).toBeDefined();
+        // expect(firstResult.member[0].avatar).toEqual('https:/np/s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png')
+        // expect(firstResult.member[0].firstName).toEqual('Mailer')
+        // expect(firstResult.member[0].lastName).toEqual('Tester')
         done()
     });
 
