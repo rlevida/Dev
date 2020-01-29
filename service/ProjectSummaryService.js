@@ -11,14 +11,16 @@ class ProjectSummaryService {
         this.sequelize = sequelize;
     }
 
-    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false, hasMembers = false) {
+    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false, hasMembers = false, project = false, projectProgress = false) {
 
         const query = this.summaryQuery
-            .replace('{{memberSelectClause}}', hasMembers ? ` ,project_team_members_summary_v.members as team, project_members_summary_v.members as member` : ``)
+            .replace('{{memberSelectClause}}', hasMembers ? ` ,project_team_members_summary_v.members as team, project_members_summary_v.members as members` : ``)
             .replace('{{memberFromClause}}', hasMembers ? ` ,project_team_members_summary_v, project_members_summary_v` : ``)
             .replace('{{memberWhereClause}}', hasMembers ? ` and project_team_members_summary_v.projectId = project.id and project_members_summary_v.projectId = project.id` : ``)
             .replace('{{adminWhereClause}}', !isAdmin ? ` and project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')` : ``)
+            .replace('{{progressWhereClause}}', projectProgress ? this.projectProcess(projectProgress) : ``)
             .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
+            .replace('{{projectWhereClause}}', project ? ` and LOWER(project.project) like '%${project.toLowerCase()}%'` : ``)
             .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
 
             const results = await this.sequelize.query(query, {
@@ -27,6 +29,7 @@ class ProjectSummaryService {
         });
         return this.mapResults(results);
     }
+
     mapResults(results) {
         return results.map(it => (
             {
@@ -76,9 +79,56 @@ class ProjectSummaryService {
                 workstream: it.workstream,
                 dateUpdated: it.dateUpdated,
                 ...(it.team ? { team: JSON.parse(it.team) } : {}),
-                ...(it.member ? { member: JSON.parse(it.member) } : {})
+                ...(it.members ? { members: JSON.parse(it.members) } : {})
             }
         ));
+    }
+
+    projectProcess(projectProgress) {
+        switch (projectProgress) {
+            case "On Time":
+                return ` 
+                    and project.id in (
+                    SELECT  DISTINCT workstream.projectId
+                            FROM
+                                workstream
+                            LEFT JOIN
+                                task
+                            ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
+                            WHERE task.dueDate >=  DATE(NOW())
+                                OR task.dueDate IS NULL
+                                OR task.status = "Completed"
+                                AND task.isDeleted = 0
+                    )
+                    and project.id not in (
+                    SELECT  DISTINCT workstream.projectId
+                            FROM
+                                workstream
+                            LEFT JOIN
+                                task
+                            ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
+                            WHERE task.dueDate < DATE(NOW())
+                                AND (task.status != "Completed" OR task.status IS NULL) 
+                                AND task.isDeleted = 0
+                    
+                    )
+                `
+            case "Issues":
+                return `
+                    and project.id in (
+                    SELECT DISTINCT
+                            workstream.projectId
+                    FROM
+                            workstream
+                    LEFT JOIN
+                            task ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
+                    WHERE task.dueDate < DATE(NOW())
+                            AND (task.status != "Completed" OR task.status IS NULL) 
+                            AND task.isDeleted = 0
+                    )`
+            default:
+                return ``
+        }
     }
 }
 

@@ -92,27 +92,107 @@ describe('project controller', () => {
     //     console.log(JSON.stringify(result.body));
     //     done();
     // });
-    // /api/project?page=1&userId=6&userRole=1&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1 
-    it('should return project details using new endpoint with member and team field ', async (done) => {
+
+    // it('should return project details using new endpoint with member and team field ', async (done) => {
+    //     const result = await request(server)
+    //         .get('/api/v2project')
+    //         .query({
+    //             page: 3,
+    //             typeId: 1,
+    //             isActive: 1,
+    //             isDeleted: 0,
+    //             userId: 1,
+    //             userRole: 1,
+    //             hasMembers:1
+    //         })
+    //         .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+    //         .expect(200);
+    //     expect(result.body.result).toHaveLength(25);
+    //     done()
+    // });
+
+    // it('should return projects have test in name', async (done) => {
+    //     const result = await request(server)
+    //         .get('/api/v2project')
+    //         .query({
+    //             page: 1,
+    //             typeId: 1,
+    //             isActive: 1,
+    //             isDeleted: 0,
+    //             userId: 1,
+    //             userRole: 1,
+    //             hasMembers: 1,
+    //             project: 'test'
+    //         })
+    //         .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+    //         .expect(200);
+    //     expect(result.body.result).toHaveLength(4);
+    //     done()
+    // });
+
+    it('should return projects without delayed task', async (done) => {
+        // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
         const result = await request(server)
             .get('/api/v2project')
             .query({
-                page: 3,
+                page: 1,
                 typeId: 1,
                 isActive: 1,
                 isDeleted: 0,
                 userId: 1,
                 userRole: 1,
-                hasMembers:1
+                hasMembers: 1,
+                projectProgress: 'On Time'
             })
             .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
             .expect(200);
-        expect(result.body.result).toHaveLength(25);
-        // const firstResult = result.body.result[0];
-        // expect(firstResult).toBeDefined();
-        // expect(firstResult.member[0].avatar).toEqual('https:/np/s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png')
-        // expect(firstResult.member[0].firstName).toEqual('Mailer')
-        // expect(firstResult.member[0].lastName).toEqual('Tester')
+        const firstResult = result.body.result[0];
+        expect(firstResult).toBeDefined();
+        expect(firstResult.completion_rate.delayed_task.count).toBe(0);
+        done();
+    });
+
+    it('should return projects with delayed task', async (done) => {
+        const result = await request(server)
+            .get('/api/v2project')
+            .query({
+                page: 1,
+                typeId: 1,
+                isActive: 1,
+                isDeleted: 0,
+                userId: 1,
+                userRole: 1,
+                hasMembers: 1,
+                projectProgress: 'Issues'
+            })
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+            .expect(200);
+
+        const firstResult = result.body.result[0];
+        expect(firstResult).toBeDefined();
+        expect(firstResult.completion_rate.delayed_task.count).toBeGreaterThan(0);
+        done();
+    });
+
+    it('should return inactive projects', async (done) => {
+        // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
+        const result = await request(server)
+            .get('/api/v2project')
+            .query({
+                page: 1,
+                typeId: 1,
+                isActive: 0,
+                isDeleted: 0,
+                userId: 1,
+                userRole: 1,
+                hasMembers: 1,
+            })
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+            .expect(200);
+
+        const firstResult = result.body.result[0];
+        expect(firstResult).toBeDefined();
+        expect(firstResult.isActive).toBe(0);
         done()
     });
 

@@ -39,5 +39,7 @@ where
   {{adminWhereClause}}
   {{typeIdWhereClause}}
   {{memberWhereClause}}
+  {{projectWhereClause}}
+  {{progressWhereClause}}
 order by project.project
   {{page}}

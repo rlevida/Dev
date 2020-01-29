@@ -24,19 +24,15 @@ export default class ProjectActionTab extends React.Component {
         const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
-            const { typeId, projectType, projectProgress, search, sort } = this.props.project.Filter;
-            let fetchUrl = `/api/project?page=1&typeId=${typeId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1`;
+            const { isActive = 1, typeId, projectProgress, search, sort } = this.props.project.Filter;
+            let fetchUrl = `/api/v2project?page=1&typeId=${typeId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&isActive=${isActive}`;
 
             dispatch({ type: "RESET_PROJECT", List: [], Loading: "RETRIEVING" });
 
             if (projectProgress) {
                 fetchUrl += `&projectProgress=${projectProgress}`;
             }
-            if (typeId === "Inactive") {
-                fetchUrl += `&isActive=0&projectType=${projectType}`;
-            } else {
-                fetchUrl += `&isActive=1`;
-            }
+
             if (search) {
                 fetchUrl += `&project=${search}`;
             }
@@ -49,7 +45,8 @@ export default class ProjectActionTab extends React.Component {
                     const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
                     return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
                 });
-                dispatch({ type: "SET_PROJECT_LIST", list: list, count: c.data.count });
+
+                dispatch({ type: "SET_PROJECT_LIST", list: list, hasNextPage: list.length >= 25 });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
             });
         }
@@ -57,7 +54,12 @@ export default class ProjectActionTab extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_PROJECT_FILTER", filter: { [name]: e } });
+        dispatch({
+            type: "SET_PROJECT_FILTER",
+            filter: {
+                [name]: e, ...(name === 'typeId' ? { isActive: 1 } : {})
+            }
+        });
     }
     handleChange(e) {
         const { dispatch } = this.props;
@@ -93,14 +95,14 @@ export default class ProjectActionTab extends React.Component {
                             {_.map(projectTypes, (projectType, index) => {
                                 return (
                                     <div class="flex-col" key={index}>
-                                        <a class={projectType.id == project.Filter.typeId ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", projectType.id)}>
+                                        <a class={projectType.id == project.Filter.typeId && project.Filter.isActive ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", projectType.id)}>
                                             {projectType.name}
                                         </a>
                                     </div>
                                 );
                             })}
                             <div class="flex-col">
-                                <a class={project.Filter.typeId === "Inactive" ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", "Inactive")}>
+                                <a class={!project.Filter.isActive ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("isActive", 0)}>
                                     Inactive
                                 </a>
                             </div>
