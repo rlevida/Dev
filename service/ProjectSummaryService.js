@@ -11,14 +11,17 @@ class ProjectSummaryService {
         this.sequelize = sequelize;
     }
 
-    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false) {
+    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false, hasMembers = false) {
 
         const query = this.summaryQuery
+            .replace('{{memberSelectClause}}', hasMembers ? ` ,project_team_members_v.members as team, project_members_v.members as member` : ``)
+            .replace('{{memberFromClause}}', hasMembers ? ` ,project_team_members_v, project_members_v` : ``)
+            .replace('{{memberWhereClause}}', hasMembers ? ` and project_team_members_v.projectId = project.id and project_members_v.projectId = project.id` : ``)
             .replace('{{adminWhereClause}}', !isAdmin ? ` and project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')` : ``)
             .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
             .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
 
-        const results = await this.sequelize.query(query, {
+            const results = await this.sequelize.query(query, {
             replacements: { userId: userId, isActive, isDeleted },
             type: QueryTypes.SELECT
         });
@@ -35,8 +38,6 @@ class ProjectSummaryService {
                 projectType: it.projectType,
                 color: it.color,
                 tinNo: it.tinNo,
-                remindOnDuedate: it.remindOnDuedate,
-                remindBeforeDuedate: it.remindBeforeDuedate,
                 emailNotification: it.emailNotification,
                 companyAddress: it.companyAddress,
                 statusId: it.statusId,
@@ -72,12 +73,14 @@ class ProjectSummaryService {
                 },
                 numberOfTasks: it.total,
                 newDocuments: it.newDocuments,
-                dateUpdated: it.dateUpdated
+                workstream: it.workstream,
+                dateUpdated: it.dateUpdated,
+                ...(it.team ? { team: it.team } : {}),
+                ...(it.member ? { member: it.member } : {})
             }
         ));
     }
 }
-
 
 module.exports = new ProjectSummaryService(
     fs.readFileSync(path.resolve(__dirname, 'projectSummary.sql'), 'utf8'),

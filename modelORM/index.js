@@ -7,7 +7,7 @@ const sequelize = new Sequelize(process.env.CLOUD_CFO_DB, process.env.CLOUD_CFO_
         charset: "utf8mb4"
     },
     operatorsAliases: false,
-    logging: false,
+    logging: console.log,
     pool: {
         max: 15,
         min: 0,
