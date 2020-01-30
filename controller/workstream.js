@@ -788,10 +788,11 @@ exports.post = {
                                         })
                                         .map(workstreamTasksObj => {
                                             return {
-                                                ..._.omit(workstreamTasksObj.toJSON(), ["id", "dueDate", "startDate", "status"]),
+                                                ..._.omit(workstreamTasksObj.toJSON(), ["id", "dueDate", "startDate"]),
                                                 projectId: body.projectId,
                                                 workstreamId: resultObj.id,
-                                                dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00")
+                                                dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00"),
+                                                status:'In Progress'
                                             };
                                         });
 
@@ -817,7 +818,8 @@ exports.post = {
                                             ..._.omit(o, ["periodTask", "id", "dateAdded", "dateUpdated"]),
                                             dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00"),
                                             workstreamId: resultObj.id,
-                                            projectId: body.projectId
+                                            projectId: body.projectId,
+                                            status: 'In Progress'
                                         };
                                     });
 

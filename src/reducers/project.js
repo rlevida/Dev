@@ -66,7 +66,6 @@ export default function reducer(
             return { ...state, ProjectManagerId: action.id };
         }
         case "SET_PROJECT_LOADING": {
-            console.log(`action`, action.Loading)
             return { ...state, Loading: action.Loading };
         }
         case "UPDATE_DATA_PROJECT_LIST": {
@@ -108,7 +107,6 @@ export default function reducer(
         case "SET_PROJECT_FILTER": {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, Filter, action.filter);
-            console.log(action.filter)
             return { ...state, Filter: updatedFilter };
         }
         case "SET_PROJECT_SELECT_LIST": {

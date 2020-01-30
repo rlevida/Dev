@@ -80,8 +80,8 @@ export default class ProjectList extends React.Component {
     }
 
     fetchProject(page) {
-        const { dispatch, loggedUser } = this.props;
-        const { List = [], Filter } = project;
+        const { dispatch, loggedUser, project } = this.props;
+        const { List, Filter } = project;
         const { typeId = 1, projectProgress, sort, isActive = 1 } = { ...Filter };
         let fetchUrl = `/api/v2project?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=${isActive}&isDeleted=0&typeId=${typeId}&hasMembers=1`;
 
@@ -277,7 +277,7 @@ export default class ProjectList extends React.Component {
                                     </table>
                                 )}
                                 {project.Loading == "RETRIEVING" && projectList.length > 0 && <Loading />}
-                                {project.NasNextPage && project.Loading != "RETRIEVING" && (
+                                {(project.HasNextPage && project.Loading != "RETRIEVING") && (
                                     <p class="mb0 text-center">
                                         <a onClick={() => this.getNextResult()}>Load More Projects</a>
                                     </p>

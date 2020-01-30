@@ -46,8 +46,8 @@ export default class ProjectActionTab extends React.Component {
                     return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
                 });
 
-                dispatch({ type: "SET_PROJECT_LIST", list: list, hasNextPage: list.length >= 25 });
-                dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
+                dispatch({ type: "SET_PROJECT_LIST", list: list, page: 1, hasNextPage: list.length >= 25 });
+                dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             });
         }
     }
