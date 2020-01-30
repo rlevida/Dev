@@ -7,7 +7,8 @@ export default function reducer(
             projectProgress: "All",
             projectNameSort: "asc",
             projectType: 1,
-            typeId: 1
+            typeId: 1,
+            isActive: 1
         },
         FormActive: "List",
         List: [],

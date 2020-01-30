@@ -35,8 +35,7 @@ export default class ProjectList extends React.Component {
     }
 
     componentWillMount() {
-        let self = this;
-        this.fetchProject();
+        this.fetchProject(1);
         this.fetchFormField();
 
         window.onscroll = function () {
@@ -80,16 +79,27 @@ export default class ProjectList extends React.Component {
         };
     }
 
-    fetchProject() {
+    fetchProject(page) {
         const { dispatch, loggedUser, project } = this.props;
-        let fetchUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0&typeId=1&projectStatus=Active&hasMembers=1`;
+        const { List, Filter } = project;
+        const { typeId = 1, projectProgress, sort, isActive = 1 } = { ...Filter };
+        let fetchUrl = `/api/v2project?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=${isActive}&isDeleted=0&typeId=${typeId}&hasMembers=1`;
+
+        if (projectProgress) {
+            fetchUrl += `&projectProgress=${projectProgress}`;
+        }
+
+        if (sort && sort.indexOf("project") > -1) {
+            fetchUrl += `&sort=${sort}`;
+        }
+
         try {
             getData(fetchUrl, {}, c => {
                 const list = c.data.result.map(e => {
                     const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
                     return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
                 });
-                dispatch({ type: "SET_PROJECT_LIST", list: list, count: c.data.count });
+                dispatch({ type: "SET_PROJECT_LIST", list: List.concat(list), page: page, hasNextPage: list.length >= 25 });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             });
         } catch (err) {
@@ -108,35 +118,9 @@ export default class ProjectList extends React.Component {
     }
 
     getNextResult() {
-        const { project, dispatch, loggedUser } = { ...this.props };
-        const { Count, List, Filter } = project;
-        const { typeId, projectType, projectProgress, sort } = { ...Filter };
-        const dueDateMoment = moment().format("YYYY-MM-DD");
-        let fetchUrl = `/api/project?page=${Count.current_page + 1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&dueDate=${dueDateMoment}&typeId=${typeId}`;
-
-        if (projectProgress) {
-            fetchUrl += `&projectProgress=${projectProgress}`;
-        }
-        if (typeId === "Inactive") {
-            fetchUrl += `&isActive=0&projectType=${projectType}`;
-        } else {
-            fetchUrl += `&isActive=1&isDeleted=0`;
-        }
-
-        if (sort && sort.indexOf("project") > -1) {
-            fetchUrl += `&sort=${sort}`;
-        }
-
+        const { project, dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-
-        getData(fetchUrl, {}, c => {
-            const list = c.data.result.map(e => {
-                const completionRate = (e.completion_rate.completed.count / e.numberOfTasks) * 100;
-                return { ...e, completionRate: isNaN(completionRate) ? 0 : completionRate };
-            });
-            dispatch({ type: "SET_PROJECT_LIST", list: List.concat(list), count: c.data.count });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
-        });
+        this.fetchProject(project.Page + 1);
     }
 
     renderStatus(status) {
@@ -177,13 +161,12 @@ export default class ProjectList extends React.Component {
     render() {
         const { project, loggedUser } = this.props;
         const { Filter } = { ...project };
-        const currentPage = typeof project.Count.current_page != "undefined" ? project.Count.current_page : 1;
-        const lastPage = typeof project.Count.last_page != "undefined" ? project.Count.last_page : 1;
         let projectList = project.List;
         if (Filter.sort) {
             const sort = Filter.sort.split("-");
             projectList = _.orderBy(project.List, [sort[0]], [sort[1]]);
         }
+
         return (
             <div class="row">
                 {project.FormActive == "List" && (
@@ -192,7 +175,7 @@ export default class ProjectList extends React.Component {
                             <ProjectActionTab />
                         </div>
                         <div id="projectList" class="pd20">
-                            <div class={(project.Loading == "RETRIEVING" && projectList.length == 0) || _.isEmpty(project.Count) ? "linear-background" : ""}>
+                            <div class={(project.Loading == "RETRIEVING" && projectList.length == 0) ? "linear-background" : ""}>
                                 {projectList.length > 0 && (
                                     <table id="projectTable">
                                         <thead>
@@ -216,7 +199,7 @@ export default class ProjectList extends React.Component {
 
                                         <tbody>
                                             {_.map(projectList, (projectElem, index) => {
-                                                const { id, project, workstream, members, numberOfTasks, completion_rate, type, isDeleted, team, completionRate } = { ...projectElem };
+                                                const { id, project, workstream, members, completion_rate, type, isDeleted, team, completionRate } = { ...projectElem };
                                                 const memberList = _.uniqBy([
                                                     ..._.map(members, ({ firstName, lastName, avatar }) => {
                                                         return {
@@ -224,16 +207,12 @@ export default class ProjectList extends React.Component {
                                                             avatar
                                                         };
                                                     }),
-                                                    ..._.flatten(
-                                                        _.map(team, ({ team }) => {
-                                                            return _.map(team.users_team, ({ user }) => {
-                                                                return {
-                                                                    name: user.firstName + " " + user.lastName,
-                                                                    avatar: user.avatar
-                                                                };
-                                                            });
-                                                        })
-                                                    )
+                                                    ..._.map(team, ({ firstName, lastName, avatar }) => {
+                                                        return {
+                                                            name: firstName + " " + lastName,
+                                                            avatar: avatar
+                                                        };
+                                                    })
                                                 ], "name");
                                                 return (
                                                     <tr key={index}>
@@ -245,7 +224,7 @@ export default class ProjectList extends React.Component {
                                                             </p>
                                                         </td>
                                                         <td className={`tdWidth${index + 2}`} data-label="Workstreams">
-                                                            {workstream.length}
+                                                            {workstream}
                                                         </td>
                                                         <td className={`tdWidth${index + 3}`} data-label="Completion">
                                                             {completionRate > 0 && <p class={`m0 ${completionRate == 100 ? "text-green" : ""}`}>{completionRate.toFixed(2) + "%"}</p>}
@@ -288,16 +267,8 @@ export default class ProjectList extends React.Component {
                                                                     <a href="javascript:void(0);" onClick={() => this.handleEdit(projectElem)} class="btn btn-action">
                                                                         <span class="glyphicon glyphicon-pencil" title="EDIT" />
                                                                     </a>
-                                                                    {/* <a href="javascript:void(0);" onClick={e => this.handleArchive(projectElem)} class={projectElem.allowedDelete == 0 ? "hide" : "btn btn-action"}>
-                                                                            <span class="fa fa-trash" title="DELETE" />
-                                                                        </a> */}
                                                                 </div>
                                                             )}
-                                                            {/* {isDeleted == 1 && (
-                                                                    <a href="javascript:void(0);" onClick={() => this.handleUnarchive(projectElem)} class="btn btn-action">
-                                                                        <span class="fa fa-window-restore" title="RESTORE" />
-                                                                    </a>
-                                                                )} */}
                                                         </td>
                                                     </tr>
                                                 );
@@ -306,7 +277,7 @@ export default class ProjectList extends React.Component {
                                     </table>
                                 )}
                                 {project.Loading == "RETRIEVING" && projectList.length > 0 && <Loading />}
-                                {currentPage != lastPage && project.Loading != "RETRIEVING" && (
+                                {(project.HasNextPage && project.Loading != "RETRIEVING") && (
                                     <p class="mb0 text-center">
                                         <a onClick={() => this.getNextResult()}>Load More Projects</a>
                                     </p>
@@ -320,7 +291,6 @@ export default class ProjectList extends React.Component {
                         </div>
                     </div>
                 )}
-                {/* Modals */}
                 <ArchiveModal />
             </div>
         );
