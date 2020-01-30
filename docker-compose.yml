@@ -1,5 +1,21 @@
 version: "3.2"
 services:
+  db:
+    container_name: docker-local-mysql
+    image: mysql:5.7.21
+    volumes:
+      - "./data:/var/lib/mysql"
+    restart: always
+    ports:
+      - 3306:3306
+    expose:
+      - '3306'
+    environment:
+      MYSQL_DATABASE: 'cloud_cfo'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+
   cloudcfo:
     container_name: cloudcfo
     build: './'

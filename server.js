@@ -32,7 +32,7 @@ var forgot = require("./routes/forgotPassword");
 var createPassword = require("./routes/createPassword");
 var api = require("./routes/api");
 
-var app = express();
+const app = express();
 
 // auth
 if (global.environment == "staging") {
@@ -108,8 +108,12 @@ if (process.env.NODE_ENV == "production") {
     app.set("port", port);
 }
 
-var server = http.createServer(app);
+const server = http.createServer(app);
 
 require('./serverSocket').socketIo(server, session);
 
-server.listen(app.get("port"));
+if (require.main === module) {
+    server.listen(app.get("port"));
+}
+
+module.exports = app;

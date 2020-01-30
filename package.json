@@ -6,6 +6,8 @@
         "start": "node server.js",
         "build": "gulp && webpack",
         "dev": "gulp & webpack --watch & nodemon server.js",
+        "ui": "gulp & webpack --watch",
+        "test": "node node_modules/.bin/jest --forceExit",
         "manageORM": "sequelize-auto -o \"./temp\" -d cloud_cfo -h 192.168.10.187 -u root -p 3306 -x password -e mysql"
     },
     "dependencies": {
@@ -98,7 +100,9 @@
         "gulp-clean-css": "^3.9.0",
         "gulp-concat": "^2.6.1",
         "gulp-uglify": "^3.0.0",
+        "jest": "^24.8.0",
         "style-loader": "^0.23.1",
+        "supertest": "^4.0.2",
         "unminified-webpack-plugin": "^1.4.1",
         "webpack": "^4.17.2",
         "webpack-cli": "^3.1.0"
