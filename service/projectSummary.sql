@@ -17,13 +17,14 @@ select project.id        as projectId,
        project.dateUpdated,
        type.type         as type,
        stats.total,
-       stats.delayedStart,
-       stats.dueToday,
+       /*stats.delayedStart,
+       stats.dueToday,*/
        stats.forApproval,
        stats.completed,
        stats.newDocuments,
        project_workstream_summary_v.count as workstream
        {{memberSelectClause}}
+       {{taskSummarySelectClause}}
 
 from project,
      type,

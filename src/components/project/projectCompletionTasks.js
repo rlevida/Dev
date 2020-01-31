@@ -114,7 +114,7 @@ export default class ProjectCompletionTasks extends React.Component {
                                     </table>
                                 }
                                 {
-                                    (Loading != "RETRIEVING" && (taskList).length > 4 && paginate == false) && <p class="mb0 text-center">
+                                    (Loading != "RETRIEVING" && (List).length > 4 && paginate == false) && <p class="mb0 text-center">
                                         <a onClick={this.viewAllTasks} data-dismiss="modal">View All Tasks</a>
                                     </p>
                                 }

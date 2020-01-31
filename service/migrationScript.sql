@@ -27,6 +27,7 @@ where task.projectId = project.id
   AND task.isDeleted = 0
 group by project.id;
 
+/*
 create or replace view tasks_due_today_v as
 select project.id     as projectId,
        count(task.id) as count
@@ -44,10 +45,11 @@ select project.id     as projectId,
 from project,
      task
 where task.projectId = project.id
-  and task.dueDate < date(now())
+  and task.dueDate <  DATE(NOW())
   AND task.status = 'In Progress'
   AND task.isDeleted = 0
 group by project.id;
+*/
 
 create or replace view document_summary_view as 
 select  project.id as projectId,
@@ -62,15 +64,15 @@ group by project.id;
 create or replace view tasks_summary_v as
 select project.id                              as projectId,
        coalesce(tasks_total_v.count, 0)        as total,
-       coalesce(tasks_delayed_v.count, 0)      as delayedStart,
-       coalesce(tasks_due_today_v.count, 0)    as dueToday,
+       /*coalesce(tasks_delayed_v.count, 0)      as delayedStart,
+       coalesce(tasks_due_today_v.count, 0)    as dueToday,*/
        coalesce(tasks_for_approval_v.count, 0) as forApproval,
        coalesce(tasks_completed_v.count, 0)    as completed,
        coalesce(document_summary_view.count, 0) as newDocuments
 from project
          left outer join tasks_total_v on project.id = tasks_total_v.projectId
-         left outer join tasks_delayed_v on project.id = tasks_delayed_v.projectId
-         left outer join tasks_due_today_v on project.id = tasks_due_today_v.projectId
+        /* left outer join tasks_delayed_v on project.id = tasks_delayed_v.projectId
+         left outer join tasks_due_today_v on project.id = tasks_due_today_v.projectId */
          left outer join tasks_for_approval_v on project.id = tasks_for_approval_v.projectId
          left outer join tasks_completed_v on project.id = tasks_completed_v.projectId
          left outer join document_summary_view on project.id = document_summary_view.projectId;
@@ -157,5 +159,3 @@ left outer join project_team_members_v on project.id = project_team_members_v.pr
 select * from  project_team_members_summary_v;
 
 #----------PROJECT TEAM MEMBERS END---------
-
-
