@@ -338,25 +338,29 @@ export default class TaskListCategory extends React.Component {
                     <td data-label="Assigned">
                         <div class="display-flex">
                             <div class="thumbnail-profile">
-                                <span title={assigned.user.firstName + " " + assigned.user.lastName}>
-                                    <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
-                                </span>
+                                {assigned &&
+                                    <span title={assigned.user.firstName + " " + assigned.user.lastName}>
+                                        <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                    </span>
+                                }
                             </div>
                         </div>
                     </td>
                 )}
-                {workstream_id == "" && (
-                    <td data-label="Project">
-                        <p class="m0 td-oblong" style={{ backgroundColor: project.color, color: textColor(project.color) }}>
-                            <span title={project.type.type}>
-                                <i class={project.type.type == "Client" ? "fa fa-users mr5" : project.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
-                            </span>
-                            {project.project}
-                        </p>
-                    </td>
-                )}
+                {
+                    workstream_id == "" && (
+                        <td data-label="Project">
+                            <p class="m0 td-oblong" style={{ backgroundColor: project.color, color: textColor(project.color) }}>
+                                <span title={project.type.type}>
+                                    <i class={project.type.type == "Client" ? "fa fa-users mr5" : project.type.type == "Private" ? "fa fa-lock mr5" : "fa fa-cloud mr5"} />
+                                </span>
+                                {project.project}
+                            </p>
+                        </td>
+                    )
+                }
                 <td data-label="Completed On">{dateCompleted != null ? moment(dateCompleted).format("MMMM DD, YYYY") : "N/A"}</td>
-            </tr>
+            </tr >
         );
     }
 
