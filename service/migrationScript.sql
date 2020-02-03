@@ -86,7 +86,7 @@ where workstream.projectId = project.id
       and workstream.isDeleted = 0 
 group By project.id;
 
--------------PROJECT MEMBERS START-------------
+#-------------PROJECT MEMBERS START-------------
 create or replace view members_v as
 select  members.linkId as projectId , 
       users.firstName as firstName,
@@ -98,7 +98,7 @@ where project.id = members.linkId
       and users.id = members.userTypeLinkId
       and members.linkType = 'project'
       and members.isDeleted = 0
-      and members.memberType = 'assignedTo';
+      and (members.memberType = 'assignedTo' or members.memberType = 'project manager');
 
 create or replace view project_members_v as
 select projectId, JSON_ARRAYAGG(JSON_OBJECT('firstName',firstName,'lastName',lastName,'avatar',avatar)) as members from members_v group by projectId;
@@ -111,9 +111,9 @@ left outer join project_members_v on project.id = project_members_v.projectId or
 
 select * from project_members_summary_v;
 
--------------PROJECT MEMBERS END-------------
+#-------------PROJECT MEMBERS END-------------
 
-----------PROJECT TEAM MEMBERS START---------
+#----------PROJECT TEAM MEMBERS START---------
 create or replace view teams_v as
 select  members.userTypeLinkId as teamId,
         members.linkId as projectId
@@ -154,8 +154,8 @@ select project.id as projectId,
 from project 
 left outer join project_team_members_v on project.id = project_team_members_v.projectId order by id;
 
-select * from  project_team_members_summary_v
+select * from  project_team_members_summary_v;
 
-----------PROJECT TEAM MEMBERS END---------
+#----------PROJECT TEAM MEMBERS END---------
 
 
