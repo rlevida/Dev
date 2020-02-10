@@ -11,9 +11,9 @@ class ProjectSummaryService {
         this.sequelize = sequelize;
     }
 
-    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false, hasMembers = false, project = false, projectProgress = false) {
-
+    async listProjects(userId, isAdmin = false, page = 1, isActive = 1, isDeleted = 0, typeId = false, hasMembers = false, project = false, projectProgress = false, dueDate) {
         const query = this.summaryQuery
+            .replace('{{taskSummarySelectClause}}', dueDate ? this.taskSummary(dueDate) : ``)
             .replace('{{memberSelectClause}}', hasMembers ? ` ,project_team_members_summary_v.members as team, project_members_summary_v.members as members` : ``)
             .replace('{{memberFromClause}}', hasMembers ? ` ,project_team_members_summary_v, project_members_summary_v` : ``)
             .replace('{{memberWhereClause}}', hasMembers ? ` and project_team_members_summary_v.projectId = project.id and project_members_summary_v.projectId = project.id` : ``)
@@ -23,7 +23,7 @@ class ProjectSummaryService {
             .replace('{{projectWhereClause}}', project ? ` and LOWER(project.project) like '%${project.toLowerCase()}%'` : ``)
             .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
 
-            const results = await this.sequelize.query(query, {
+        const results = await this.sequelize.query(query, {
             replacements: { userId: userId, isActive, isDeleted },
             type: QueryTypes.SELECT
         });
@@ -129,6 +129,45 @@ class ProjectSummaryService {
             default:
                 return ``
         }
+    }
+
+    taskSummary(dueDate) {
+        return `
+            ,
+            (
+                SELECT  count(delayedStart.id)  
+                FROM    task as delayedStart
+                WHERE   delayedStart.projectId = project.id
+                        and delayedStart.dueDate < '${dueDate}'
+                        and delayedStart.isDeleted = 0
+                        and delayedStart.status = "In Progress"
+                        and
+                            delayedStart.workstreamId in (
+                                SELECT  projectWorkstream.id  
+                                FROM    workstream as projectWorkstream
+                                WHERE   projectWorkstream.projectId = project.id 
+                                        and projectWorkstream.isDeleted = 0
+                                        and projectWorkstream.isActive = 1
+                            )
+            ) as delayedStart
+            ,
+            (
+                SELECT  count(dueToday.id)  
+                FROM    task as dueToday
+                WHERE   dueToday.projectId = project.id
+                        and dueToday.dueDate = '${dueDate}'
+                        and dueToday.isDeleted = 0
+                        and dueToday.status = "In Progress"
+                        and
+                            dueToday.workstreamId in (
+                                SELECT  projectWorkstream.id  
+                                FROM    workstream as projectWorkstream
+                                WHERE   projectWorkstream.projectId = project.id 
+                                        and projectWorkstream.isDeleted = 0
+                                        and projectWorkstream.isActive = 1
+                            )
+            ) as dueToday
+        `
     }
 }
 

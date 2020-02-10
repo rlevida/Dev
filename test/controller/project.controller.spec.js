@@ -196,6 +196,29 @@ describe('project controller', () => {
     //     done()
     // });
 
+    it('should return project details with delayed and due today count of task', async (done) => {
+        const result = await request(server)
+            .get('/api/v2project')
+            .query({
+                page: 1,
+                typeId: 1,
+                isActive: 1,
+                isDeleted: 0,
+                userId: 1,
+                userRole: 1,
+                hasMembers: 1,
+                dueDate: '2020-01-30 16:00:00'
+            })
+            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+            .expect(200);
+
+        const firstResult = result.body.result[0];
+        expect(firstResult).toBeDefined();
+        expect(firstResult.completion_rate.delayed_task.count).toBeGreaterThan(0);
+        expect(firstResult.completion_rate.tasks_due_today.count).toBeGreaterThan(0);
+        done()
+    });
+
     // it('project controller for Projects page', async (done) => {
     //     const result = await request(server)
     //         .get('/api/project')

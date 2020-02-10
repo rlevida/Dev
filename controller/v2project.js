@@ -7,7 +7,8 @@ exports.get = {
             req.query.userId, isAdmin, req.query.page,
             req.query.isActive, req.query.isDeleted,
             req.query.typeId, req.query.hasMembers,
-            req.query.project, req.query.projectProgress
+            req.query.project, req.query.projectProgress,
+            req.query.dueDate
         );
         cb({ status: true, data: { result: results } });
     }

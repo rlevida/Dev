@@ -25,7 +25,9 @@ export default class ProjectActionTab extends React.Component {
 
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
             const { isActive = 1, typeId, projectProgress, search, sort } = this.props.project.Filter;
-            let fetchUrl = `/api/v2project?page=1&typeId=${typeId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&isActive=${isActive}`;
+            const dueDateMoment = moment(moment().format('YYYY-MM-DD')).utc().format("YYYY-MM-DD HH:mm");
+
+            let fetchUrl = `/api/v2project?page=1&typeId=${typeId}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&hasMembers=1&isActive=${isActive}&dueDate=${dueDateMoment}`;
 
             dispatch({ type: "RESET_PROJECT", List: [], Loading: "RETRIEVING" });
 

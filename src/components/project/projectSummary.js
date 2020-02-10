@@ -65,7 +65,7 @@ export default class List extends React.Component {
     fetchProject(page) {
         const { dispatch, project, loggedUser } = { ...this.props };
         const { typeId } = project.Filter;
-        const dueDateMoment = moment().format("YYYY-MM-DD");
+        const dueDateMoment = moment(moment().format('YYYY-MM-DD')).utc().format("YYYY-MM-DD HH:mm");
         let requestUrl = `/api/v2project?page=${page}&typeId=${typeId}&isActive=1&isDeleted=0&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, c => {
@@ -124,8 +124,7 @@ export default class List extends React.Component {
 
     getWorkstreams(id) {
         const { dispatch, workstream } = { ...this.props };
-        const dueDateMoment = moment().format("YYYY-MM-DD");
-        const requestUrl = `/api/workstream?projectId=${id}&dueDate=${dueDateMoment}`;
+        const requestUrl = `/api/workstream?projectId=${id}&isDeleted=0&isActive=1`;
         const projectWorkstream = _.filter(workstream.List, o => {
             return o.projectId == id;
         });
@@ -168,7 +167,7 @@ export default class List extends React.Component {
         }).value;
         const duration = moment.duration(moment().diff(moment(dateUpdated)));
         const date = duration.asDays() > 1 ? moment(dateUpdated).format("MMMM DD, YYYY") : moment(dateUpdated).from(new Date());
-
+      
         return (
             <tr key={index}>
                 <td data-label="Project Name" class={entity_type == "project" ? "td-left" : ""}>
@@ -331,7 +330,6 @@ export default class List extends React.Component {
                         </table>
                     )}
                     {project.Loading == "RETRIEVING" && project.List.length > 0 && <Loading />}
-                    {console.log(project.HasNextPage)}
                     {project.HasNextPage && project.Loading != "RETRIEVING" && (
                         <p class="mb0 text-center">
                             <a onClick={() => this.getNextResult()}>Load More Projects</a>

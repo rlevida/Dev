@@ -1080,7 +1080,16 @@ exports.get = {
                                         }
                                     }
                                     : {})
-                            }
+                            },
+                            include: [{
+                                model: Workstream,
+                                as: "workstream",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
+                            }]
                         }).then(({ count }) => {
                             parallelCallback(null, count);
                         });
@@ -1104,7 +1113,16 @@ exports.get = {
                                         }
                                     }
                                     : {})
-                            }
+                            },
+                            include: [{
+                                model: Workstream,
+                                as: "workstream",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
+                            }]
                         }).then(({ count }) => {
                             parallelCallback(null, count);
                         });
@@ -1131,7 +1149,16 @@ exports.get = {
                                         }
                                     }
                                     : {})
-                            }
+                            },
+                            include: [{
+                                model: Workstream,
+                                as: "workstream",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
+                            }]
                         }).then(({ count }) => {
                             parallelCallback(null, count);
                         });
