@@ -43,7 +43,7 @@ export default class ProjectCompletionTasks extends React.Component {
         const taskList = (paginate == false) ? _.take(List, 4) : List;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
-        
+
         return (
             <div class="modal fade" id="completion-tasks" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-md" role="document">
@@ -95,9 +95,11 @@ export default class ProjectCompletionTasks extends React.Component {
                                                             <td data-label="Assigned">
                                                                 <div class="display-flex">
                                                                     <div class="thumbnail-profile display-flex">
-                                                                        <span title={assigned.user.firstName + " " + assigned.user.lastName}>
-                                                                            <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                        </span>
+                                                                        {assigned &&
+                                                                            <span title={assigned.user.firstName + " " + assigned.user.lastName}>
+                                                                                <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            </span>
+                                                                        }
                                                                     </div>
                                                                 </div>
                                                             </td>

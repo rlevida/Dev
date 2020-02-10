@@ -141,6 +141,14 @@ class ProjectSummaryService {
                         and delayedStart.dueDate < '${dueDate}'
                         and delayedStart.isDeleted = 0
                         and delayedStart.status = "In Progress"
+                        and
+                            delayedStart.workstreamId in (
+                                SELECT  projectWorkstream.id  
+                                FROM    workstream as projectWorkstream
+                                WHERE   projectWorkstream.projectId = project.id 
+                                        and projectWorkstream.isDeleted = 0
+                                        and projectWorkstream.isActive = 1
+                            )
             ) as delayedStart
             ,
             (
@@ -150,6 +158,14 @@ class ProjectSummaryService {
                         and dueToday.dueDate = '${dueDate}'
                         and dueToday.isDeleted = 0
                         and dueToday.status = "In Progress"
+                        and
+                            dueToday.workstreamId in (
+                                SELECT  projectWorkstream.id  
+                                FROM    workstream as projectWorkstream
+                                WHERE   projectWorkstream.projectId = project.id 
+                                        and projectWorkstream.isDeleted = 0
+                                        and projectWorkstream.isActive = 1
+                            )
             ) as dueToday
         `
     }

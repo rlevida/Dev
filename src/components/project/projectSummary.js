@@ -124,7 +124,7 @@ export default class List extends React.Component {
 
     getWorkstreams(id) {
         const { dispatch, workstream } = { ...this.props };
-        const requestUrl = `/api/workstream?projectId=${id}`;
+        const requestUrl = `/api/workstream?projectId=${id}&isDeleted=0&isActive=1`;
         const projectWorkstream = _.filter(workstream.List, o => {
             return o.projectId == id;
         });
