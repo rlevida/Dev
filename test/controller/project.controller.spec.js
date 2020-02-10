@@ -130,71 +130,71 @@ describe('project controller', () => {
     //     done()
     // });
 
-    it('should return projects without delayed task', async (done) => {
-        // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
-        const result = await request(server)
-            .get('/api/v2project')
-            .query({
-                page: 1,
-                typeId: 1,
-                isActive: 1,
-                isDeleted: 0,
-                userId: 1,
-                userRole: 1,
-                hasMembers: 1,
-                projectProgress: 'On Time'
-            })
-            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
-            .expect(200);
-        const firstResult = result.body.result[0];
-        expect(firstResult).toBeDefined();
-        expect(firstResult.completion_rate.delayed_task.count).toBe(0);
-        done();
-    });
+    // it('should return projects without delayed task', async (done) => {
+    //     // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
+    //     const result = await request(server)
+    //         .get('/api/v2project')
+    //         .query({
+    //             page: 1,
+    //             typeId: 1,
+    //             isActive: 1,
+    //             isDeleted: 0,
+    //             userId: 1,
+    //             userRole: 1,
+    //             hasMembers: 1,
+    //             projectProgress: 'On Time'
+    //         })
+    //         .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+    //         .expect(200);
+    //     const firstResult = result.body.result[0];
+    //     expect(firstResult).toBeDefined();
+    //     expect(firstResult.completion_rate.delayed_task.count).toBe(0);
+    //     done();
+    // });
 
-    it('should return projects with delayed task', async (done) => {
-        const result = await request(server)
-            .get('/api/v2project')
-            .query({
-                page: 1,
-                typeId: 1,
-                isActive: 1,
-                isDeleted: 0,
-                userId: 1,
-                userRole: 1,
-                hasMembers: 1,
-                projectProgress: 'Issues'
-            })
-            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
-            .expect(200);
+    // it('should return projects with delayed task', async (done) => {
+    //     const result = await request(server)
+    //         .get('/api/v2project')
+    //         .query({
+    //             page: 1,
+    //             typeId: 1,
+    //             isActive: 1,
+    //             isDeleted: 0,
+    //             userId: 1,
+    //             userRole: 1,
+    //             hasMembers: 1,
+    //             projectProgress: 'Issues'
+    //         })
+    //         .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+    //         .expect(200);
 
-        const firstResult = result.body.result[0];
-        expect(firstResult).toBeDefined();
-        expect(firstResult.completion_rate.delayed_task.count).toBeGreaterThan(0);
-        done();
-    });
+    //     const firstResult = result.body.result[0];
+    //     expect(firstResult).toBeDefined();
+    //     expect(firstResult.completion_rate.delayed_task.count).toBeGreaterThan(0);
+    //     done();
+    // });
 
-    it('should return inactive projects', async (done) => {
-        // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
-        const result = await request(server)
-            .get('/api/v2project')
-            .query({
-                page: 1,
-                typeId: 1,
-                isActive: 0,
-                isDeleted: 0,
-                userId: 1,
-                userRole: 1,
-                hasMembers: 1,
-            })
-            .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
-            .expect(200);
+    // it('should return inactive projects', async (done) => {
+    //     // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
+    //     const result = await request(server)
+    //         .get('/api/v2project')
+    //         .query({
+    //             page: 1,
+    //             typeId: 1,
+    //             isActive: 0,
+    //             isDeleted: 0,
+    //             userId: 1,
+    //             userRole: 1,
+    //             hasMembers: 1,
+    //         })
+    //         .set('Cookie', 'app.sid=4LCk5fxEkKgQG47vK6pR9e3G6ao1wsbUavSkQhZEXAtg; connect.sid=s%3AuGL0ZEdf2rMGRktgaOZ_dDkPEiEge--l.wxgLo4KXZYhWZFsAX8Hq27DYB3IoUOOVnhOEf4jFSbQ; io=1kPQxYVkQlUChPjFAAAF')
+    //         .expect(200);
 
-        const firstResult = result.body.result[0];
-        expect(firstResult).toBeDefined();
-        expect(firstResult.isActive).toBe(0);
-        done()
-    });
+    //     const firstResult = result.body.result[0];
+    //     expect(firstResult).toBeDefined();
+    //     expect(firstResult.isActive).toBe(0);
+    //     done()
+    // });
 
     // it('project controller for Projects page', async (done) => {
     //     const result = await request(server)
@@ -232,4 +232,23 @@ describe('project controller', () => {
 
     //     done();
     // });
+
+    it('should return projects with admin access', async (done) => {
+        // GET /api/project?page=1&typeId=1&userId=6&userRole=1&hasMembers=1&projectProgress=On%20Time&isActive=1
+        const result = await request(server)
+            .get('/api/v2project')
+            .query({
+                page: 1,
+                typeId: 1,
+                isActive: 1,
+                isDeleted: 0,
+                userId: 1,
+                userRole: 2,
+            })
+            .set('Cookie', 'app.sid=6RjchYV2k2AFkvmMt29LBhvhohKiJMzpyw9w7qPqTnwv; connect.sid=s%3A_NC1DyVkmb0bxom_C3b2hgBSlZNczTM6.oxC%2BcODgGaaYQEA183WotfJIxIJDmX0HI8Cixa23OQ4; io=RShglpq5sCuLhUUJAAAB')
+            .expect(200);
+            console.log(result.body.result.length)
+        expect(result.body.result).toHaveLength(25);
+        done();
+    });
 });
