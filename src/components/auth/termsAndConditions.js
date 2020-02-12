@@ -36,13 +36,13 @@ class TermsAndConditions extends React.Component {
 
     render() {
         const { accept } = { ...this.state }
-        const { termsAndConditions } = { ...this.props }
+        const { termsAndConditions } = { ...this.props };
         return (
             <div class="modal fade delete-modal" id="termsAndCondition">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content br10">
                         <div class="modal-body">
-                            <h1>Terms and Conditions</h1>
+                            <h1>Terms of Use and Privacy Policy</h1>
                             {typeof termsAndConditions !== "undefined" &&
                                 <div class="mt20 terms-and-conditions">
                                     <Editor
@@ -69,7 +69,7 @@ class TermsAndConditions extends React.Component {
                                                 onClick={f => () => { }}
                                             />
                                             <span class="checkmark" />
-                                            I have read and agree to the Terms and Conditions and Privacy Policy
+                                            I have read and agree to the Terms of Use and Privacy Policy
                                         </label>
                                     </div>
                                 </div>

@@ -335,7 +335,7 @@ class Main extends React.Component {
 
         if(loggedUser.data.userRole === 1){
             pages.push({
-                label: "Terms & Conditions",
+                label: "Terms of Use and Privacy Policy",
                 icon: "fa-info",
                 path_name: "terms-and-conditions",
                 component: TermsAndConditions,

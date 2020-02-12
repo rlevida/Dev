@@ -71,7 +71,7 @@ export default class Component extends React.Component {
             if (c.data.status) {
                 if (c.data.userDetails.termsAndConditions === 0) {
                     toastr.remove();
-                    this.getTermsAndConditions(c.data.userDetails);
+                    this.getTermsAndConditions();
                 } else if (c.data.userDetails.projectId.length > 1 || c.data.userDetails.userRole <= 4) {
                     window.location.replace("/");
                 } else {
@@ -83,7 +83,7 @@ export default class Component extends React.Component {
         });
     }
 
-    getTermsAndConditions(userDetails) {
+    getTermsAndConditions() {
         getData(`/termsAndConditions`, {}, getTermsAndConditionsResponse => {
             try {
                 const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }

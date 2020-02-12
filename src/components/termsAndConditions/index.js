@@ -41,7 +41,7 @@ export default class Component extends React.Component {
             }
         })
     }
-    
+
     // componentDidMount() {
     //     ClassicEditor
     //     .create( document.querySelector( '#editor' ) )
@@ -56,7 +56,7 @@ export default class Component extends React.Component {
 
     onEditorStateChange(editorState) {
         const { formData } = { ...this.state }
-        this.setState({ formData: { ...formData, editorState } }) 
+        this.setState({ formData: { ...formData, editorState } })
     }
 
     handleSubmit() {
@@ -93,17 +93,17 @@ export default class Component extends React.Component {
                             apiKey="pqgfoi8qj6k0rua9o2fqgebi47b6obcpg6o7n94wo5wcnr2z"
                             initialValue={editorState ? editorState : ""}
                             init={{
-                            height: 600,
-                            menubar: false,
-                            statusbar: false,
-                            toolbar: false,
-                            plugins: [
-                                'advlist autolink lists link image charmap print preview anchor',
-                                'searchreplace visualblocks code fullscreen',
-                                'insertdatetime media table paste code help wordcount'
-                            ],
-                            toolbar:
-                                'undo redo | formatselect | bold italic backcolor | \
+                                height: 600,
+                                menubar: false,
+                                statusbar: false,
+                                toolbar: false,
+                                plugins: [
+                                    'advlist autolink lists link image charmap print preview anchor',
+                                    'searchreplace visualblocks code fullscreen',
+                                    'insertdatetime media table paste code help wordcount'
+                                ],
+                                toolbar:
+                                    'undo redo | formatselect | bold italic backcolor | \
                                 alignleft aligncenter alignright alignjustify | \
                                 bullist numlist outdent indent | removeformat | help'
                             }}
@@ -113,17 +113,19 @@ export default class Component extends React.Component {
                             editorClassName="editorClassName"
                             editorStyle={{ border: "1px solid #F1F1F1", padding: '20px' }}
                         />
-                        <div class="d-flex-between mt20">
-                            <label class="custom-checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={reset}
-                                    onChange={() => { this.setState({ reset: !this.state.reset }) }}
-                                    onClick={f => () => { }}
-                                />
-                                <span class="checkmark" />
-                                Reset user terms and conditions?
-                            </label>
+                        <div class="mt20 text-right">
+                            <div class="tc-checkbox mb10">
+                                <span class="mr10"> Reset Terms of Use and Privacy Policy? </span>
+                                <label class="custom-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        checked={reset}
+                                        onChange={() => { this.setState({ reset: !this.state.reset }) }}
+                                        onClick={f => () => { }}
+                                    />
+                                    <span class="checkmark" />
+                                </label>
+                            </div>
                             <button type="button" class="btn btn-primary" onClick={this.handleSubmit}>Submit</button>
                         </div>
                     </div>
