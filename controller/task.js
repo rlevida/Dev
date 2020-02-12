@@ -23,9 +23,7 @@ const {
     UsersTeam,
     Teams,
     Tag,
-    sequelize,
-    Notification,
-    UsersNotificationSetting
+    sequelize
 } = models;
 
 const sendNotification = require("./sendNotification");
@@ -1214,91 +1212,78 @@ exports.post = {
             include: associationStack
         };
         try {
-            const checkIfExistTask = await Tasks.findAll({
-                where: {
-                    task: body.task,
-                    workstreamId: body.workstreamId,
-                    isDeleted: 0
-                }
-            }).map(o => {
-                return o.toJSON();
-            });
+            Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo", "dateUpdated"])).then(response => {
+                const newTaskResponse = response.toJSON();
+                ActivityLogs.create({
+                    usersId: body.userId,
+                    linkType: "task",
+                    linkId: newTaskResponse.id,
+                    actionType: "created",
+                    new: JSON.stringify({ task: _.omit(newTaskResponse, ["dateAdded", "dateUpdated"]) }),
+                    title: newTaskResponse.task
+                }).then(() => {
+                    async.waterfall(
+                        [
+                            function (callback) {
+                                if (typeof body.periodic != "undefined" && body.periodic == 1) {
+                                    const taskPromises = _.times(2, o => {
+                                        return new Promise(resolve => {
+                                            const nextDueDate = moment(body.dueDate)
+                                                .add(body.periodType, body.periodInstance * (o + 1))
+                                                .format("YYYY-MM-DD HH:mm:ss");
+                                            const newPeriodTask = {
+                                                ...body,
+                                                dueDate: nextDueDate,
+                                                ...(body.startDate != null && body.startDate != ""
+                                                    ? {
+                                                        startDate: moment(body.startDate)
+                                                            .add(body.periodType, body.periodInstance * (o + 1))
+                                                            .format("YYYY-MM-DD HH:mm:ss")
+                                                    }
+                                                    : {}),
+                                                periodTask: newTaskResponse.id
+                                            };
 
-            if (checkIfExistTask.length > 0) {
-                cb({ status: true, data: { error: "Task name already exists in the workstream selected." } });
-            } else {
-                Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo", "dateUpdated"])).then(response => {
-                    const newTaskResponse = response.toJSON();
-                    ActivityLogs.create({
-                        usersId: body.userId,
-                        linkType: "task",
-                        linkId: newTaskResponse.id,
-                        actionType: "created",
-                        new: JSON.stringify({ task: _.omit(newTaskResponse, ["dateAdded", "dateUpdated"]) }),
-                        title: newTaskResponse.task
-                    }).then(response => {
-                        async.waterfall(
-                            [
-                                function (callback) {
-                                    if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                                        const taskPromises = _.times(2, o => {
-                                            return new Promise(resolve => {
-                                                const nextDueDate = moment(body.dueDate)
-                                                    .add(body.periodType, body.periodInstance * (o + 1))
-                                                    .format("YYYY-MM-DD HH:mm:ss");
-                                                const newPeriodTask = {
-                                                    ...body,
-                                                    dueDate: nextDueDate,
-                                                    ...(body.startDate != null && body.startDate != ""
-                                                        ? {
-                                                            startDate: moment(body.startDate)
-                                                                .add(body.periodType, body.periodInstance * (o + 1))
-                                                                .format("YYYY-MM-DD HH:mm:ss")
-                                                        }
-                                                        : {}),
-                                                    periodTask: newTaskResponse.id
-                                                };
-
-                                                Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then(response => {
-                                                    const createTaskObj = response.toJSON();
-                                                    ActivityLogs.create({
-                                                        usersId: body.userId,
-                                                        linkType: "task",
-                                                        linkId: createTaskObj.id,
-                                                        actionType: "created",
-                                                        new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
-                                                        title: createTaskObj.task
-                                                    }).then(response => {
-                                                        resolve(createTaskObj);
-                                                    });
+                                            Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then(response => {
+                                                const createTaskObj = response.toJSON();
+                                                ActivityLogs.create({
+                                                    usersId: body.userId,
+                                                    linkType: "task",
+                                                    linkId: createTaskObj.id,
+                                                    actionType: "created",
+                                                    new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                                    title: createTaskObj.task
+                                                }).then(response => {
+                                                    resolve(createTaskObj);
                                                 });
                                             });
                                         });
-                                        Promise.all(taskPromises).then(values => {
-                                            callback(null, [...[newTaskResponse], ...values]);
-                                        });
-                                    } else {
-                                        callback(null, [newTaskResponse]);
-                                    }
-                                },
-                                function (newTasksArgs, callback) {
-                                    const taskAttrPromises = _.map(newTasksArgs, taskObj => {
-                                        return new Promise(resolve => {
-                                            async.parallel(
-                                                {
-                                                    task_dependency: parallelCallback => {
-                                                        const taskDependencyPromise = _.map(body.task_dependency, taskDependencyObj => {
-                                                            return new Promise(resolve => {
-                                                                const dependentObj = {
-                                                                    taskId: taskObj.id,
-                                                                    dependencyType: body.dependency_type,
-                                                                    linkTaskId: taskDependencyObj.value
-                                                                };
-                                                                TaskDependency.create(dependentObj).then(response => {
-                                                                    resolve({ data: response.toJSON() });
-                                                                });
+                                    });
+                                    Promise.all(taskPromises).then(values => {
+                                        callback(null, [...[newTaskResponse], ...values]);
+                                    });
+                                } else {
+                                    callback(null, [newTaskResponse]);
+                                }
+                            },
+                            function (newTasksArgs, callback) {
+                                const taskAttrPromises = _.map(newTasksArgs, taskObj => {
+                                    return new Promise(resolve => {
+                                        async.parallel(
+                                            {
+                                                task_dependency: parallelCallback => {
+                                                    const taskDependencyPromise = _.map(body.task_dependency, taskDependencyObj => {
+                                                        return new Promise(resolve => {
+                                                            const dependentObj = {
+                                                                taskId: taskObj.id,
+                                                                dependencyType: body.dependency_type,
+                                                                linkTaskId: taskDependencyObj.value
+                                                            };
+                                                            TaskDependency.create(dependentObj).then(response => {
+                                                                resolve({ data: response.toJSON() });
                                                             });
                                                         });
+                                                    });
 
                                                     Promise.all(taskDependencyPromise).then(values => {
                                                         parallelCallback(null, values);
@@ -1315,106 +1300,105 @@ exports.post = {
                                                         members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                                     }
 
-                                                        if (members.length > 0) {
-                                                            Members.bulkCreate(members).then(response => {
-                                                                parallelCallback(null, response);
-                                                            });
-                                                        } else {
-                                                            parallelCallback(null, {});
-                                                        }
+                                                    if (members.length > 0) {
+                                                        Members.bulkCreate(members).then(response => {
+                                                            parallelCallback(null, response);
+                                                        });
+                                                    } else {
+                                                        parallelCallback(null, {});
                                                     }
-                                                },
-                                                (err, response) => {
-                                                    resolve(response);
-                                                }
-                                            );
-                                        });
-                                    });
-
-                                    Promise.all(taskAttrPromises).then(values => {
-                                        callback(null, newTasksArgs);
-                                    });
-                                },
-                                function (newTasksArgs, callback) {
-                                    Tasks.findAll({
-                                        ...options,
-                                        where: {
-                                            id: {
-                                                [Sequelize.Op.in]: _.map(newTasksArgs, o => {
-                                                    return o.id;
-                                                })
-                                            }
-                                        }
-                                    }).map(mapObject => {
-                                        return mapObject.toJSON();
-                                    }).then(response => {
-                                        async.parallel(
-                                            {
-                                                projects: parallelCallback => {
-                                                    Projects.update(
-                                                        { dateUpdated: body.dateUpdated },
-                                                        {
-                                                            where: { id: response[0].projectId }
-                                                        }
-                                                    ).then(res => {
-                                                        parallelCallback(null);
-                                                    });
-                                                },
-                                                workstream: parallelCallback => {
-                                                    Workstream.update(
-                                                        { dateUpdated: body.dateUpdated },
-                                                        {
-                                                            where: { id: response[0].workstreamId }
-                                                        }
-                                                    ).then(res => {
-                                                        parallelCallback(null);
-                                                    });
                                                 }
                                             },
-                                            () => {
-                                                callback(null, response);
+                                            (err, response) => {
+                                                resolve(response);
                                             }
                                         );
                                     });
-                                }
-                            ],
-                            async function (err, result) {
-                                const userFindResult = await Users.findOne({ where: { id: body.userId } });
-                                const sender = userFindResult.toJSON();
-                                const receiver = body.assignedTo !== sender.id ? body.assignedTo : [];
+                                });
 
-                                result.forEach(async taskObj => {
+                                Promise.all(taskAttrPromises).then(values => {
+                                    callback(null, newTasksArgs);
+                                });
+                            },
+                            function (newTasksArgs, callback) {
+                                Tasks.findAll({
+                                    ...options,
+                                    where: {
+                                        id: {
+                                            [Sequelize.Op.in]: _.map(newTasksArgs, o => {
+                                                return o.id;
+                                            })
+                                        }
+                                    }
+                                }).map(mapObject => {
+                                    return mapObject.toJSON();
+                                }).then(response => {
+                                    async.parallel(
+                                        {
+                                            projects: parallelCallback => {
+                                                Projects.update(
+                                                    { dateUpdated: body.dateUpdated },
+                                                    {
+                                                        where: { id: response[0].projectId }
+                                                    }
+                                                ).then(res => {
+                                                    parallelCallback(null);
+                                                });
+                                            },
+                                            workstream: parallelCallback => {
+                                                Workstream.update(
+                                                    { dateUpdated: body.dateUpdated },
+                                                    {
+                                                        where: { id: response[0].workstreamId }
+                                                    }
+                                                ).then(res => {
+                                                    parallelCallback(null);
+                                                });
+                                            }
+                                        },
+                                        () => {
+                                            callback(null, response);
+                                        }
+                                    );
+                                });
+                            }
+                        ],
+                        async function (err, result) {
+                            const userFindResult = await Users.findOne({ where: { id: body.userId } });
+                            const sender = userFindResult.toJSON();
+                            const receiver = body.assignedTo !== sender.id ? body.assignedTo : [];
 
-                                    /* Task Assigned Notification */
+                            result.forEach(async taskObj => {
+
+                                /* Task Assigned Notification */
+                                await sendNotification({
+                                    sender: sender,
+                                    receiver: receiver,
+                                    notificationType: "taskAssigned",
+                                    notificationData: { task: taskObj },
+                                    projectId: body.projectId,
+                                    workstreamId: taskObj.workstreamId,
+                                });
+
+                                /* Task Approver Notification */
+
+                                if (taskObj.approverId) {
                                     await sendNotification({
                                         sender: sender,
-                                        receiver: receiver,
-                                        notificationType: "taskAssigned",
+                                        receiver: taskObj.approverId,
+                                        notificationType: "taskApprover",
                                         notificationData: { task: taskObj },
-                                        projectId: body.projectId,
+                                        projectId: taskObj.projectId,
                                         workstreamId: taskObj.workstreamId,
+                                        notificationApproverType: "approver"
                                     });
-
-                                    /* Task Approver Notification */
-
-                                    if (taskObj.approverId) {
-                                        await sendNotification({
-                                            sender: sender,
-                                            receiver: taskObj.approverId,
-                                            notificationType: "taskApprover",
-                                            notificationData: { task: taskObj },
-                                            projectId: taskObj.projectId,
-                                            workstreamId: taskObj.workstreamId,
-                                            notificationApproverType: "approver"
-                                        });
-                                    }
-                                })
-                                cb({ status: true, data: result });
-                            }
-                        );
-                    });
+                                }
+                            })
+                            cb({ status: true, data: result });
+                        }
+                    );
                 });
-            }
+            });
         } catch (err) {
             cb({ status: true, data: { error: 'Something went wrong.' } });
         }
@@ -2105,141 +2089,110 @@ exports.put = {
                 {
                     task: parallelCallback => {
                         try {
-                            Tasks.findOne({ ...options, where: whereObj }).then(async response => {
+                            Tasks.findOne({ ...options, where: whereObj }).then(response => {
                                 const responseObj = response.toJSON();
-                                let checkIfExistTask = [];
 
-                                if (responseObj.task != body.task) {
-                                    checkIfExistTask = await Tasks.findAll({
-                                        where: {
-                                            task: body.task,
-                                            workstreamId: body.workstreamId,
-                                            id: {
-                                                [Sequelize.Op.ne]: body.id
-                                            },
-                                            [Sequelize.Op.or]: [
-                                                { periodTask: null },
-                                                {
-                                                    periodTask: {
-                                                        [Sequelize.Op.ne]: body.id
-                                                    }
-                                                }
-                                            ],
-                                            isDeleted: 0
+                                const currentTask = _(responseObj)
+                                    .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                    .mapValues((objVal, objKey) => {
+                                        if (objKey == "dueDate" || objKey == "startDate") {
+                                            return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
+                                        } else if (objKey == "workstream") {
+                                            return responseObj.workstream.workstream;
+                                        } else {
+                                            return objVal;
                                         }
-                                    }).map(o => {
-                                        return o.toJSON();
-                                    });
-                                }
-                                if (checkIfExistTask.length > 0) {
-                                    parallelCallback("Task name already exists in the workstream selected.");
-                                } else {
-                                    Tasks.findOne({ ...options, where: whereObj }).then(response => {
-                                        const responseObj = response.toJSON();
+                                    })
+                                    .value();
 
-                                        const currentTask = _(responseObj)
-                                            .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
-                                            .mapValues((objVal, objKey) => {
-                                                if (objKey == "dueDate" || objKey == "startDate") {
-                                                    return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
-                                                } else if (objKey == "workstream") {
-                                                    return responseObj.workstream.workstream;
-                                                } else {
-                                                    return objVal;
-                                                }
-                                            })
-                                            .value();
-
-                                        Tasks.update(updateBody, { where: { id: body.id } })
-                                            .then(response => {
-                                                return Tasks.findOne({ ...options, where: { id: body.id } });
-                                            })
-                                            .then(response => {
-                                                const returnCallback = response => {
-                                                    const updatedResponse = response.toJSON();
-                                                    const updatedTask = _(updatedResponse)
-                                                        .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
-                                                        .mapValues((objVal, objKey) => {
-                                                            if (objKey == "dueDate" || objKey == "startDate") {
-                                                                return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
-                                                            } else if (objKey == "workstream") {
-                                                                return updatedResponse.workstream.workstream;
-                                                            } else {
-                                                                return objVal;
-                                                            }
-                                                        })
-                                                        .value();
-                                                    const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                    const objectKeys = _.map(newObject, function (value, key) {
-                                                        return key;
-                                                    });
-
-                                                    parallelCallback(null, {
-                                                        data: updatedResponse,
-                                                        ...(_.isEmpty(newObject)
-                                                            ? {}
-                                                            : {
-                                                                logs: {
-                                                                    old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
-                                                                    new: JSON.stringify({ task_details: newObject })
-                                                                }
-                                                            })
-                                                    });
-                                                };
-                                                if (responseObj.periodic == 0 && body.periodic == 1) {
-                                                    const taskPromises = _.times(2, o => {
-                                                        return new Promise(resolve => {
-                                                            const nextDueDate = moment(body.dueDate)
-                                                                .add(body.periodType, body.periodInstance * (o + 1))
-                                                                .format("YYYY-MM-DD HH:mm:ss");
-                                                            const newPeriodTask = {
-                                                                ...body,
-                                                                dueDate: nextDueDate,
-                                                                ...(body.startDate != null && body.startDate != ""
-                                                                    ? {
-                                                                        startDate: moment(body.startDate)
-                                                                            .add(body.periodType, body.periodInstance * (o + 1))
-                                                                            .format("YYYY-MM-DD HH:mm:ss")
-                                                                    }
-                                                                    : {}),
-                                                                periodTask: responseObj.id
-                                                            };
-                                                            Tasks.create(_.omit(newPeriodTask, ["id", "task_dependency", "dependency_type", "assignedTo", "workstream", "checklist"])).then(response => {
-                                                                const createTaskObj = response.toJSON();
-                                                                ActivityLogs.create({
-                                                                    usersId: body.userId,
-                                                                    linkType: "task",
-                                                                    linkId: createTaskObj.id,
-                                                                    actionType: "created",
-                                                                    new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
-                                                                    title: createTaskObj.task
-                                                                }).then(response => {
-                                                                    resolve(createTaskObj);
-                                                                });
-                                                            });
-                                                        });
-                                                    });
-                                                    Promise.all(taskPromises).then(values => {
-                                                        const members = [];
-                                                        _.map(values, taskObj => {
-                                                            if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
-                                                            }
-
-                                                            if (typeof body.approverId != "undefined" && body.approverId != "") {
-                                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
-                                                            }
-                                                        });
-                                                        Members.bulkCreate(members).then(() => {
-                                                            returnCallback(response);
-                                                        });
-                                                    });
-                                                } else {
-                                                    returnCallback(response);
-                                                }
+                                Tasks.update(updateBody, { where: { id: body.id } })
+                                    .then(response => {
+                                        return Tasks.findOne({ ...options, where: { id: body.id } });
+                                    })
+                                    .then(response => {
+                                        const returnCallback = response => {
+                                            const updatedResponse = response.toJSON();
+                                            const updatedTask = _(updatedResponse)
+                                                .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                                .mapValues((objVal, objKey) => {
+                                                    if (objKey == "dueDate" || objKey == "startDate") {
+                                                        return objVal != "" && objVal != null ? moment(objVal).format("YYYY-MM-DD") : "";
+                                                    } else if (objKey == "workstream") {
+                                                        return updatedResponse.workstream.workstream;
+                                                    } else {
+                                                        return objVal;
+                                                    }
+                                                })
+                                                .value();
+                                            const newObject = func.changedObjAttributes(updatedTask, currentTask);
+                                            const objectKeys = _.map(newObject, function (value, key) {
+                                                return key;
                                             });
+
+                                            parallelCallback(null, {
+                                                data: updatedResponse,
+                                                ...(_.isEmpty(newObject)
+                                                    ? {}
+                                                    : {
+                                                        logs: {
+                                                            old: JSON.stringify({ task_details: _.pick(currentTask, objectKeys) }),
+                                                            new: JSON.stringify({ task_details: newObject })
+                                                        }
+                                                    })
+                                            });
+                                        };
+                                        if (responseObj.periodic == 0 && body.periodic == 1) {
+                                            const taskPromises = _.times(2, o => {
+                                                return new Promise(resolve => {
+                                                    const nextDueDate = moment(body.dueDate)
+                                                        .add(body.periodType, body.periodInstance * (o + 1))
+                                                        .format("YYYY-MM-DD HH:mm:ss");
+                                                    const newPeriodTask = {
+                                                        ...body,
+                                                        dueDate: nextDueDate,
+                                                        ...(body.startDate != null && body.startDate != ""
+                                                            ? {
+                                                                startDate: moment(body.startDate)
+                                                                    .add(body.periodType, body.periodInstance * (o + 1))
+                                                                    .format("YYYY-MM-DD HH:mm:ss")
+                                                            }
+                                                            : {}),
+                                                        periodTask: responseObj.id
+                                                    };
+                                                    Tasks.create(_.omit(newPeriodTask, ["id", "task_dependency", "dependency_type", "assignedTo", "workstream", "checklist"])).then(response => {
+                                                        const createTaskObj = response.toJSON();
+                                                        ActivityLogs.create({
+                                                            usersId: body.userId,
+                                                            linkType: "task",
+                                                            linkId: createTaskObj.id,
+                                                            actionType: "created",
+                                                            new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                                            title: createTaskObj.task
+                                                        }).then(response => {
+                                                            resolve(createTaskObj);
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                            Promise.all(taskPromises).then(values => {
+                                                const members = [];
+                                                _.map(values, taskObj => {
+                                                    if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                        members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                                    }
+
+                                                    if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                        members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                                    }
+                                                });
+                                                Members.bulkCreate(members).then(() => {
+                                                    returnCallback(response);
+                                                });
+                                            });
+                                        } else {
+                                            returnCallback(response);
+                                        }
                                     });
-                                }
                             });
                         } catch (err) {
                             parallelCallback(err);
