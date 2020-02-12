@@ -1225,7 +1225,7 @@ exports.post = {
             });
 
             if (checkIfExistTask.length > 0) {
-                cb({ status: false, error: "Task name already exists in the workstream selected." });
+                cb({ status: true, data: { error: "Task name already exists in the workstream selected." } });
             } else {
                 Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo", "dateUpdated"])).then(response => {
                     const newTaskResponse = response.toJSON();
@@ -1416,7 +1416,7 @@ exports.post = {
                 });
             }
         } catch (err) {
-            cb({ status: false, error: err });
+            cb({ status: true, data: { error: 'Something went wrong.' } });
         }
     },
     document: (req, cb) => {
@@ -2342,7 +2342,7 @@ exports.put = {
                 },
                 (err, result) => {
                     if (err != null) {
-                        cb({ status: false, error: err });
+                        cb({ status: true, data: { error: err } });
                     } else {
                         const { period, task } = result;
                         const allTask = period.concat(task);
@@ -2539,7 +2539,7 @@ exports.put = {
                 }
             );
         } catch (err) {
-            cb({ status: false, error: err });
+            cb({ status: true, data: { error: err } });
         }
     },
     status: (req, cb) => {
