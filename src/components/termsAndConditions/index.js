@@ -113,19 +113,20 @@ export default class Component extends React.Component {
                             editorClassName="editorClassName"
                             editorStyle={{ border: "1px solid #F1F1F1", padding: '20px' }}
                         />
-                        <div class="mt20 text-right">
-                            <div class="tc-checkbox mb10">
-                                <span class="mr10"> Reset Terms of Use and Privacy Policy? </span>
-                                <label class="custom-checkbox">
-                                    <input
-                                        type="checkbox"
-                                        checked={reset}
-                                        onChange={() => { this.setState({ reset: !this.state.reset }) }}
-                                        onClick={f => () => { }}
-                                    />
-                                    <span class="checkmark" />
-                                </label>
-                            </div>
+
+                        <div class='mt10 text-right'>
+                            <label class="custom-checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={reset}
+                                    onChange={() => { this.setState({ reset: !this.state.reset }) }}
+                                    onClick={f => () => { }}
+                                />
+                                <span class="checkmark" />
+                                <span > Reset Terms of Use and Privacy Policy? </span>
+                            </label>
+                        </div>
+                        <div class="mt10 text-right">
                             <button type="button" class="btn btn-primary" onClick={this.handleSubmit}>Submit</button>
                         </div>
                     </div>
