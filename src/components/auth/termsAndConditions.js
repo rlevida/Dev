@@ -60,19 +60,17 @@ class TermsAndConditions extends React.Component {
                                             editor_deselector: "readonly"
                                         }}
                                     />
-                                    <div class="text-right mt10">
-                                        <div class="tc-checkbox">
-                                            <span class="mr10">  I have read and agree to the Terms of Use and Privacy Policy </span>
-                                            <label class="custom-checkbox">
+                                    <div class='mt10 text-right'>
+                                        <label class="custom-checkbox">
                                             <input
                                                 type="checkbox"
                                                 checked={accept}
                                                 onChange={() => this.setState({ accept: !this.state.accept })}
                                                 onClick={f => () => { }}
                                             />
-                                                <span class="checkmark" />
-                                            </label>
-                                        </div>
+                                            <span class="checkmark" />
+                                            <span>  I have read and agree to the Terms of Use and Privacy Policy </span>
+                                        </label>
                                     </div>
                                 </div>
                             }
