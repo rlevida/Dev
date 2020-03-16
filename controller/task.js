@@ -1300,19 +1300,20 @@ exports.post = {
                                                             });
                                                         });
 
-                                                        Promise.all(taskDependencyPromise).then(values => {
-                                                            parallelCallback(null, values);
-                                                        });
-                                                    },
-                                                    members: parallelCallback => {
-                                                        const members = [];
-                                                        if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
-                                                        }
+                                                    Promise.all(taskDependencyPromise).then(values => {
+                                                        parallelCallback(null, values);
+                                                    });
+                                                },
+                                                members: parallelCallback => {
+                                                    const members = [];
+                                                    
+                                                    if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                        members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                                    }
 
-                                                        if (typeof body.approverId != "undefined" && body.approverId != "") {
-                                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
-                                                        }
+                                                    if (typeof body.approverId != "undefined" && body.approverId != "" && (typeof body.approvalRequired != 'undefined' && body.approvalRequired == 1)) {
+                                                        members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                                    }
 
                                                         if (members.length > 0) {
                                                             Members.bulkCreate(members).then(response => {
