@@ -2395,7 +2395,7 @@ exports.put = {
                                                             members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
                                                         }
 
-                                                        if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                        if (typeof body.approverId != "undefined" && body.approverId != "" && body.approvalRequired == 1) {
                                                             members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                                         }
 
