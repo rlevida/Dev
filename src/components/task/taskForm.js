@@ -133,7 +133,7 @@ export default class TaskForm extends React.Component {
 
     fetchProjectList(options) {
         const { dispatch, loggedUser } = { ...this.props };
-        let requestUrl = `/api/project?userId=${loggedUser.data.id}&updateCount=false`;
+        let requestUrl = `/api/v2project?userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0`;
 
         if (loggedUser.data.userRole >= 3) {
             requestUrl += `&userRole=${loggedUser.data.userRole}`;
@@ -330,7 +330,7 @@ export default class TaskForm extends React.Component {
         } else {
             const submitData = {
                 ...task.Selected,
-                approverId: task.Selected.approvalRequired > 0 ? task.Selected.approverId : "",
+                approverId: task.Selected.approvalRequired > 0 ? task.Selected.approverId : null,
                 userId: loggedUser.data.id,
                 projectId: task.Selected.projectId || project.Selected.id,
                 workstreamId: task.Selected.workstreamId || workstream.Selected.id,
