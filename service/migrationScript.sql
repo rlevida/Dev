@@ -158,4 +158,6 @@ left outer join project_team_members_v on project.id = project_team_members_v.pr
 
 select * from  project_team_members_summary_v;
 
+delete from members where userTypeLinkId is null;
+
 #----------PROJECT TEAM MEMBERS END---------
