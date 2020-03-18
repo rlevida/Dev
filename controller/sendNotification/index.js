@@ -15,6 +15,7 @@ const taskFollowingCompletedNotification = require("./template/taskFollowingComp
 const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
 const taskApproverNotification = require("./template/taskApprover");
 const taskBeforeDeadline = require("./template/taskBeforeDeadline");
+const notificationService = require('../../service/NotificationService');
 
 
 // const getNotificationSubject = require("./subject");
@@ -73,9 +74,10 @@ module.exports = async (params) => {
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
-            socketIo.emit("FRONT_BROADCAST_NOTIFICATION", {
-                ...findNotificationRes.toJSON()
-            });
+            notificationService.enqueue('FRONT_BROADCAST_NOTIFICATION', ...findNotificationRes.toJSON());
+            // socketIo.emit("FRONT_BROADCAST_NOTIFICATION", {
+            //     ...findNotificationRes.toJSON()
+            // });
             return {
                 ...findNotificationRes.toJSON(),
                 users_conversation: findNotificationRes.toJSON().from.users_conversation,
