@@ -10,7 +10,7 @@ const io = require('socket.io-client');
  */
 class NotificationService {
 
-    readonly notes: Notification[] = [];
+    private notes: Notification[] = [];
     private scheduler: CronJob;
     private socketIo: any;
 
@@ -40,6 +40,7 @@ class NotificationService {
         this.notes.forEach(note => {
             this.socketIo.emit(note.topic, note.message);
         });
+        this.notes = [];
     }
 
     private initIo() {
@@ -53,4 +54,4 @@ class NotificationService {
     }
 }
 
-module.exports = new NotificationService(process.env.NOTIFIER_CRONTAB || '*/5 * * * * *');
+module.exports = new NotificationService(process.env.NOTIFIER_CRONTAB || '*/60 * * * * *');

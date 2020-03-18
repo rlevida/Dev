@@ -74,7 +74,7 @@ module.exports = async (params) => {
             where: { id: notificationBulkCreateResult },
             include: notificationIncludes()
         }).map(findNotificationRes => {
-            notificationService.enqueue('FRONT_BROADCAST_NOTIFICATION', ...findNotificationRes.toJSON());
+            notificationService.enqueue('FRONT_BROADCAST_NOTIFICATION', findNotificationRes.toJSON());
             // socketIo.emit("FRONT_BROADCAST_NOTIFICATION", {
             //     ...findNotificationRes.toJSON()
             // });
