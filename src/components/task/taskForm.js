@@ -362,7 +362,7 @@ export default class TaskForm extends React.Component {
                 });
             } else {
                 postData(`/api/task`, submitData, c => {
-                    if (c.status == 200) {
+                    if (c.status == 200 && !c.data.error) {
                         const { id, approvalRequired, approverId, dueDate, startDate, periodic, period, periodInstance, periodType, projectId, workstream, task, task_members, checklist, description } = { ...c.data[0] };
                         dispatch({
                             type: "SET_TASK_SELECTED",
@@ -388,7 +388,7 @@ export default class TaskForm extends React.Component {
                         this.getTaskDetails();
                         showToast("success", "Task successfully added.", undefined, true);
                     } else {
-                        showToast("error", c.response.data.message);
+                        showToast("error", c.data.error);
                     }
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 });
