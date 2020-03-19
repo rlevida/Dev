@@ -10,7 +10,7 @@ const io = require('socket.io-client');
  */
 class NotificationService {
 
-    private notes: Notification[] = [];
+    private _notes: Notification[] = [];
     private scheduler: CronJob;
     private socketIo: any;
 
@@ -29,18 +29,22 @@ class NotificationService {
         });
     }
 
+    get notes(): Notification[] {
+        return this._notes;
+    }
+
     enqueue(topic, message) {
         console.log(`Enqueue on topic: ${topic} with message: ${JSON.stringify(message)}`);
         const notification = new Notification(topic, message);
-        this.notes.push(notification);
+        this._notes.push(notification);
     }
 
     postFromOutbox() {
-        console.log(`Posting ${this.notes.length} notifications`);
-        this.notes.forEach(note => {
+        console.log(`Posting ${this._notes.length} notifications`);
+        this._notes.forEach(note => {
             this.socketIo.emit(note.topic, note.message);
         });
-        this.notes = [];
+        this._notes = [];
     }
 
     private initIo() {
@@ -54,4 +58,4 @@ class NotificationService {
     }
 }
 
-module.exports = new NotificationService(process.env.NOTIFIER_CRONTAB || '*/60 * * * * *');
+module.exports = new NotificationService(process.env.NOTIFIER_CRONTAB || '*/30 * * * * *');
