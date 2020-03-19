@@ -110,10 +110,13 @@ if (process.env.NODE_ENV == "production") {
 
 const server = http.createServer(app);
 
-require('./serverSocket').socketIo(server, session);
+const socketIo = require('./serverSocket').socketIo(server, session);
+app.socketIo = socketIo;
 
 if (require.main === module) {
     server.listen(app.get("port"));
 }
 
 module.exports = app;
+
+require('./service/NotificationService');
