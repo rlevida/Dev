@@ -31,6 +31,11 @@ export default class ProjectInfo extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "RESET_WORKSTREAM", FormActive: "List", Loading: "RETRIEVING", List: [], Count: {}, Selected: {} });
+    }
+
     getMembers() {
         const { match, dispatch } = { ...this.props };
         const projectId = match.params.projectId;
@@ -140,22 +145,22 @@ export default class ProjectInfo extends React.Component {
                                                                     <p class="m0">{projectManager[0].user.firstName + " " + projectManager[0].user.lastName}</p>
                                                                 </div>
                                                             ) : (
-                                                                "N/A"
-                                                            )}
+                                                                    "N/A"
+                                                                )}
                                                         </div>
                                                         <div class="mt10">
                                                             <label>Project Members:</label>
                                                             <div class="display-flex">
                                                                 {members.List.length > 0
                                                                     ? _.map(_.take(members.List, 2), ({ firstName, lastName, avatar }, index) => {
-                                                                          return (
-                                                                              <div class="thumbnail-profile" key={index}>
-                                                                                  <span title={firstName + " " + lastName}>
-                                                                                      <img src={avatar} alt="Profile Picture" class="img-responsive" />
-                                                                                  </span>
-                                                                              </div>
-                                                                          );
-                                                                      })
+                                                                        return (
+                                                                            <div class="thumbnail-profile" key={index}>
+                                                                                <span title={firstName + " " + lastName}>
+                                                                                    <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                </span>
+                                                                            </div>
+                                                                        );
+                                                                    })
                                                                     : "N/A"}
                                                                 {members.List.length > 2 && (
                                                                     <span
