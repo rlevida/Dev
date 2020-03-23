@@ -215,7 +215,7 @@ export default class ProjectDashboard extends React.Component {
             { label: "New Files Uploaded", count: new_files, class_color: "text-blue" }
         ];
         const projectId = this.props.match.params.projectId;
-        const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion_rate, for_approval }) => {
+        const chartData = _.map(_.uniqBy(workstream.List, 'id'), ({ id, issues, dueToday, completed, task, workstream, completion_rate, for_approval }) => {
             return {
                 data: [["Workstream", "Completion"], ["Completed", completed.length], ["Due Today", dueToday], ["Delayed", issues], ["For Approval", for_approval], ["In Progress", task.length - (completed.length + dueToday + issues + for_approval)]],
                 title: workstream,
@@ -261,13 +261,13 @@ export default class ProjectDashboard extends React.Component {
                         </div>
                         <div class="card-body">
                             <div class="container-fluid">
-                                {workstream.List.length == 0 && workstream.Loading != "RETRIEVING" && (
+                                {chartData.length == 0 && workstream.Loading != "RETRIEVING" && (
                                     <p class="mb0 text-center">
                                         <strong>No Records Found</strong>
                                     </p>
                                 )}
-                                <div class={workstream.Loading == "RETRIEVING" && workstream.List.length == 0 ? "linear-background" : ""}>
-                                    {workstream.List.length > 0 && (
+                                <div class={workstream.Loading == "RETRIEVING" && chartData.length == 0 ? "linear-background" : ""}>
+                                    {chartData.length > 0 && (
                                         <div class="row content-row">
                                             {chartData.map((o, key) => {
                                                 return (
@@ -287,7 +287,7 @@ export default class ProjectDashboard extends React.Component {
                                         </div>
                                     )}
                                 </div>
-                                {workstream.Loading == "RETRIEVING" && workstream.List.length > 0 && <Loading />}
+                                {workstream.Loading == "RETRIEVING" && chartData.length > 0 && <Loading />}
                                 {_.isEmpty(workstream) == false && workstreamCurrentPage != workstreamLastPage && workstream.Loading != "RETRIEVING" && (
                                     <p class="mb0 text-center">
                                         <a onClick={() => this.getNextWorkstreams()}>Load More Workstream</a>
