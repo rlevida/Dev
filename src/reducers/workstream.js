@@ -20,7 +20,7 @@ export default function reducer(
 ) {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
-            return { ...state, List: action.list, ...(typeof action.Count != "undefined" ? { Count: action.Count } : {}) };
+            return { ...state, List: _.uniqBy(action.list, 'id'), ...(typeof action.Count != "undefined" ? { Count: action.Count } : {}) };
         }
         case "ADD_WORKSTREAM": {
             const List = state.List.slice();
@@ -29,7 +29,7 @@ export default function reducer(
         }
         case "UPDATE_WORKSTREAM_LIST": {
             const { List } = { ...state };
-            const updatedList = [...List, ...action.list];
+            const updatedList = _.uniqBy([...List, ...action.list], 'id');
 
             return { ...state, List: updatedList, ...(typeof action.Count != "undefined" ? { Count: action.Count } : {}) };
         }
