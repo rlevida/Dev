@@ -29,10 +29,9 @@ export default class WorkstreamList extends React.Component {
     }
 
     componentDidMount() {
-        const { workstream } = { ...this.props };
-        if (_.isEmpty(workstream.Count)) {
-            this.getList(1);
-        }
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_SCREEN_LOADER", Loading: true })
+        this.getList(1);
     }
 
     getList(page) {
@@ -52,6 +51,7 @@ export default class WorkstreamList extends React.Component {
                 showToast("error", "Something went wrong please try again later.");
             }
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+            dispatch({ type: "SET_SCREEN_LOADER", Loading: false })
         });
     }
 
