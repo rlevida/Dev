@@ -16,7 +16,6 @@ exports.socketIo = (server) => {
         });
 
         socket.on('FRONT_BROADCAST_NEW_NOTE', (data) => {
-            console.log(`$$$$$$$$$$$$$ YEAH OUT IT GOES!!!!!!!!!!!`);
             socket.broadcast.emit('FRONT_NEW_NOTE', { ...data })
         });
 
