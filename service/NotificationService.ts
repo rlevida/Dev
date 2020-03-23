@@ -1,7 +1,5 @@
 import { Notification } from '../models/Notification';
 import { CronJob } from 'cron';
-
-const app = require('../server');
 const io = require('socket.io-client');
 
 /**
@@ -48,13 +46,29 @@ class NotificationService {
     }
 
     private initIo() {
-        this.socketIo = io('http://localhost:3008', {
+        const siteUrl = this.siteUrl();
+        console.log(`Site url for socket io: ${siteUrl}`);
+        this.socketIo = io(siteUrl, {
             transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
             reconnectionAttempts: 99999
         });
+    }
+
+    private siteUrl(): string {
+        const environment =  process.env.NODE_ENV || "development";
+        if (environment === "development") {
+            return "//localhost:3008/";
+        }
+        if (environment === "staging") {
+            return "//ui-cloudcfo.mobbizapp.com/";
+        }
+
+        if (environment === "production") {
+            return "//app.cloudcfo.ph/";
+        }
     }
 }
 
