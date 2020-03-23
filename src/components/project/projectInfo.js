@@ -31,11 +31,6 @@ export default class ProjectInfo extends React.Component {
         }
     }
 
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "RESET_WORKSTREAM", FormActive: "List", Loading: "RETRIEVING", List: [], Count: {}, Selected: {} });
-    }
-
     getMembers() {
         const { match, dispatch } = { ...this.props };
         const projectId = match.params.projectId;
