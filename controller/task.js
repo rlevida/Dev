@@ -1291,7 +1291,7 @@ exports.post = {
                                                 },
                                                 members: parallelCallback => {
                                                     const members = [];
-                                                    
+
                                                     if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
                                                         members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
                                                     }
@@ -2074,7 +2074,7 @@ exports.post = {
 exports.put = {
     index: (req, cb) => {
         const body = req.body;
-        const updateBody = _.omit(body, ["id", "task_members", "task_dependency", "checklist", "workstream"]);
+        const updateBody = _.omit(body, ["id", "task_members", "task_dependency", "checklist", "workstream", "dateCompleted"]);
         const whereObj = {
             id: req.params.id
         };
@@ -2128,7 +2128,7 @@ exports.put = {
                                             const objectKeys = _.map(newObject, function (value, key) {
                                                 return key;
                                             });
-
+                                            ``
                                             parallelCallback(null, {
                                                 data: updatedResponse,
                                                 ...(_.isEmpty(newObject)
@@ -2262,11 +2262,15 @@ exports.put = {
                                                                 }
                                                             })
                                                             .value();
+                                                        console.log(`updated task`, updatedTask)
+                                                        console.log(`current task`, currentTask)
 
                                                         const newObject = func.changedObjAttributes(updatedTask, currentTask);
                                                         const objectKeys = _.map(newObject, function (_, key) {
                                                             return key;
                                                         });
+
+                                                        console.log(newObject)
                                                         resolve({
                                                             data: updatedResponse,
                                                             ...(_.isEmpty(newObject) == false

@@ -13,19 +13,20 @@ exports.socketIo = (server) => {
             socket.broadcast.emit('FRONT_LOGIN', {
                 ...data.userDetails
             })
-        })
+        });
 
         socket.on('FRONT_BROADCAST_NEW_NOTE', (data) => {
             socket.broadcast.emit('FRONT_NEW_NOTE', { ...data })
-        })
+        });
 
         socket.on('FRONT_BROADCAST_COMMENT_LIST', (data) => {
             socket.broadcast.emit('FRONT_COMMENT_LIST', { ...data })
-        })
+        });
 
         socket.on('FRONT_BROADCAST_NOTIFICATION', (data) => {
             socket.broadcast.emit('FRONT_NOTIFICATION', { ...data })
-        })
+        });
 
     });
+    return io;
 };

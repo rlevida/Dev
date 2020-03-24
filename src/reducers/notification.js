@@ -18,7 +18,7 @@ export default function reducer(
 ) {
     switch (action.type) {
         case "SET_NOTIFICATION_LIST": {
-            return { ...state, List: state.List.concat(action.list), ...(action.count ? { Count: action.count } : {}) };
+            return { ...state, List: action.list, ...(action.count ? { Count: action.count } : {}) };
         }
         case "SET_NOTIFICATION_SELECTED": {
             return { ...state, Selected: action.Selected };

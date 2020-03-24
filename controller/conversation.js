@@ -22,6 +22,7 @@ const {
 const Op = Sequelize.Op;
 
 const sendNotification = require("./sendNotification");
+const notificationService = require('../service/NotificationService');
 
 const NotesInclude = [
     {
@@ -760,10 +761,14 @@ exports.post = {
                         })
                             .map(mapObject => {
                                 const responseObj = mapObject.toJSON();
-                                socketIo.emit("FRONT_BROADCAST_NEW_NOTE", {
+                                notificationService.enqueue('FRONT_BROADCAST_NEW_NOTE', {
                                     ...responseObj,
                                     isStarred: 0
                                 });
+                                // socketIo.emit("FRONT_BROADCAST_NEW_NOTE", {
+                                //     ...responseObj,
+                                //     isStarred: 0
+                                // });
                                 return {
                                     ...responseObj,
                                     isStarred: 0
@@ -1231,7 +1236,8 @@ exports.post = {
                             const memberUser = _.map([...members.new_members, ...members.removed_members], ({ linkId, member_type }) => {
                                 return { linkId, member_type };
                             });
-                            socketIo.emit("FRONT_BROADCAST_COMMENT_LIST", { result: conversations, members: memberUser });
+                            // socketIo.emit("FRONT_BROADCAST_COMMENT_LIST", { result: conversations, members: memberUser });
+                            notificationService.enqueue('FRONT_BROADCAST_COMMENT_LIST', { result: conversations, members: memberUser });
 
                             if (mentionedUsers.length > 0) {
                                 await sendNotification({
