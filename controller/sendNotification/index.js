@@ -5,20 +5,19 @@ const { Notification, UsersNotificationSetting, Projects, Users, Conversation } 
 
 const { notificationIncludes } = require("../includes/notification");
 const getNotificationMessage = require("./message");
-const messageSendNotification = require("./template/messageSend");
-const messageMentionedNotification = require("./template/messageMentioned");
-const filetaggedNotification = require("./template/fileTagged");
-const taskComment = require("./template/taskComment");
-const taskAssignedNotification = require("./template/taskAssigned");
-const fileNewUploadNotification = require("./template/fileNewUpload");
-const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
-const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
-const taskApproverNotification = require("./template/taskApprover");
-const taskBeforeDeadline = require("./template/taskBeforeDeadline");
+// const filetaggedNotification = require("./template/fileTagged");
+// const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
+// const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
+// const taskBeforeDeadline = require("./template/taskBeforeDeadline");
 const notificationService = require('../../service/NotificationService');
 
-
 // const getNotificationSubject = require("./subject");
+const messageSendNotification = require("./messageSend");
+const messageMentionedNotification = require("./messageMentioned");
+const taskComment = require("./taskComment");
+const taskAssignedNotification = require("./taskAssigned");
+const fileNewUploadNotification = require("./fileNewUpload");
+const taskApproverNotification = require("./taskApprover");
 
 module.exports = async (params) => {
     try {
@@ -80,7 +79,9 @@ module.exports = async (params) => {
             // });
             return {
                 ...findNotificationRes.toJSON(),
-                users_conversation: findNotificationRes.toJSON().from.users_conversation,
+                ...findNotificationRes.toJSON().from.users_conversation ? {
+                    users_conversation: findNotificationRes.toJSON().from.users_conversation
+                } : {}
             }
         })
 

@@ -95,7 +95,7 @@ export default class TeamList extends React.Component {
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";
         const teamList = teams.List;
-        console.log(teamList)
+
         return (
             <div>
                 {

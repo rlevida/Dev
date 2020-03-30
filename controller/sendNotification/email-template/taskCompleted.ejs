@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+        <title>
+        </title>
+        <style>
+            body{
+                font-family:  Arial; 
+                -webkit-font-smoothing: 
+                antialiased;
+                background-color: #2f51d0;
+            }
+            .container{
+                margin: 10px;
+                border-radius: 10px;
+                background-color: #2f51d0;
+                padding: 15px;
+            }
+            .table-responsive-vertical{
+                background-color: #fff;
+                padding: 25px;
+                border-radius: 10px;
+            }
+            .email-footer{
+                padding: 25px;
+            }
+            .table{
+                width: 100%;
+                max-width: 100%;
+                margin-bottom: 2rem;
+            }
+            .table>thead>tr,
+            .table>tbody>tr,
+            .table>tfoot>tr{
+                -webkit-transition: all 0.3s ease;
+                -moz-transition: all 0.3s ease;
+                -o-transition: all 0.3s ease;
+                -o-transition:  all 0.3s ease;
+            }
+            .table> thead>tr> th,
+            .table> tbody>tr> th,
+            .table> tfoot>tr> th,
+            .table> thead>tr> td,
+            .table> tbody>tr> td,
+            .table> tfoot>tr> td{
+                text-align: left;
+                padding: .5rem;
+                vertical-align: top;
+                border-top: 0;
+                -webkit-transition: all 0.3s ease;
+                -moz-transition: all 0.3s ease;
+                -o-transition: all 0.3s ease;
+                -o-transition:  all 0.3s ease;
+                text-align: center;
+            }
+            .table > thead > tr >th{
+                font-weight: 600;
+                columns: #757575;
+                vertical-align: bottom;
+                border-bottom: 1px solid rgb(0,0,0,0,12);
+            }
+            .table > caption > thead > tr:first-child > th,
+            .table > colgroup > thead > tr:first-child > th,
+            .table > thead:first-child > thead > tr:first-child > th,
+            .table > caption > thead > tr:first-child > td,
+            .table > colgroup > thead > tr:first-child > td,
+            .table > thead:first-child > thead > tr:first-child > td{
+                border-top: 0;
+            }
+            .table > tbody + tbody{
+                border-top: 1px solid rgb(0,0,0,0,12);
+            }
+            .table .table{
+                background: #fff;
+            }
+            .table .no-border{
+                border:0
+            }
+            .table-condensed > thead > tr > th,
+            .table-condensed > tbody > tr > th,
+            .table-condensed > tfoot > tr > th,
+            .table-condensed > thead > tr > td,
+            .table-condensed > tbody > tr > td,
+            .table-condensed > tfoot > tr > td{
+                padding: 0.8rem;
+            }
+            .table-bordered{
+                border: 0;
+            }
+            /* .table-bordered > thead > tr > th,
+            .table-bordered > tbody > tr > th,
+            .table-bordered > tfoot > tr > th,
+            .table-bordered > thead > tr > td,
+            .table-bordered > tbody > tr > td,
+            .table-bordered > tfoot > tr > td{
+                border: 0;
+                border-bottom:  1px solid #e0e0e0;
+            } */
+
+            /* .table-bordered > thead > tr > th,
+            .table-bordered > tfoot > tr > td{
+                border-bottom-width: 1px;
+            } */
+
+            /* .table-striped > tbody > tr:nth-child(odd) > td,
+            .table-striped > tbody > tr:nth-child(odd) > th{
+                background-color: #f5f5f5;
+            } */
+
+            /* .table-hover > tbody > tr:hover >td,
+            .table-hover > tbody > tr:hover >th{
+                background-color: rgb(0,0,0,0,12);
+            } */
+            @media screen and (max-width: 768px) {
+                body{
+                    font-size: 12px;
+                }
+                .table-responsive-vertical > .table{
+                    margin-bottom: 0;
+                    background-color: transparent;
+                }
+                .table-responsive-vertical > .table > thead,
+                .table-responsive-vertical > .table > tfoot{
+                    display: none;
+                }
+                .table-responsive-vertical > .table > tbody{
+                    display: block;
+                }
+                .table-responsive-vertical > .table > tbody > tr{
+                    display: block;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 2px;
+                    margin-bottom: 1.6rem;
+                }
+                .table-responsive-vertical > .table > tbody > tr > td{
+                    background-color: #fff;
+                    display: block;
+                    vertical-align: middle;
+                    text-align: right;
+                }
+                /* .table-responsive-vertical > .table > tbody > tr > td::before{
+                    content: attr(data-title);
+                    float: left;
+                    font-size: inherit;
+                    font-weight: 400;
+                    color: #757575
+                } */
+                .table-responsive-vertical > .table-bordered{
+                    border:0;
+                }
+                .table-responsive-vertical > .table-bordered > tbody > tr> td{
+                        border:0;
+                        border-bottom: 1px solid #e0e0e0;
+                }
+                .table-responsive-vertical > .table-bordered > tbody > tr > td:last-child{
+                    border-bottom:0;
+                }
+                /* .table-responsive-vertical > .table-bordered > tbody > tr > td,
+                .table-responsive-vertical > .table-bordered > tbody > tr:nth-child(odd){
+                        background-color: #fff;
+                }
+                .table-responsive-vertical > .table-bordered > tbody > tr> td:nth-child(odd){
+                        background-color:#f5f5f5;
+                } */
+                /* .table-responsive-vertical > .table-hover > tbody > tr:hover > td,
+                .table-responsive-vertical > .table-hover > tbody > tr:hover {
+                    background-color: #fff;
+                } */
+                .table-responsive-vertical > .table-hover > tbody > tr > td:hover {
+                    background-color: rgb(0,0,0,0,12);
+                }
+                .td-header {
+                    float: left;
+                    display: unset;
+                    font-size: inherit;
+                    font-weight: 400;
+                    color: #757575
+                }
+            }
+            @media screen and (min-width: 769px) {
+                .td-header {
+                    float: left;
+                    display: none;
+                }
+            }
+            .table-striped.table-mc-red > tbody > tr:nth-child(odd) > td,
+            .table-striped.table-mc-red > tbody > tr:nth-child(odd) > th{
+                background-color: #fde0dc;
+            }
+            .table-striped.table-mc-red > tbody > tr:hover > td,
+            .table-striped.table-mc-red > tbody > tr:hover > th{
+                background-color: #f9bd;
+            }
+            .table-responsive-vertical > table {
+                table-layout: fixed;
+            }
+            .capitalize{
+                text-transform: capitalize;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="table-responsive-vertical">
+                <p>Hi <%= data.name %>,</p>
+                <p><%= data.message %>:</p>
+                <table class="table table-bordered table-striped table-hover table-mc-light-blue">
+                    <thead>
+                    <tr>
+                        <th>TASK NAME</th>
+                        <th>DEADLINE</th>
+                        <th>TIME REMAINING</th>
+                        <th>NAME</th>
+                        <th>PROJECT</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% data.orderBy(data.tasks, ["dateCompleted"], ["desc"]).forEach(function(userTask){ %>
+                       <%   var { task_project, task, dueDate } = { ...userTask } %>
+                       <%   var remainingDays = data.func.daysRemaining(dueDate); %>
+                       <%   var taskUrl = `${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}account#/projects/${userTask.projectId}/workstreams/${userTask.workstreamId}?task-id=${userTask.id}`; %>
+                       <%   var projectName = `${task_project.project.substring(0, 10)}${task_project.project.length > 10 ? "..." : ""}` %>
+                       <%   var taskName = `${task.substring(0, 12)}${task.length > 12 ? "..." : ""}` %>
+                       <%   var days = remainingDays < 0 ? "days delayed" : "day" %>
+                       <%   var taskASsigned = `${ data.func.toCapitalizeFirstLetter(userTask.assignee[0].user.firstName)} ${data.func.toCapitalizeFirstLetter(userTask.assignee[0].user.lastName)}` %>
+                       <%   var cid = task_project.type.type == "Client" ? "client-project-icon" : task_project.type.type == "Private" ? "private-project-icon" : "internal-project-icon" %>
+                      
+                       <tr>
+                            <td><span class="td-header">TASK NAME:</span><a href="<%= taskUrl %>" title="<%= task %>" style=" text-decoration:none; margin:0;"><%= taskName %></a></td>
+                            <td><span class="td-header">DEADLINE:</span><%= data.moment(userTask.dueDate).format("MMMM DD, YYYY") %></td>
+                            <td><span class="td-header">COMPLETED ON:</span><%= data.moment(userTask.dateCompleted).format("MMMM DD, YYYY") %></td>
+                            <td><span class="td-header">NAME:</span><%= taskASsigned %></td>
+                            <td>
+                                <span class="td-header">PROJECT</span>
+                                <span title="<%= task_project.project %>" 
+                                    style="width: max-content; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; margin:0; border: solid 5px <%= task_project.color %>; background-color: <%= task_project.color %>">
+                                    <img src="cid:<%= cid %>" height="12" width="12">&nbsp;&nbsp;<span style="color:#fff"><%= projectName %></span>
+                                </span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                    <tr style="border:0!important">
+                        <td style="padding:0!important">
+                            <table>
+                                <tr>
+                                    <td style="padding-bottom:30px;padding-top: 30px;">
+                                        <table border="0" cellspacing="0" borderspacing="0" style="max-width:100px; border-radius:3px;">
+                                            <tr>
+                                                <td style="background-color: #7068d6; border-radius: 3px;text-align: center; border: solid 5px #7068d6; width: 100px;">
+                                                    <a href="<%= data.url %>" style="color: white; cursor: pointer;font-weight: 500; text-decoration:none;">View</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;">
+                                        <p style="margin:0;">Thanks,</p>
+                                        <p style="margin:0">CloudCfo Team</p>
+                                        <img src="cid:cloud-cfo-logo" alt="Cloud Cfo" height="70" width="70">
+                                        <p>***Please do not reply to this email***</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
