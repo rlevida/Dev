@@ -4,7 +4,7 @@ const CronJob = require("cron").CronJob;
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
-const taskDuedateNotification = require("../controller/sendNotification//template/taskDuedateNotification")
+const taskDuedateNotification = require("../controller/sendNotification/taskDuedateNotification")
 
 /**
  *
