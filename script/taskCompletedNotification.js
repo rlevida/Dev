@@ -4,7 +4,7 @@ const CronJob = require("cron").CronJob;
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
-const taskCompletedNotification = require("../controller/sendNotification//template/taskCompletedNotification")
+const taskCompletedNotification = require("../controller/sendNotification/taskCompletedNotification")
 
 /**
  *
