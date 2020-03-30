@@ -5,10 +5,10 @@ const { Notification, UsersNotificationSetting, Projects, Users, Conversation } 
 
 const { notificationIncludes } = require("../includes/notification");
 const getNotificationMessage = require("./message");
-const filetaggedNotification = require("./template/fileTagged");
-const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
-const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
-const taskBeforeDeadline = require("./template/taskBeforeDeadline");
+// const filetaggedNotification = require("./template/fileTagged");
+// const taskFollowingCompletedNotification = require("./template/taskFollowingCompleted")
+// const taskMemberCompletedNotification = require("./template/taskMemberCompleted");
+// const taskBeforeDeadline = require("./template/taskBeforeDeadline");
 const notificationService = require('../../service/NotificationService');
 
 // const getNotificationSubject = require("./subject");
