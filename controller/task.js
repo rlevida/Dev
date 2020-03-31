@@ -2181,9 +2181,10 @@ exports.put = {
                                                         members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
                                                     }
 
-                                                    if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                    if (typeof body.approverId != "undefined" && body.approverId != "" && (typeof body.approvalRequired != 'undefined' && body.approvalRequired == 1)) {
                                                         members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                                     }
+
                                                 });
                                                 Members.bulkCreate(members).then(() => {
                                                     returnCallback(response);
@@ -2262,8 +2263,6 @@ exports.put = {
                                                                 }
                                                             })
                                                             .value();
-                                                        console.log(`updated task`, updatedTask)
-                                                        console.log(`current task`, currentTask)
 
                                                         const newObject = func.changedObjAttributes(updatedTask, currentTask);
                                                         const objectKeys = _.map(newObject, function (_, key) {
@@ -2353,7 +2352,7 @@ exports.put = {
                                                             members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
                                                         }
 
-                                                        if (typeof body.approverId != "undefined" && body.approverId != "" && body.approvalRequired == 1) {
+                                                        if (typeof body.approverId != "undefined" && body.approverId != "" && (typeof body.approvalRequired != 'undefined' && body.approvalRequired == 1)) {
                                                             members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                                         }
 
