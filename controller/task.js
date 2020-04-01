@@ -737,6 +737,7 @@ exports.get = {
         const options = {
             include: associationArray
         };
+
         try {
             Tasks.findOne({ ...options, where: whereObj }).then(response => {
                 if (response != null) {
@@ -753,11 +754,11 @@ exports.get = {
                         }
                     });
                 } else {
-                    cb({ status: false, error: "Task not found." });
+                    cb({ status: true, data: { error: true, message: 'Task has been deleted.' } });
                 }
             });
         } catch (err) {
-            cb({ status: false, error: err });
+            cb({ status: true, data: { error: true, message: 'Something went wrong.' } });
         }
     },
     getTaskList: (req, cb) => {

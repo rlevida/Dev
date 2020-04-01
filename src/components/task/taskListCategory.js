@@ -217,11 +217,13 @@ export default class TaskListCategory extends React.Component {
         });
 
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, c => {
-            if (c.status == 200) {
+            if (c.status == 200 && !c.data.error) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 dispatch({ type: "SET_SCREEN_LOADER", Loading: false });
                 $(`#task-details`).modal("show");
+            } else {
+                showToast('error', c.data.message)
             }
         });
 
