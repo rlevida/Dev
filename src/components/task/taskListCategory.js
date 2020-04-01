@@ -251,7 +251,7 @@ export default class TaskListCategory extends React.Component {
         });
 
         const isDefaultAssigned = task_members.filter(e => {
-            return e.user.username === "default";
+            return e.user && e.user.username === "default";
         });
 
         const succeedingList = task_dependency.filter(e => {
@@ -269,6 +269,7 @@ export default class TaskListCategory extends React.Component {
         const precedingCompleted = task_preceding.filter(e => {
             return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
         });
+
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
@@ -392,54 +393,58 @@ export default class TaskListCategory extends React.Component {
     }
 
     render() {
-        const { date, task, workstream_id = "" } = { ...this.props };
-        const { count, loading } = { ...this.state };
-        const currentPage = typeof count.current_page != "undefined" ? count.current_page : 1;
-        const lastPage = typeof count.last_page != "undefined" ? count.last_page : 1;
-        const taskList = this.groupList();
-        return (
-            <div>
-                <div class="card-header">
-                    <h4>{typeof date != "undefined" ? date : "No due date"}</h4>
-                </div>
-                <div class={loading == "RETRIEVING" && taskList.length == 0 ? "linear-background" : ""}>
-                    <div class="card-body m0">
-                        {taskList.length > 0 && (
-                            <table id="my-task">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" class="td-left">
-                                            Task Name
+        try {
+            const { date, task, workstream_id = "" } = { ...this.props };
+            const { count, loading } = { ...this.state };
+            const currentPage = typeof count.current_page != "undefined" ? count.current_page : 1;
+            const lastPage = typeof count.last_page != "undefined" ? count.last_page : 1;
+            const taskList = this.groupList();
+            return (
+                <div>
+                    <div class="card-header">
+                        <h4>{typeof date != "undefined" ? date : "No due date"}</h4>
+                    </div>
+                    <div class={loading == "RETRIEVING" && taskList.length == 0 ? "linear-background" : ""}>
+                        <div class="card-body m0">
+                            {taskList.length > 0 && (
+                                <table id="my-task">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="td-left">
+                                                Task Name
                                         </th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Deadline</th>
-                                        <th scope="col">Time Remaining</th>
-                                        {task.Filter.type != "assignedToMe" && <th scope="col">Assigned</th>}
-                                        {workstream_id == "" && <th scope="col">Project</th>}
-                                        <th scope="col">Completed On</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {_.map(taskList, (taskObj, index) => {
-                                        return this.renderRow({ ...taskObj, index });
-                                    })}
-                                </tbody>
-                            </table>
-                        )}
-                        {loading == "RETRIEVING" && taskList.length > 0 && <Loading />}
-                        {currentPage != lastPage && loading != "RETRIEVING" && (
-                            <p class="mb0 text-center">
-                                <a onClick={() => this.getNext()}>Load More Tasks</a>
-                            </p>
-                        )}
-                        {taskList.length == 0 && loading != "RETRIEVING" && (
-                            <p class="mb0 text-center">
-                                <strong>No Records Found</strong>
-                            </p>
-                        )}
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Deadline</th>
+                                            <th scope="col">Time Remaining</th>
+                                            {task.Filter.type != "assignedToMe" && <th scope="col">Assigned</th>}
+                                            {workstream_id == "" && <th scope="col">Project</th>}
+                                            <th scope="col">Completed On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {_.map(taskList, (taskObj, index) => {
+                                            return this.renderRow({ ...taskObj, index });
+                                        })}
+                                    </tbody>
+                                </table>
+                            )}
+                            {loading == "RETRIEVING" && taskList.length > 0 && <Loading />}
+                            {currentPage != lastPage && loading != "RETRIEVING" && (
+                                <p class="mb0 text-center">
+                                    <a onClick={() => this.getNext()}>Load More Tasks</a>
+                                </p>
+                            )}
+                            {taskList.length == 0 && loading != "RETRIEVING" && (
+                                <p class="mb0 text-center">
+                                    <strong>No Records Found</strong>
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        } catch (e) {
+            console.log(e)
+        }
     }
 }
