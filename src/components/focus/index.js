@@ -124,10 +124,12 @@ export default class Component extends React.Component {
         });
 
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, c => {
-            if (c.status == 200) {
+            if (c.status == 200 && !c.data.error) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 $(`#task-details`).modal("show");
+            } else {
+                showToast('error', c.data.message)
             }
         });
 
