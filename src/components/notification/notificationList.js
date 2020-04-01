@@ -62,49 +62,56 @@ class NotificationList extends React.Component {
 
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser, notification } = { ...this.props };
-        const { taskId, workstreamId, projectId } = { ...notif };
+        const { taskId, workstreamId, projectId, project_notification, workstream_notification } = { ...notif };
+
         if (!notif.isRead) {
             await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
                 dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
             });
         }
 
-        let url = `/projects/${projectId}`;
-        switch (notif.type) {
-            case "fileNewUpload":
-                {
-                    if (notif.taskId === null) {
-                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
-                    } else {
+        if (project_notification.isDeleted == 1 || project_notification.isActive == 0) {
+            showToast('error', 'Project is now inactive');
+        } else if (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0) {
+            showToast('error', 'Workstream is now inactive');
+        } else {
+            let url = `/projects/${projectId}`;
+            switch (notif.type) {
+                case "fileNewUpload":
+                    {
+                        if (notif.taskId === null) {
+                            history.push(`${url}/workstreams/${workstreamId}?tab=document`);
+                        } else {
+                            history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                        }
+                    }
+                    break;
+                case "messageSend":
+                case "messageMentioned":
+                    {
+                        history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                    }
+                    break;
+                case "taskAssgined":
+                case "taskAssignedComment":
+                case "taskApprover":
+                case "taskTagged":
+                case "taskApproved":
+                case "commentReplies":
+                case "taskMemberCompleted":
+                case "taskFollowingCompleted":
+                case "taskDeadline":
+                case "taskTeamDeadline":
+                case "taskFollowingDeadline":
+                case "taskResponsibleDeadline":
+                case "taskResponsibleBeforeDeadLine":
+                case "taskBeforeDeadline":
+                case "taskAssigned":
+                    {
                         history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
                     }
-                }
-                break;
-            case "messageSend":
-            case "messageMentioned":
-                {
-                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
-                }
-                break;
-            case "taskAssgined":
-            case "taskAssignedComment":
-            case "taskApprover":
-            case "taskTagged":
-            case "taskApproved":
-            case "commentReplies":
-            case "taskMemberCompleted":
-            case "taskFollowingCompleted":
-            case "taskDeadline":
-            case "taskTeamDeadline":
-            case "taskFollowingDeadline":
-            case "taskResponsibleDeadline":
-            case "taskResponsibleBeforeDeadLine":
-            case "taskBeforeDeadline":
-            case "taskAssigned":
-                {
-                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                }
-                break;
+                    break;
+            }
         }
     }
 
@@ -212,28 +219,28 @@ class NotificationList extends React.Component {
                                             case "taskTeamDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskTeamDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskTeamDeadline data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskFollowingDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskFollowingDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskFollowingDeadline data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskApproved": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskFollowingDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskFollowingDeadline data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
                                             case "taskAssignedComment": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskAssginedComment data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskAssginedComment data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
@@ -242,7 +249,7 @@ class NotificationList extends React.Component {
                                             case "taskBeforeDeadline": {
                                                 return (
                                                     <div key={i}>
-                                                        <TaskResponsibleDeadline data={e} index={i}  handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
+                                                        <TaskResponsibleDeadline data={e} index={i} handleNotificationRedirect={data => this.handleNotificationRedirect(data)} markAsRead={this.markAsRead} />
                                                     </div>
                                                 );
                                             }
