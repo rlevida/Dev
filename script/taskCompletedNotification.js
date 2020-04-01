@@ -52,6 +52,7 @@ var job = new CronJob(
                                     required: true,
                                     where: {
                                         isActive: 1,
+                                        isDeleted: 0,
                                         dateCompleted: {
                                             [Op.gt]: moment().subtract(1, 'days').startOf('day').utc().format(),
                                             [Op.lt]: moment().subtract(1, 'days').endOf('day').utc().format()
@@ -190,6 +191,7 @@ var job = new CronJob(
                             required: true,
                             where: {
                                 isActive: 1,
+                                isDeleted: 0,
                                 dateCompleted: {
                                     [Op.gt]: moment().subtract(1, 'days').startOf('day').utc().format(),
                                     [Op.lt]: moment().subtract(1, 'days').endOf('day').utc().format()
