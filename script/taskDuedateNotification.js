@@ -46,6 +46,7 @@ var job = new CronJob(
                             required: true,
                             where: {
                                 isActive: 1,
+                                isDeleted: 0,
                                 dueDate: {
                                     [Op.between]: [moment().add(1, "days").startOf("day").utc().format(), moment().add(1, "days").endOf("day").utc().format()]
                                 },
@@ -101,6 +102,7 @@ var job = new CronJob(
                             required: true,
                             where: {
                                 isActive: 1,
+                                isDeleted: 0,
                                 dueDate: {
                                     [Op.between]: [moment().add(1, "days").startOf("day").utc().format(), moment().add(1, "days").endOf("day").utc().format()]
                                 },
@@ -285,6 +287,7 @@ var job = new CronJob(
                             required: true,
                             where: {
                                 isActive: 1,
+                                isDeleted: 0,
                                 dueDate: {
                                     [Op.lt]: moment().startOf("day").utc().format()
                                 },
@@ -341,6 +344,7 @@ var job = new CronJob(
                             required: true,
                             where: {
                                 isActive: 1,
+                                isDeleted: 0,
                                 dueDate: {
                                     [Op.lt]: moment().startOf("day").utc().format()
                                 },
@@ -407,6 +411,7 @@ var job = new CronJob(
                                     required: true,
                                     where: {
                                         isActive: 1,
+                                        isDeleted: 0,
                                         dueDate: {
                                             [Op.lt]: moment().startOf("day").utc().format()
                                         },
