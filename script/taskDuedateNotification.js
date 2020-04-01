@@ -6,6 +6,9 @@ const Op = Sequelize.Op;
 
 const taskDuedateNotification = require("../controller/sendNotification/taskDuedateNotification")
 
+let overDueKeyTimer = '';
+let beforeDueKeyTImer = '';
+
 /**
  *
  * Comment : Manage notification for task overdue
@@ -204,7 +207,7 @@ var job = new CronJob(
 
             /* Create Email Notification */
             /* SEND NOTIFICATION EVERY 10 SECONDS */
-            keyTimer = setInterval(() => {
+            beforeDueKeyTImer = setInterval(() => {
                 if (usersTasks.length > 0) {
                     const taskNotificationData = usersTasks.slice(0, 10);
 
@@ -240,7 +243,7 @@ var job = new CronJob(
                     })
 
                 } else {
-                    clearInterval(keyTimer);
+                    clearInterval(beforeDueKeyTImer);
                 }
             }, 10000);
 
@@ -543,7 +546,7 @@ var job = new CronJob(
 
 
             /* SEND NOTIFICATION EVERY 10 SECONDS */
-            keyTimer = setInterval(() => {
+            overDueKeyTimer = setInterval(() => {
                 if (usersTasks.length > 0) {
                     const taskNotificationData = usersTasks.slice(0, 10);
                     taskNotificationData.forEach(async user => {
@@ -589,7 +592,7 @@ var job = new CronJob(
                     })
 
                 } else {
-                    clearInterval(keyTimer);
+                    clearInterval(overDueKeyTimer);
                 }
             }, 10000);
 

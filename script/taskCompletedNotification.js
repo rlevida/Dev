@@ -6,6 +6,9 @@ const Op = Sequelize.Op;
 
 const taskCompletedNotification = require("../controller/sendNotification/taskCompletedNotification")
 
+let teamKeyTimer = '';
+let followerKeyTimer = '';
+
 /**
  *
  * Comment : Manage notification for task overdue
@@ -125,7 +128,7 @@ var job = new CronJob(
             /* Send email notification to task assigned, task follower, task assigned team leader */
             /* SEND NOTIFICATION EVERY 10 SECONDS */
 
-            keyTimer = setInterval(() => {
+            teamKeyTimer = setInterval(() => {
                 if (usersTasks.length > 0) {
                     const taskNotificationData = usersTasks.slice(0, 10);
 
@@ -150,7 +153,7 @@ var job = new CronJob(
                     })
 
                 } else {
-                    clearInterval(keyTimer);
+                    clearInterval(teamKeyTimer);
                 }
             }, 10000);
 
@@ -258,7 +261,7 @@ var job = new CronJob(
             /* Send email notification to task assigned, task follower, task assigned team leader */
             /* SEND NOTIFICATION EVERY 10 SECONDS */
 
-            keyTimer = setInterval(() => {
+            followerKeyTimer = setInterval(() => {
                 if (usersTasks.length > 0) {
                     const taskNotificationData = usersTasks.slice(0, 10);
                     taskNotificationData.forEach(async user => {
@@ -282,7 +285,7 @@ var job = new CronJob(
                     })
 
                 } else {
-                    clearInterval(keyTimer);
+                    clearInterval(followerKeyTimer);
                 }
             }, 10000);
         } catch (err) {
