@@ -83,15 +83,12 @@ const NotificationInclude = [
     {
         model: Projects,
         as: "project_notification",
-        required: true,
-        where: {
-            isActive: 1
-        },
+        required: false,
         include: [
             {
                 model: Type,
                 as: "type",
-                required: true,
+                required: false,
                 attributes: ["type"]
             }
         ]
@@ -106,7 +103,7 @@ const NotificationInclude = [
         model: Workstream,
         as: "workstream_notification",
         required: false,
-        attributes: ["workstream"]
+        attributes: ["workstream", "isActive", "isDeleted"]
     },
     {
         model: Tasks,

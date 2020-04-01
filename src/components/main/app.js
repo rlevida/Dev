@@ -3,8 +3,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Route, Switch, Link } from "react-router-dom";
 import _ from "lodash";
-import { getData, notificationType, putData, textColor } from "../../globalFunction";
-import { Loading } from "../../globalComponents";
+import { getData, notificationType, putData, textColor, showToast } from "../../globalFunction";
 
 import Menu from "./menu";
 import Home from "../home";
@@ -173,61 +172,69 @@ class Main extends React.Component {
 
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser, notification } = { ...this.props };
-        const { taskId, workstreamId, projectId } = { ...notif };
+        const { taskId, workstreamId, projectId, project_notification, workstream_notification } = { ...notif };
+
         if (!notif.isRead) {
             putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
                 dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
             });
         }
 
-        let url = `/projects/${projectId}`;
-        switch (notif.type) {
-            case "fileNewUpload": {
-                if (notif.taskId === null) {
-                    history.push(`${url}/workstreams/${workstreamId}?tab=document`);
-                } else {
-                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                }
-            }
-            case "fileTagged":
-                {
-                    history.push(`${url}/files?file-id=${notif.documentId}`);
-                }
-                break;
-            case "messageSend":
-            case "messageMentioned":
-                {
-                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
-                }
-                break;
-            case "commentReplies":
-                {
+        if (project_notification.isDeleted == 1 || project_notification.isActive == 0) {
+            showToast('error', 'Project is now inactive');
+        } else if (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0) {
+            showToast('error', 'Workstream is now inactive');
+        } else {
+
+            let url = `/projects/${projectId}`;
+            switch (notif.type) {
+                case "fileNewUpload": {
                     if (notif.taskId === null) {
-                        history.push(`${url}/files?file-id=${notif.documentId}`);
+                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
                     } else {
                         history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
                     }
                 }
-                break;
-            case "taskAssgined":
-            case "taskAssignedComment":
-            case "taskApprover":
-            case "taskTagged":
-            case "taskApproved":
-            case "taskMemberCompleted":
-            case "taskFollowingCompleted":
-            case "taskDeadline":
-            case "taskTeamDeadline":
-            case "taskFollowingDeadline":
-            case "taskResponsibleDeadLine":
-            case "taskResponsibleBeforeDeadline":
-            case "taskBeforeDeadline":
-            case "taskAssigned":
-                {
-                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                    window.location.reload();
-                }
-                break;
+                case "fileTagged":
+                    {
+                        history.push(`${url}/files?file-id=${notif.documentId}`);
+                    }
+                    break;
+                case "messageSend":
+                case "messageMentioned":
+                    {
+                        history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                    }
+                    break;
+                case "commentReplies":
+                    {
+                        if (notif.taskId === null) {
+                            history.push(`${url}/files?file-id=${notif.documentId}`);
+                        } else {
+                            history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                        }
+                    }
+                    break;
+                case "taskAssgined":
+                case "taskAssignedComment":
+                case "taskApprover":
+                case "taskTagged":
+                case "taskApproved":
+                case "taskMemberCompleted":
+                case "taskFollowingCompleted":
+                case "taskDeadline":
+                case "taskTeamDeadline":
+                case "taskFollowingDeadline":
+                case "taskResponsibleDeadLine":
+                case "taskResponsibleBeforeDeadline":
+                case "taskBeforeDeadline":
+                case "taskAssigned":
+                    {
+                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                        window.location.reload();
+                    }
+                    break;
+            }
         }
     }
 
