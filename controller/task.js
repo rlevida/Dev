@@ -847,12 +847,13 @@ exports.get = {
     },
     myTaskStatus: async (req, cb) => {
         const queryString = req.query;
-        const teams = await Teams.findAll({ where: { teamLeaderId: queryString.userId, isDeleted: 0 } }).map(mapObject => {
+
+        const teams = await Teams.findAll({ where: { teamLeaderId: queryString.userId, isDeleted: 0, isActive: 1 } }).map(mapObject => {
             const { id } = mapObject.toJSON();
             return id;
         });
 
-        const allTeams = await UsersTeam.findAll({ where: { teamId: teams, isDeleted: 0 } })
+        const allTeams = await UsersTeam.findAll({ where: { teamId: teams, isDeleted: 0, isActive: 1 } })
             .map(mapObject => {
                 const { usersId } = mapObject.toJSON();
                 return usersId;
@@ -956,6 +957,24 @@ exports.get = {
                                 as: "task_members",
                                 required: true,
                                 where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "follower" }
+                            },
+                            {
+                                model: Projects,
+                                as: "task_project",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
+                            },
+                            {
+                                model: Workstream,
+                                as: "workstream",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
                             }
                         ],
                         attributes: [
@@ -1008,6 +1027,24 @@ exports.get = {
                                 as: "task_members",
                                 required: true,
                                 where: { linkType: "task", usersType: "users", userTypeLinkId: allTeams, isDeleted: 0, memberType: "assignedTo" }
+                            },
+                            {
+                                model: Projects,
+                                as: "task_project",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
+                            },
+                            {
+                                model: Workstream,
+                                as: "workstream",
+                                required: true,
+                                where: {
+                                    isActive: 1,
+                                    isDeleted: 0
+                                }
                             }
                         ],
                         attributes: [
