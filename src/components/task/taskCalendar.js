@@ -113,10 +113,10 @@ export default class TaskCalendar extends React.Component {
         $(`#task-details`).modal("show");
 
         getData(`/api/task/detail/${e.id}?starredUser=${loggedUser.data.id}`, {}, c => {
-            if (c.status == 200) {
+            if (c.status == 200 && !c.data.error) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
             } else {
-                showToast("error", "Error retrieving task. Please try again later.");
+                showToast("error", c.data.message);
             }
         });
 
