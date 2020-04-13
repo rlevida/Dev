@@ -14,6 +14,7 @@ import Profile from "../profile";
 import notAvailable from "../notAvailable";
 import inactiveProject from "../inactiveProject";
 import Notification from "../notification";
+import TermsAndConditions from "../termsAndConditions";
 
 let keyTimer = "";
 
@@ -314,7 +315,7 @@ class Main extends React.Component {
                 path_name: "inactive-project",
                 component: inactiveProject,
                 show_menu: false
-            }
+            },
         ];
         const dropdownAddLinks = [{ id: "task", label: "Task" }, { id: "project", label: "Project" }, { id: "user", label: "User" }, { id: "team", label: "Team" }];
         const projectMenu = [
@@ -331,11 +332,23 @@ class Main extends React.Component {
                 return path_name != "users-and-team";
             });
         }
+
+        if(loggedUser.data.userRole === 1){
+            pages.push({
+                label: "Terms of Use and Privacy Policy",
+                icon: "fa-info",
+                path_name: "terms-and-conditions",
+                component: TermsAndConditions,
+                show_menu: true
+            })
+        }
+
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
         const currentPage = _.find(pages, page => {
             return page.path_name == parentPath;
         });
+        
         const getProjectDetailsPath = currentPath.split("/");
         const showProjectMenu = getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined";
         const currentProjectPage = typeof getProjectDetailsPath[3] == "undefined" ? "dashboard" : getProjectDetailsPath[3];

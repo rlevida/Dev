@@ -1,12 +1,7 @@
 DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users`
-(`id` BIGINT UNSIGNED AUTO_INCREMENT,`firstName` VARCHAR
-(50),`lastName` VARCHAR
-(50),`phoneNumber` VARCHAR
-(20),`companyId` BIGINT,`username` VARCHAR
-(100),`password` VARCHAR
-(50),`salt` VARCHAR
+(`id` BIGINT UNSIGNED AUTO_INCREMENT,`termsAndConditions` TINYINT (1) DEFAULT '0', `firstName` VARCHAR (50),`lastName` VARCHAR (50),`phoneNumber` VARCHAR (20),`companyId` BIGINT,`username` VARCHAR (100),`password` VARCHAR(50),`salt` VARCHAR
 (50),`userType` ENUM
 ("Internal","External"),`avatar` TEXT,`emailAddress` VARCHAR
 (100),`dateAdded` DATETIME,`dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON

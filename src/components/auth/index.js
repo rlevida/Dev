@@ -1,7 +1,9 @@
 import React from "react";
-import { showToast, getData, postData } from "../../globalFunction";
+import { showToast, postData, getData } from "../../globalFunction";
 import ForgotPassword from "../forgotPassword";
 import Captcha from "react-captcha";
+
+import TermsAndConditionsModal from "./termsAndConditions";
 
 import { connect } from "react-redux";
 @connect(store => {
@@ -15,7 +17,8 @@ export default class Component extends React.Component {
         super(props);
         this.state = {
             captchaPayload: "",
-            yourIp: ""
+            yourIp: "",
+            userDetails: {}
         };
         this.checkRememberMe = this.checkRememberMe.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -40,9 +43,10 @@ export default class Component extends React.Component {
         }
     }
 
-    handleSubmit(e) {
+    async handleSubmit(e) {
         let { Login } = this.props;
         e.preventDefault();
+
         if (Login.username == "" || Login.password == "") {
             showToast("error", "Username and password is required.", 360000);
             return;
@@ -52,17 +56,23 @@ export default class Component extends React.Component {
             showToast("error", "User does not exist.", 360000);
             return;
         }
+
         if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
             showToast("error", "Please confirm your not a robot.", 360000);
             return;
         }
+
         showToast("success", "Logging in, please wait ...", 360000);
+
         localStorage.setItem("username", Login.username);
         localStorage.setItem("rememberMe", Login.rememberMe);
 
         postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, c => {
             if (c.data.status) {
-                if (c.data.userDetails.projectId.length > 1 || c.data.userDetails.userRole <= 4) {
+                if (c.data.userDetails.termsAndConditions === 0) {
+                    toastr.remove();
+                    this.getTermsAndConditions();
+                } else if (c.data.userDetails.projectId.length > 1 || c.data.userDetails.userRole <= 4) {
                     window.location.replace("/");
                 } else {
                     window.location.replace(`/account#/projects/${c.data.userDetails.projectId[0]}`);
@@ -71,6 +81,18 @@ export default class Component extends React.Component {
                 showToast("error", c.data.message, 360000);
             }
         });
+    }
+
+    getTermsAndConditions() {
+        getData(`/termsAndConditions`, {}, getTermsAndConditionsResponse => {
+            try {
+                const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
+                this.setState({ termsAndConditions: termsAndConditions })
+                $(`#termsAndCondition`).modal("show");
+            } catch (err) {
+                showToast('error', 'Something went wrong. Please try again.')
+            }
+        })
     }
 
     handleCaptcha(value) {
@@ -82,6 +104,7 @@ export default class Component extends React.Component {
     }
 
     render() {
+        const { termsAndConditions } = { ...this.state }
         let { Login, dispatch } = this.props;
         let captchaUI = null;
         if (process.env.NODE_ENV != "development") {
@@ -123,6 +146,7 @@ export default class Component extends React.Component {
                     </form>
                 </div>
                 <ForgotPassword type={"client"} />
+                <TermsAndConditionsModal termsAndConditions={termsAndConditions} ipAddress={this.state.yourIp} />
             </div>
         );
     }

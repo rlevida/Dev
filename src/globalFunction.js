@@ -377,3 +377,11 @@ const textColor = (exports.textColor = function(hexcolor) {
 const parseToHtml = (exports.parseToHtml = function(text) {
     return parse(text.replace(/\r?\n/g, "<br />"));
 });
+
+import React from "react";
+const Loading = props => {
+    return <div className="fa-spinner spin" role="status"></div>;
+};
+
+export default Loading;
+

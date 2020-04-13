@@ -87,45 +87,45 @@ exports.get = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.name != "undefined" && queryString.name != ""
                 ? {
-                      [Op.and]: [
-                          {
-                              [Op.or]: [
-                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
-                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                                  }),
-                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
-                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                                  }),
-                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
-                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                                  }),
-                                  Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.emailAddress")), {
-                                      [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
-                                  })
-                              ]
-                          },
-                          {
-                              [Op.or]: [
-                                  {
-                                      firstName: { [Op.ne]: "default" }
-                                  },
-                                  {
-                                      lastName: { [Op.ne]: "default" }
-                                  }
-                              ]
-                          }
-                      ]
-                  }
+                    [Op.and]: [
+                        {
+                            [Op.or]: [
+                                Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.firstName")), {
+                                    [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                }),
+                                Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.lastName")), {
+                                    [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                }),
+                                Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.username")), {
+                                    [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                }),
+                                Sequelize.where(Sequelize.fn("lower", Sequelize.col("users.emailAddress")), {
+                                    [Sequelize.Op.like]: sequelize.fn("lower", `%${queryString.name}%`)
+                                })
+                            ]
+                        },
+                        {
+                            [Op.or]: [
+                                {
+                                    firstName: { [Op.ne]: "default" }
+                                },
+                                {
+                                    lastName: { [Op.ne]: "default" }
+                                }
+                            ]
+                        }
+                    ]
+                }
                 : {
-                      [Op.or]: [
-                          {
-                              firstName: { [Op.ne]: "default" }
-                          },
-                          {
-                              lastName: { [Op.ne]: "default" }
-                          }
-                      ]
-                  })
+                    [Op.or]: [
+                        {
+                            firstName: { [Op.ne]: "default" }
+                        },
+                        {
+                            lastName: { [Op.ne]: "default" }
+                        }
+                    ]
+                })
         };
 
         if (typeof queryString.project_type != "undefined" && (queryString.project_type == "Private" || queryString.project_type == "Internal")) {
@@ -495,9 +495,9 @@ exports.post = {
         form.multiples = false;
         files.push(
             new Promise((resolve, reject) => {
-                form.on("field", function(name, field) {
+                form.on("field", function (name, field) {
                     userId = field;
-                }).on("file", function(field, file) {
+                }).on("file", function (field, file) {
                     const date = new Date();
                     const Id = func.generatePassword(date.getTime() + file.name, "attachment");
                     const filename = Id + file.name.replace(/[^\w.]|_/g, "_");
@@ -536,7 +536,7 @@ exports.post = {
             }
         });
         // log any errors that occur
-        form.on("error", function(err) {
+        form.on("error", function (err) {
             cb({ status: false, error: "Upload error. Please try again later." });
         });
         form.parse(req);
@@ -631,7 +631,7 @@ exports.put = {
                                     .then(o => {
                                         const teamLeaderTeams = o;
                                         const myTeam = _.filter(teams, team => {
-                                            const teamIndex = _.findIndex(teamLeaderTeams, function(o) {
+                                            const teamIndex = _.findIndex(teamLeaderTeams, function (o) {
                                                 return o == team.value;
                                             });
                                             return teamIndex < 0;
@@ -830,6 +830,17 @@ exports.put = {
             await UsersNotificationSetting.update(body, { where: { usersId: id } });
             const findResult = await UsersNotificationSetting.findOne({ where: { usersId: id } });
             await cb({ status: true, data: findResult });
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
+    },
+    termsAndConditions: async (req, cb) => {
+        const { id } = { ...req.params }
+        const { termsAndConditions } = { ...req.body }
+        try {
+            Users.update({ termsAndConditions }, { where: { id: id } }).then(res => {
+                cb({ status: true, data: res });
+            });
         } catch (err) {
             cb({ status: false, error: err });
         }

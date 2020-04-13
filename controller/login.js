@@ -329,6 +329,7 @@ exports.post = {
                 }
             })
             .then((nextThen, user, ipBlockData) => {
+
                 if (!user.salt || typeof user.salt == "undefined") {
                     updateIpBlock(ipBlockData, body.ipAddress);
                     cb({ status: false, message: "Incorrect username/password." });
@@ -342,30 +343,33 @@ exports.post = {
                         const TokenGenerator = require("uuid-token-generator");
                         req.cookies["app.sid"] = new TokenGenerator(256).generate();
                     }
-
-                    Session.findAll({ where: { usersId: user.id } }).then(res => {
-                        if (ipBlockData.length > 0) {
-                            IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => { });
-                        }
-                        if (res.length == 0) {
-                            delete user.password;
-                            delete user.salt;
-                            Session.create({ usersId: user.id, session: req.cookies["app.sid"], data: JSON.stringify(user), dateAdded: new Date() }).then(createRes => {
-                                nextThen(user);
-                            });
-                        } else {
-                            delete user.password;
-                            delete user.salt;
-                            Session.update(
-                                { session: req.cookies["app.sid"], data: JSON.stringify(user), dateAdded: new Date() },
-                                {
-                                    where: { usersId: user.id }
-                                }
-                            ).then(updateRes => {
-                                nextThen(user);
-                            });
-                        }
-                    });
+                    if (user.termsAndConditions == 0) {
+                        nextThen(user)
+                    } else {
+                        Session.findAll({ where: { usersId: user.id } }).then(res => {
+                            if (ipBlockData.length > 0) {
+                                IpBlock.destroy({ where: { id: ipBlockData[0].id } }).then(destroyRes => { });
+                            }
+                            if (res.length == 0) {
+                                delete user.password;
+                                delete user.salt;
+                                Session.create({ usersId: user.id, session: req.cookies["app.sid"], data: JSON.stringify(user), dateAdded: new Date() }).then(createRes => {
+                                    nextThen(user);
+                                });
+                            } else {
+                                delete user.password;
+                                delete user.salt;
+                                Session.update(
+                                    { session: req.cookies["app.sid"], data: JSON.stringify(user), dateAdded: new Date() },
+                                    {
+                                        where: { usersId: user.id }
+                                    }
+                                ).then(updateRes => {
+                                    nextThen(user);
+                                });
+                            }
+                        });
+                    }
                 } else {
                     updateIpBlock(ipBlockData, body.ipAddress);
                     cb({ status: false, message: "Incorrect username/password." });
