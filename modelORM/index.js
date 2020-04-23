@@ -3,7 +3,7 @@ const sequelize = new Sequelize(process.env.CLOUD_CFO_DB, process.env.CLOUD_CFO_
     host: process.env.CLOUD_CFO_DB_HOST,
     dialect: "mysql",
     dialectOptions: {
-        timezone: "UTC",
+        timezone: "Z",
         charset: "utf8mb4"
     },
     operatorsAliases: false,
