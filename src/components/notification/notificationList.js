@@ -70,9 +70,9 @@ class NotificationList extends React.Component {
             });
         }
 
-        if (project_notification.isDeleted == 1 || project_notification.isActive == 0) {
+        if (project_notification && (project_notification.isDeleted == 1 || project_notification.isActive == 0)) {
             showToast('error', 'Project is now inactive');
-        } else if (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0) {
+        } else if (workstream_notification && (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0)) {
             showToast('error', 'Workstream is now inactive');
         } else {
             let url = `/projects/${projectId}`;
