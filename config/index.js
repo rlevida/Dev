@@ -135,8 +135,8 @@ exports.secret = "volenday-secret";
  * Ths function use for AWS uploading and deleting
  */
 global.AWSBucket = "cloud-cfo";
-global.AWSAccessKey = "AKIAI5UVURKMM4LYE5YA";
-global.AWSSecretAccessKey = "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";
+global.AWSAccessKey = "AKIA4Y4MREH6DQCFEU4F";
+global.AWSSecretAccessKey = "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";
 global.AWSLink = "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/";
 global.initAWS = exports.initAWS = function () {
     var AWS = global.initRequire("aws-sdk");
