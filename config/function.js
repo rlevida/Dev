@@ -26,24 +26,24 @@ var getFilePathExtension = exports.getFilePathExtension = (path) => {
 }
 
 var uploadFile = exports.uploadFile = (params, cb) => {
-    var fs = global.initRequire('fs'),
-        AWS = global.initAWS();
-    var fileStream = fs.readFileSync(params.file.path);
-    var s3 = new AWS.S3();
-    var environment = global.environment || "development";
-    s3.putObject({
-        Bucket: global.AWSBucket,
-        Key: environment + "/" + params.form + "/" + params.filename,
-        Body: fileStream,
-        ContentType: params.file.type,
-        ACL: 'public-read-write'
-    }, function (err, res) {
-        if (err) {
-            cb({ Message: 'Failed to upload' })
-        } else {
-            cb({ Message: 'Success' })
-        }
-    });
+        var fs = global.initRequire('fs'),
+            AWS = global.initAWS();
+        var fileStream = fs.readFileSync(params.file.path);
+        var s3 = new AWS.S3();
+        var environment = global.environment || "development";
+        s3.putObject({
+            Bucket: global.AWSBucket,
+            Key: environment + "/" + params.form + "/" + params.filename,
+            Body: fileStream,
+            ContentType: params.file.type,
+            ACL: 'bucket-owner-full-control'
+        }, function (err, res) {
+            if (err) {
+                cb({ Message: 'Failed to upload' })
+            } else {
+                cb({ Message: 'Success' })
+            }
+        });
 }
 
 var getUserRoles = exports.getUserRoles = (users, cb) => {
