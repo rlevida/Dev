@@ -129,7 +129,7 @@ class DocumentViewerComponent extends React.Component {
             }
         }
 
-        let url = `${settings.site_url}api/file/upload/${document.Selected.name}?token=${settings.token}`;
+        let url = `${settings.site_url}api/file/upload/${document.Selected.name}?Token=${settings.token}`;
         return (
             <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
