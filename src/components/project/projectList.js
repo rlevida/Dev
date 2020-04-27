@@ -1,10 +1,8 @@
 import React from "react";
-import parallel from "async/parallel";
 import moment from "moment";
 import _ from "lodash";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import ReactTooltip from "react-tooltip";
 
 import { Loading } from "../../globalComponents";
 import { showToast, getData, putData } from "../../globalFunction";
@@ -16,7 +14,8 @@ let scrolled = false;
 @connect(store => {
     return {
         project: store.project,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        settings: store.settings
     };
 })
 export default class ProjectList extends React.Component {
@@ -160,7 +159,7 @@ export default class ProjectList extends React.Component {
     }
 
     render() {
-        const { project, loggedUser } = this.props;
+        const { project, loggedUser, settings } = this.props;
         const { Filter } = { ...project };
         let projectList = project.List;
         if (Filter.sort) {
@@ -236,7 +235,9 @@ export default class ProjectList extends React.Component {
                                                                     return (
                                                                         <div class="thumbnail-profile" key={index}>
                                                                             <span title={name}>
-                                                                                <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                <img
+                                                                                    src={`${settings.site_url}api/file/profile_pictures/${avatar}`}
+                                                                                    alt="Profile Picture" class="img-responsive" />
                                                                             </span>
                                                                         </div>
                                                                     );

@@ -11,13 +11,14 @@ import { Loading } from "../../../globalComponents";
 
 let keyTimer = "";
 
-@connect(({ task, conversation, document, loggedUser, project }) => {
+@connect(({ task, conversation, document, loggedUser, project, settings }) => {
     return {
         task,
         conversation,
         document,
         loggedUser,
-        project
+        project,
+        settings
     };
 })
 class DocumentComment extends React.Component {
@@ -117,7 +118,7 @@ class DocumentComment extends React.Component {
     }
 
     render() {
-        const { dispatch, conversation } = { ...this.props };
+        const { dispatch, conversation, settings } = { ...this.props };
         let commentText = typeof conversation.Selected.comment != "undefined" ? conversation.Selected.comment : "";
         const commentType = conversation.Selected.type || "";
         const { Count } = { ...conversation };
@@ -133,7 +134,9 @@ class DocumentComment extends React.Component {
                         return (
                             <div key={index} class="comment bg-white">
                                 <div class="thumbnail-profile">
-                                    <img src={o.users.avatar} alt="Profile Picture" class="img-responsive" />
+                                    <img
+                                        src={`${settings.site_url}api/file/profile_pictures/${o.users.avatar}`}
+                                        alt="Profile Picture" class="img-responsive" />
                                 </div>
                                 <div>
                                     <div>

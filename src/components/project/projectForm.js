@@ -499,7 +499,9 @@ export default class ProjectForm extends React.Component {
                                             customLabel={o => {
                                                 return (
                                                     <div class="drop-profile">
-                                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                        {o.image != "" && <img
+                                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                            alt="Profile Picture" class="img-responsive" />}
                                                         <p class="m0">{o.label}</p>
                                                     </div>
                                                 );
@@ -507,7 +509,9 @@ export default class ProjectForm extends React.Component {
                                             customSelected={({ value: o }) => {
                                                 return (
                                                     <div class="drop-profile">
-                                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                        {o.image != "" && <img
+                                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                            alt="Profile Picture" class="img-responsive" />}
                                                         <p class="m0">{o.label}</p>
                                                     </div>
                                                 );

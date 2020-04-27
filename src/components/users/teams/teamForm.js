@@ -217,7 +217,7 @@ export default class TeamForm extends React.Component {
 
 
     render() {
-        const { teams, users } = { ...this.props };
+        const { teams, users, settings } = { ...this.props };
         const { users_team = [] } = teams.Selected;
         let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
         memberOptions = _.uniqBy([...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })], 'id');
@@ -258,7 +258,9 @@ export default class TeamForm extends React.Component {
                                 return (
                                     <div class="drop-profile">
                                         {
-                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            (o.image != "") && <img
+                                                src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                alt="Profile Picture" class="img-responsive" />
                                         }
                                         <p class="m0">{o.label.split("-")[0]}</p>
                                     </div>
@@ -268,7 +270,9 @@ export default class TeamForm extends React.Component {
                                 return (
                                     <div class="drop-profile">
                                         {
-                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            (o.image != "") && <img
+                                                src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                alt="Profile Picture" class="img-responsive" />
                                         }
                                         <p class="m0">{o.label.split("-")[0]}</p>
                                     </div>
@@ -294,7 +298,9 @@ export default class TeamForm extends React.Component {
                                 return (
                                     <div class="drop-profile">
                                         {
-                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            (o.image != "") && <img
+                                                src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                alt="Profile Picture" class="img-responsive" />
                                         }
                                         <p class="m0">{o.label.split("-")[0]}</p>
                                     </div>
@@ -304,7 +310,9 @@ export default class TeamForm extends React.Component {
                                 return (
                                     <div class="drop-profile">
                                         {
-                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            (o.image != "") && <img
+                                                src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                alt="Profile Picture" class="img-responsive" />
                                         }
                                         <p class="m0">{o.label.split("-")[0]}</p>
                                         <span class="Select-value-icon close-custom" aria-hidden="true" onClick={() => {

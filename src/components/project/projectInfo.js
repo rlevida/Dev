@@ -10,7 +10,8 @@ import { Loading } from "../../globalComponents";
         project: store.project,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
-        members: store.members
+        members: store.members,
+        settings: store.settings
     };
 })
 export default class ProjectInfo extends React.Component {
@@ -135,7 +136,9 @@ export default class ProjectInfo extends React.Component {
                                                             {projectManager.length > 0 ? (
                                                                 <div class="profile-div">
                                                                     <div class="thumbnail-profile">
-                                                                        <img src={projectManager[0].user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                        <img
+                                                                            src={`${settings.site_url}api/file/profile_pictures/${projectManager[0].user.avatar}`}
+                                                                            alt="Profile Picture" class="img-responsive" />
                                                                     </div>
                                                                     <p class="m0">{projectManager[0].user.firstName + " " + projectManager[0].user.lastName}</p>
                                                                 </div>
@@ -151,7 +154,9 @@ export default class ProjectInfo extends React.Component {
                                                                         return (
                                                                             <div class="thumbnail-profile" key={index}>
                                                                                 <span title={firstName + " " + lastName}>
-                                                                                    <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                    <img
+                                                                                        src={`${settings.site_url}api/file/profile_pictures/${avatar}`}
+                                                                                        alt="Profile Picture" class="img-responsive" />
                                                                                 </span>
                                                                             </div>
                                                                         );
@@ -185,7 +190,9 @@ export default class ProjectInfo extends React.Component {
                                                             <label>Project Creator:</label>
                                                             <div class="profile-div">
                                                                 <div class="thumbnail-profile">
-                                                                    <img src={creator.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                    <img
+                                                                        src={`${settings.site_url}api/file/profile_pictures/${creator.avatar}`}
+                                                                        alt="Profile Picture" class="img-responsive" />
                                                                 </div>
                                                                 <p class="m0">{creator.firstName + " " + creator.lastName}</p>
                                                             </div>
@@ -257,7 +264,9 @@ export default class ProjectInfo extends React.Component {
                                                                                             return (
                                                                                                 <div class="thumbnail-profile" key={index}>
                                                                                                     <span title={firstName + " " + lastName}>
-                                                                                                        <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                                        <img
+                                                                                                            src={`${settings.site_url}api/file/profile_pictures/${avatar}`}
+                                                                                                            alt="Profile Picture" class="img-responsive" />
                                                                                                     </span>
                                                                                                 </div>
                                                                                             );

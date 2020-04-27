@@ -6,7 +6,8 @@ import { getData } from "../../globalFunction";
 @connect(store => {
     return {
         workstream: store.workstream,
-        members: store.members
+        members: store.members,
+        settings: store.settings
     };
 })
 export default class WorkstreamMembers extends React.Component {
@@ -42,7 +43,7 @@ export default class WorkstreamMembers extends React.Component {
         this.getList(Count.current_page + 1);
     }
     render() {
-        const { members } = { ...this.props };
+        const { members, settings } = { ...this.props };
         const { Loading, Count } = members;
         const currentPage = typeof Count.current_page != "undefined" ? Count.current_page : 1;
         const lastPage = typeof Count.last_page != "undefined" ? Count.last_page : 1;
@@ -81,7 +82,9 @@ export default class WorkstreamMembers extends React.Component {
                                                 <div>
                                                     <div class="profile-div">
                                                         <div class="thumbnail-profile">
-                                                            <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                            <img
+                                                                src={`${settings.site_url}api/file/profile_pictures/${avatar}`}
+                                                                alt="Profile Picture" class="img-responsive" />
                                                         </div>
                                                         <p class="m0">{firstName + " " + lastName}</p>
                                                     </div>

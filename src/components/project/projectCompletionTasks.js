@@ -5,7 +5,8 @@ import moment from 'moment';
 
 @connect((store) => {
     return {
-        task: store.task
+        task: store.task,
+        settings: store.settings
     }
 })
 export default class ProjectCompletionTasks extends React.Component {
@@ -38,7 +39,7 @@ export default class ProjectCompletionTasks extends React.Component {
         handleRedirect(`/projects/${projectId}/workstreams/${workstreamId}?task-id=${id}`);
     }
     render() {
-        const { task, paginate = false, handlePaginate, dispatch } = { ...this.props };
+        const { task, paginate = false, handlePaginate, dispatch, settings } = { ...this.props };
         const { Loading, List, Count } = task;
         const taskList = (paginate == false) ? _.take(List, 4) : List;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
@@ -97,7 +98,9 @@ export default class ProjectCompletionTasks extends React.Component {
                                                                     <div class="thumbnail-profile display-flex">
                                                                         {assigned &&
                                                                             <span title={assigned.user.firstName + " " + assigned.user.lastName}>
-                                                                                <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                <img
+                                                                                    src={`${settings.site_url}api/file/profile_pictures/${assigned.user.avatar}`}
+                                                                                    alt="Profile Picture" class="img-responsive" />
                                                                             </span>
                                                                         }
                                                                     </div>

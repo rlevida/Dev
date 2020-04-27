@@ -11,7 +11,8 @@ let currentTaskId = "";
     return {
         task: store.task,
         loggedUser: store.loggedUser,
-        project: store.project
+        project: store.project,
+        settings: store.settings
     };
 })
 export default class TaskListCategory extends React.Component {
@@ -237,7 +238,7 @@ export default class TaskListCategory extends React.Component {
 
     renderRow(taskData) {
         const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
-        const { task, workstream_id = "", loggedUser } = { ...this.props };
+        const { task, workstream_id = "", loggedUser, settings } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate).startOf("days");
         const current = moment().endOf("days");
@@ -343,7 +344,9 @@ export default class TaskListCategory extends React.Component {
                             <div class="thumbnail-profile">
                                 {assigned &&
                                     <span title={assigned.user.firstName + " " + assigned.user.lastName}>
-                                        <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                        <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${assigned.user.avatar}`}
+                                            alt="Profile Picture" class="img-responsive" />
                                     </span>
                                 }
                             </div>

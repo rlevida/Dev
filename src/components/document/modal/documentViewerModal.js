@@ -129,10 +129,7 @@ class DocumentViewerComponent extends React.Component {
             }
         }
 
-        let url = ''
-        if (document.Selected.name) {
-            url = encodeURI(`${settings.site_url}api/file/upload/${document.Selected.name}?token=${settings.token}`)
-        }
+        let url = `${settings.site_url}api/file/upload/${document.Selected.name}?token=${settings.token}`;
         return (
             <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
@@ -172,7 +169,9 @@ class DocumentViewerComponent extends React.Component {
                                             <div>
                                                 <div class="profile-div">
                                                     <div class="thumbnail-profile">
-                                                        <img src={document.Selected.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                        <img
+                                                            src={`${settings.site_url}api/file/profile_pictures/${document.Selected.user.avatar}`}
+                                                            alt="Profile Picture" class="img-responsive" />
                                                     </div>
                                                     <p class="m0">{document.Selected.user.firstName + " " + document.Selected.user.lastName}</p>
                                                 </div>
