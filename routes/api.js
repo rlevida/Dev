@@ -13,6 +13,33 @@ const { Projects, Document, Session, Members, Users, UsersRole, Roles } = models
  *
  */
 
+router.get('/images/:image', (req, res, next) => {
+    console.log(`here`)
+    const image = req.params.image;
+    var fs = global.initRequire("fs"),
+        AWS = global.initAWS(),
+        s3 = new AWS.S3();
+
+    s3.getObject(
+        {
+            Bucket: global.AWSBucket,
+            Key: global.environment + "/upload/" + '0240eef412cfd4bb784d2a4f3a9e407f08b086881.png__5_.png'
+        },
+        (err, data) => {
+            if (err) {
+                console.log(err)
+                console.log("Error in Uploading to AWS. [" + err + "]");
+            } else {
+                console.log(data.Body)
+                res.setHeader('Content-Type', data.ContentType);
+                res.setHeader('Content-Length', data.Body.length);
+                res.write(data.Body)
+                // res.redirect(`https://view.officeapps.live.com/op/embed.aspx?src=${data.Body}`);
+            }
+        }
+    );
+})
+
 router.use(function (req, res, next) {
     let token = req.body.Token ? req.body.Token : req.params.Token ? req.params.Token : req.query.Token ? req.query.Token : req.cookies["app.sid"] ? req.cookies["app.sid"] : "";
     try {
@@ -212,6 +239,8 @@ router.get("/downloadFolder", (req, res, next) => {
         getFolderDocument(req.query.folder);
     });
 });
+
+
 
 router.get("/:controller", (req, res, next) => {
     if (!req.params.controller) {
