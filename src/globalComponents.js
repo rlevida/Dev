@@ -155,7 +155,7 @@ export const MentionConvert = ({ string }) => {
     const split = string.split(/{([^}]+)}/g).filter(Boolean);
 
     return (
-        <p class="mb0">
+        <p class="mb0" style={{ wordBreak: 'break-all' }}>
             {split.map((o, index) => {
                 const regEx = /\[([^\]]+)]/;
                 if (regEx.test(o)) {

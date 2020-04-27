@@ -45,7 +45,7 @@ export default class Component extends React.Component {
                                 <div class="n-b-content">
                                     <p class="m0 n-message d-flex">
                                         <i class="fa fa-comment-o mr10" />
-                                        "<MentionConvert string={comment} />"
+                                        <MentionConvert string={comment} />
                                     </p>
                                 </div>
                             </div>

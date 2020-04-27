@@ -188,32 +188,33 @@ class Main extends React.Component {
             showToast('error', 'Workstream is now inactive');
         } else {
 
-            let url = `/projects/${projectId}`;
+            let url = '';
+
             switch (notif.type) {
                 case "fileNewUpload": {
                     if (notif.taskId === null) {
-                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?tab=document`;
                     } else {
-                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
                     }
                 }
                 case "fileTagged":
                     {
-                        history.push(`${url}/files?file-id=${notif.documentId}`);
+                        url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
                     }
                     break;
                 case "messageSend":
                 case "messageMentioned":
                     {
-                        history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                        url = `/account#/projects/${projectId}/messages?note-id=${notif.note_notification.id}`;
                     }
                     break;
                 case "commentReplies":
                     {
                         if (notif.taskId === null) {
-                            history.push(`${url}/files?file-id=${notif.documentId}`);
+                            url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
                         } else {
-                            history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                            url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
                         }
                     }
                     break;
@@ -232,11 +233,14 @@ class Main extends React.Component {
                 case "taskBeforeDeadline":
                 case "taskAssigned":
                     {
-                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                        window.location.reload();
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
                     }
                     break;
+                default:
+                    break;
             }
+            window.location.href = url;
+            window.location.reload(); 
         }
     }
 
