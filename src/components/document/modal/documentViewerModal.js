@@ -128,6 +128,11 @@ class DocumentViewerComponent extends React.Component {
                 isDocument = "pdf";
             }
         }
+
+        let url = ''
+        if (document.Selected.name) {
+            url = encodeURI(`${settings.site_url}api/file/upload/${document.Selected.name}?token=${settings.token}`)
+        }
         return (
             <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
@@ -186,7 +191,7 @@ class DocumentViewerComponent extends React.Component {
                                                 <label>File Preview:</label>
                                             </div>
                                             {isDocument == true && (
-                                                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`} width="100%" height="623px" frameBorder="0">
+                                                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${url}`} width="100%" height="623px" frameBorder="0">
                                                     This is an embedded
                                                     <a target="_blank" href="http://office.com">
                                                         Microsoft Office
@@ -199,7 +204,7 @@ class DocumentViewerComponent extends React.Component {
                                             )}
                                             {isDocument == "image" && (
                                                 <div>
-                                                    <img class="img-responsive" src={`${settings.imageUrl}/upload/${document.Selected.name}`} />
+                                                    <img class="img-responsive" src={`${url}`} />
                                                 </div>
                                             )}
                                             {isDocument == "pdf" && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width="100%" height="623px" />}

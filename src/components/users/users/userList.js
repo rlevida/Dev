@@ -9,7 +9,8 @@ import { connect } from "react-redux";
     return {
         users: store.users,
         teams: store.teams,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        settings: store.settings
     };
 })
 export default class UserList extends React.Component {
@@ -130,7 +131,7 @@ export default class UserList extends React.Component {
     }
 
     render() {
-        const { users, loggedUser } = this.props;
+        const { users, loggedUser, settings } = this.props;
         const currentPage = typeof users.Count != "undefined" && _.isEmpty(users.Count) == false ? users.Count.current_page : 1;
         const lastPage = typeof users.Count != "undefined" && _.isEmpty(users.Count) == false ? users.Count.last_page : 1;
         const typeValue = typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false ? users.Selected.firstName + " " + users.Selected.lastName : "";
@@ -161,7 +162,7 @@ export default class UserList extends React.Component {
                                         <td data-label="Username" class="td-left">
                                             <div class="profile-div">
                                                 <div class="thumbnail-profile">
-                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    <img src={`${settings.site_url}api/file/profile_pictures/${user.avatar}`} alt="Profile Picture" class="img-responsive" />
                                                 </div>
                                                 <p class="m0">{user.username}</p>
                                             </div>
@@ -181,9 +182,9 @@ export default class UserList extends React.Component {
                                             <div
                                                 class={
                                                     loggedUser.data.userRole > user.user_role[0].role.id ||
-                                                    (user.user_role[0].role.id == 4 && user.id != loggedUser.data.id && loggedUser.data.userRole == 4) ||
-                                                    (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4) ||
-                                                    (loggedUser.data.userRole == user.user_role[0].role.id && loggedUser.data.userRole > 1)
+                                                        (user.user_role[0].role.id == 4 && user.id != loggedUser.data.id && loggedUser.data.userRole == 4) ||
+                                                        (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4) ||
+                                                        (loggedUser.data.userRole == user.user_role[0].role.id && loggedUser.data.userRole > 1)
                                                         ? "hide"
                                                         : "actions"
                                                 }

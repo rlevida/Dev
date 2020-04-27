@@ -13,31 +13,25 @@ const { Projects, Document, Session, Members, Users, UsersRole, Roles } = models
  *
  */
 
-router.get('/images/:image', (req, res, next) => {
-    console.log(`here`)
-    const image = req.params.image;
-    var fs = global.initRequire("fs"),
-        AWS = global.initAWS(),
+router.get('/file/:bucket/:file', async (req, res) => {
+    const file = req.params.file;
+    const bucket = req.params.bucket
+    const AWS = global.initAWS(),
         s3 = new AWS.S3();
-
-    s3.getObject(
-        {
-            Bucket: global.AWSBucket,
-            Key: global.environment + "/upload/" + '0240eef412cfd4bb784d2a4f3a9e407f08b086881.png__5_.png'
-        },
-        (err, data) => {
-            if (err) {
-                console.log(err)
-                console.log("Error in Uploading to AWS. [" + err + "]");
-            } else {
-                console.log(data.Body)
-                res.setHeader('Content-Type', data.ContentType);
-                res.setHeader('Content-Length', data.Body.length);
-                res.write(data.Body)
-                // res.redirect(`https://view.officeapps.live.com/op/embed.aspx?src=${data.Body}`);
+    try {
+        const fileObject = await s3.getObject(
+            {
+                Bucket: global.AWSBucket,
+                Key: `${global.environment}/${bucket}/${file}`
             }
-        }
-    );
+        ).promise()
+        res.setHeader('Content-Type', fileObject.ContentType);
+        res.setHeader('Content-Length', fileObject.Body.length);
+        res.write(fileObject.Body);
+        res.end();
+    } catch (e) {
+        res.status(404).send({ error: e.message, error_description: e.message });
+    }
 })
 
 router.use(function (req, res, next) {

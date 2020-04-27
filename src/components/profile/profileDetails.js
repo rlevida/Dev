@@ -7,7 +7,8 @@ import { getData } from "../../globalFunction";
 
 @connect((store) => {
     return {
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        settings: store.settings
     }
 })
 export default class ProfileDetails extends React.Component {
@@ -31,7 +32,7 @@ export default class ProfileDetails extends React.Component {
     }
 
     render() {
-        const { loggedUser } = { ...this.props };
+        const { loggedUser, settings } = { ...this.props };
         const { id, firstName, lastName, username, emailAddress, phoneNumber, userType, user_role, dateAdded, avatar, teams = [] } = loggedUser.data;
         const supervisors = _(teams)
             .filter(({ teamLeaderId }) => { return teamLeaderId != id })
@@ -43,7 +44,7 @@ export default class ProfileDetails extends React.Component {
                     <div class="profile-picture display-flex">
                         <div>
                             <div class="profile-wrapper">
-                                <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                <img src={`${settings.site_url}api/file/profile_pictures/${avatar}`} alt="Profile Picture" class="img-responsive" />
                             </div>
                         </div>
                         <div>
@@ -65,7 +66,7 @@ export default class ProfileDetails extends React.Component {
                                 return (
                                     <div key={index} class="profile-div">
                                         <div class="thumbnail-profile">
-                                            <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                            <img src={`${settings.site_url}api/file/profile_pictures/${avatar}`} alt="Profile Picture" class="img-responsive" />
                                         </div>
                                         <div>
                                             <p class="m0">{firstName + " " + lastName}</p>

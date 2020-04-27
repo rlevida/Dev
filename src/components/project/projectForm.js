@@ -20,7 +20,8 @@ let keyTimer = "";
         teams: store.teams,
         members: store.members,
         users: store.users,
-        document: store.document
+        document: store.document,
+        settings: store.settings
     };
 })
 export default class ProjectForm extends React.Component {
@@ -270,7 +271,7 @@ export default class ProjectForm extends React.Component {
     }
 
     render() {
-        const { dispatch, project, loggedUser, status, type, users, document, members } = { ...this.props };
+        const { dispatch, project, loggedUser, status, type, users, document, members, settings } = { ...this.props };
         const { Files, Loading: documentLoading } = document;
         const typeValue = typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false ? members.Selected.name : "";
         const memberList = [
@@ -369,7 +370,7 @@ export default class ProjectForm extends React.Component {
                                         <div>
                                             <label>Project Picture:</label>
                                             <div class="project-picture-wrapper mb20">
-                                                <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                <img src={`${settings.site_url}api/file/project_pictures/${project.Selected.picture}`} alt="Profile Picture" class="img-responsive" />
                                                 <a
                                                     onClick={() => {
                                                         $("#upload-picture").modal("show");

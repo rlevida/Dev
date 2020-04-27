@@ -232,7 +232,7 @@ export default class UserForm extends React.Component {
     }
 
     render() {
-        const { users, loggedUser, global, teams, profileEdit = false } = this.props;
+        const { users, loggedUser, global, teams, profileEdit = false, settings } = this.props;
         const { team = [] } = users.Selected;
         const userType = [{ id: "External", name: "External" }];
         const userRole = _(global.SelectList.roleList)
@@ -288,7 +288,9 @@ export default class UserForm extends React.Component {
                             {profileEdit && (
                                 <div class="form-group">
                                     <div class="profile-wrapper">
-                                        <img src={users.Selected.avatar} alt="Profile Picture" class="img-responsive" />
+                                        <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${users.Selected.avatar}`}
+                                            alt="Profile Picture" class="img-responsive" />
                                         <a
                                             onClick={() => {
                                                 $("#upload-picture").modal("show");
@@ -433,7 +435,8 @@ export default class UserForm extends React.Component {
                                                 customSelected={({ value: o }) => {
                                                     return (
                                                         <div class="drop-profile">
-                                                            {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                            {o.image != "" && <img src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                                alt="Profile Picture" class="img-responsive" />}
                                                             <p class="m0">{o.label}</p>
                                                         </div>
                                                     );
