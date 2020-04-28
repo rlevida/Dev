@@ -18,7 +18,7 @@ let keyTimer = "";
         members: store.members,
         workstream: store.workstream,
         global: store.global,
-        settings: store.global
+        settings: store.settings
     };
 })
 export default class WorkstreamForm extends React.Component {
@@ -368,7 +368,7 @@ export default class WorkstreamForm extends React.Component {
                             return (
                                 <div class="drop-profile">
                                     {o.image != "" && <img
-                                        src={`${settings.site_url}api/file/profile_pictures/${o.imager}`}
+                                        src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
                                         alt="Profile Picture" class="img-responsive" />}
                                     <p class="m0">{o.label}</p>
                                 </div>
