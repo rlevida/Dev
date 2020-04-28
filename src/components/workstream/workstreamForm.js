@@ -17,7 +17,8 @@ let keyTimer = "";
         teams: store.teams,
         members: store.members,
         workstream: store.workstream,
-        global: store.global
+        global: store.global,
+        settings: store.settings
     };
 })
 export default class WorkstreamForm extends React.Component {
@@ -119,8 +120,8 @@ export default class WorkstreamForm extends React.Component {
                 const workstreamOptions =
                     c.status == 200
                         ? _.map(c.data.result, workstreamObj => {
-                              return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id };
-                          })
+                            return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id };
+                        })
                         : [];
                 dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
             });
@@ -168,7 +169,7 @@ export default class WorkstreamForm extends React.Component {
         let result = true;
 
         $("#workstream-form *").validator("validate");
-        $("#workstream-form .form-group").each(function() {
+        $("#workstream-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -209,17 +210,17 @@ export default class WorkstreamForm extends React.Component {
     }
 
     renderForm() {
-        const { workstream, global, members } = { ...this.props };
+        const { workstream, global, members, settings } = { ...this.props };
         const typeList =
             typeof global.SelectList.typeList != "undefined"
                 ? _(global.SelectList.typeList)
-                      .filter((e, i) => {
-                          return e.linkType == "workstream";
-                      })
-                      .map((o, i) => {
-                          return { id: o.id, name: o.type };
-                      })
-                      .value()
+                    .filter((e, i) => {
+                        return e.linkType == "workstream";
+                    })
+                    .map((o, i) => {
+                        return { id: o.id, name: o.type };
+                    })
+                    .value()
                 : [];
         let responsibleList = members.SelectList;
         if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
@@ -255,7 +256,7 @@ export default class WorkstreamForm extends React.Component {
                         <input
                             type="checkbox"
                             checked={workstream.Selected.isActive == 1 || typeof workstream.Selected.isActive == "undefined" ? true : false}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             onClick={f => {
                                 this.handleCheckbox("isActive", workstream.Selected.isActive || typeof workstream.Selected.isActive == "undefined" ? 0 : 1);
                             }}
@@ -268,7 +269,7 @@ export default class WorkstreamForm extends React.Component {
                     <label class="custom-checkbox">
                         <input
                             type="checkbox"
-                            onChange={() => {}}
+                            onChange={() => { }}
                             checked={workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == "undefined" ? false : true}
                             onClick={f => {
                                 this.handleCheckbox("isTemplate", workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == "undefined" ? 1 : 0);
@@ -366,7 +367,9 @@ export default class WorkstreamForm extends React.Component {
                         customLabel={o => {
                             return (
                                 <div class="drop-profile">
-                                    {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                    {o.image != "" && <img
+                                        src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                        alt="Profile Picture" class="img-responsive" />}
                                     <p class="m0">{o.label}</p>
                                 </div>
                             );
@@ -374,7 +377,9 @@ export default class WorkstreamForm extends React.Component {
                         customSelected={({ value: o }) => {
                             return (
                                 <div class="drop-profile">
-                                    {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                    {o.image != "" && <img
+                                        src={`${settings.site_url}api/file/profile_pictures/${o.avatar}`}
+                                        alt="Profile Picture" class="img-responsive" />}
                                     <p class="m0">{o.label}</p>
                                 </div>
                             );
@@ -418,8 +423,8 @@ export default class WorkstreamForm extends React.Component {
                         <div class="card-body">{this.renderForm()}</div>
                     </div>
                 ) : (
-                    this.renderForm()
-                )}
+                        this.renderForm()
+                    )}
                 <ConfirmationModal handleSubmit={this.handleSubmit} />
             </div>
         );

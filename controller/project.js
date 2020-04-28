@@ -1450,9 +1450,8 @@ exports.post = {
             Promise.all(files).then(e => {
                 if (e.length > 0) {
                     const { filename, projectId } = e[0];
-                    const url = global.AWSLink + global.environment + "/project_pictures/" + filename;
-                    Projects.update({ picture: url }, { where: { id: projectId } }).then(res => {
-                        cb({ status: true, data: global.AWSLink + global.environment + "/project_pictures/" + filename });
+                    Projects.update({ picture: filename }, { where: { id: projectId } }).then(res => {
+                        cb({ status: true, data: filename });
                     });
                 } else {
                     cb({ status: false, data: [] });

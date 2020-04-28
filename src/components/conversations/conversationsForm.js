@@ -20,7 +20,8 @@ let keyTimer = "";
         notes: store.notes,
         conversation: store.conversation,
         workstream: store.workstream,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        settings: store.settings
     };
 })
 export default class ConversationForm extends React.Component {
@@ -368,7 +369,7 @@ export default class ConversationForm extends React.Component {
     }
 
     render() {
-        const { teams, workstream, notes, conversation, loggedUser, workstreamId, dispatch } = this.props;
+        const { teams, workstream, notes, conversation, loggedUser, workstreamId, dispatch, settings } = { ... this.props };
         const workstreamList = workstream.SelectList;
         const userList = [
             ...teams.MemberList,
@@ -471,7 +472,9 @@ export default class ConversationForm extends React.Component {
                                         return (
                                             <div className="thread" key={index} ref={ref => (this.newData = ref)}>
                                                 <div class="thumbnail-profile">
-                                                    <img src={users.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    <img
+                                                        src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
+                                                        alt="Profile Picture" class="img-responsive" />
                                                 </div>
                                                 <div class="message-text">
                                                     <p class="note mb0">
@@ -553,7 +556,9 @@ export default class ConversationForm extends React.Component {
                                     return (
                                         <div class="thumbnail-profile" key={index}>
                                             <span title={user.firstName + " " + user.lastName}>
-                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                <img
+                                                    src={`${settings.site_url}api/file/profile_pictures/${user.avatar}`}
+                                                    alt="Profile Picture" class="img-responsive" />
                                             </span>
                                         </div>
                                     );
@@ -578,7 +583,9 @@ export default class ConversationForm extends React.Component {
                                     customLabel={o => {
                                         return (
                                             <div class="drop-profile">
-                                                {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                {o.image != "" && <img
+                                                    src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                    alt="Profile Picture" class="img-responsive" />}
                                                 <p class="m0">{o.label}</p>
                                             </div>
                                         );
@@ -586,7 +593,9 @@ export default class ConversationForm extends React.Component {
                                     customSelected={({ value: o }) => {
                                         return (
                                             <div class="drop-profile">
-                                                {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                {o.image != "" && <img
+                                                    src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                    alt="Profile Picture" class="img-responsive" />}
                                                 <p class="m0">{o.label}</p>
                                                 <span
                                                     class="Select-value-icon close-custom"

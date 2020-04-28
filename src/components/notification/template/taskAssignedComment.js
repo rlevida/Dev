@@ -6,12 +6,13 @@ import { notificationType } from "../../../globalFunction";
     return {
         project: store.project,
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        settings: store.settings
     };
 })
 export default class Component extends React.Component {
     render() {
-        const { dispatch, data, index, handleNotificationRedirect, markAsRead } = { ...this.props };
+        const { dispatch, data, index, handleNotificationRedirect, markAsRead, settings } = { ...this.props };
         const { from, dateAdded, workstream_notification, task_notification } = { ...data };
         const { workstream } = { ...workstream_notification };
         const { task } = { ...task_notification };
@@ -37,7 +38,9 @@ export default class Component extends React.Component {
                                 </div>
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">
-                                        <img src={from.avatar} alt="Profile Picture" class="img-responsive" />
+                                        <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${from.avatar}`}
+                                            alt="Profile Picture" class="img-responsive" />
                                     </div>
                                     <div class="ml10">
                                         <p class="m0">

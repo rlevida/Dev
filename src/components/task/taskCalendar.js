@@ -13,7 +13,8 @@ let keyTimer = "";
     return {
         task: store.task,
         loggedUser: store.loggedUser,
-        workstream: store.workstream
+        workstream: store.workstream,
+        settings: store.settings
     };
 })
 export default class TaskCalendar extends React.Component {
@@ -143,7 +144,7 @@ export default class TaskCalendar extends React.Component {
     }
 
     renderCalendar() {
-        const { task } = { ...this.props };
+        const { task, settings } = { ...this.props };
         const { List } = task;
         const calendarTasks = _(List)
             .filter(o => {
@@ -159,7 +160,9 @@ export default class TaskCalendar extends React.Component {
                             <div class="display-flex vh-center">
                                 <div class="profile-div">
                                     <div class="thumbnail-profile">
-                                        <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                        <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${assigned.user.avatar}`}
+                                            alt="Profile Picture" class="img-responsive" />
                                     </div>
                                 </div>
                                 {o.task}

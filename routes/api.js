@@ -13,6 +13,7 @@ const { Projects, Document, Session, Members, Users, UsersRole, Roles } = models
  *
  */
 
+
 router.use(function (req, res, next) {
     let token = req.body.Token ? req.body.Token : req.params.Token ? req.params.Token : req.query.Token ? req.query.Token : req.cookies["app.sid"] ? req.cookies["app.sid"] : "";
     try {
@@ -73,6 +74,27 @@ router.use(function (req, res, next) {
  * GET
  *
  */
+
+router.get('/file/:bucket/:file', async (req, res) => {
+    const file = req.params.file;
+    const bucket = req.params.bucket
+    const AWS = global.initAWS(),
+        s3 = new AWS.S3();
+    try {
+        const fileObject = await s3.getObject(
+            {
+                Bucket: global.AWSBucket,
+                Key: `${global.environment}/${bucket}/${file}`
+            }
+        ).promise()
+        res.setHeader('Content-Type', fileObject.ContentType);
+        res.setHeader('Content-Length', fileObject.Body.length);
+        res.write(fileObject.Body);
+        res.end();
+    } catch (e) {
+        res.status(404).send({ error: e.message, error_description: e.message });
+    }
+})
 
 router.get("/downloadDocument", (req, res, next) => {
     var fs = global.initRequire("fs"),
@@ -212,6 +234,8 @@ router.get("/downloadFolder", (req, res, next) => {
         getFolderDocument(req.query.folder);
     });
 });
+
+
 
 router.get("/:controller", (req, res, next) => {
     if (!req.params.controller) {

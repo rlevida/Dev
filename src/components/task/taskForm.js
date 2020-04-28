@@ -22,6 +22,7 @@ let keyTimer = "";
         taskDependency: store.taskDependency,
         users: store.users,
         workstream: store.workstream,
+        settings: store.settings
     };
 })
 export default class TaskForm extends React.Component {
@@ -435,7 +436,7 @@ export default class TaskForm extends React.Component {
     }
 
     render() {
-        const { dispatch, task, users, project, workstream, taskDependency, members, loggedUser } = { ...this.props };
+        const { dispatch, task, users, project, workstream, taskDependency, members, loggedUser, settings } = { ...this.props };
         const taskDependencyValue = typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false ? taskDependency.task.task : "";
         let projectList = _.cloneDeep(project.SelectList);
         let workstreamList = _.cloneDeep(workstream.SelectList);
@@ -578,7 +579,9 @@ export default class TaskForm extends React.Component {
                                                             customLabel={o => {
                                                                 return (
                                                                     <div class="drop-profile">
-                                                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                                        {o.image != "" && <img
+                                                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                                            alt="Profile Picture" class="img-responsive" />}
                                                                         <p class="m0">{o.label}</p>
                                                                     </div>
                                                                 );
@@ -586,7 +589,9 @@ export default class TaskForm extends React.Component {
                                                             customSelected={({ value: o }) => {
                                                                 return (
                                                                     <div class="drop-profile" title={o.label}>
-                                                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                                        {o.image != "" && <img
+                                                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                                            alt="Profile Picture" class="img-responsive" />}
                                                                         <p class="m0">
                                                                             {o.label.substring(0, 17)}
                                                                             {o.label.length > 17 ? "..." : ""}
@@ -710,7 +715,9 @@ export default class TaskForm extends React.Component {
                                                         customLabel={o => {
                                                             return (
                                                                 <div class="drop-profile">
-                                                                    {typeof o.image != "undefined" && o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                                    {typeof o.image != "undefined" && o.image != "" && <img
+                                                                        src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                                        alt="Profile Picture" class="img-responsive" />}
                                                                     <p class="m0">{o.label}</p>
                                                                 </div>
                                                             );
@@ -718,7 +725,9 @@ export default class TaskForm extends React.Component {
                                                         customSelected={({ value: o }) => {
                                                             return (
                                                                 <div class="drop-profile">
-                                                                    {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                                                    {o.image != "" && <img
+                                                                        src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                                        alt="Profile Picture" class="img-responsive" />}
                                                                     <p class="m0">{o.label}</p>
                                                                 </div>
                                                             );

@@ -113,7 +113,7 @@ class DocumentViewerComponent extends React.Component {
 
     render() {
         const { document, settings } = this.props;
-        let isDocument = true,
+        let isDocument = 'document',
             ext = "",
             documentContentType = "";
 
@@ -128,6 +128,9 @@ class DocumentViewerComponent extends React.Component {
                 isDocument = "pdf";
             }
         }
+
+        let url = `${settings.site_url}api/file/upload/${document.Selected.name}?Token=${settings.token}`;
+
         return (
             <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
@@ -167,7 +170,9 @@ class DocumentViewerComponent extends React.Component {
                                             <div>
                                                 <div class="profile-div">
                                                     <div class="thumbnail-profile">
-                                                        <img src={document.Selected.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                        <img
+                                                            src={`${settings.site_url}api/file/profile_pictures/${document.Selected.user.avatar}`}
+                                                            alt="Profile Picture" class="img-responsive" />
                                                     </div>
                                                     <p class="m0">{document.Selected.user.firstName + " " + document.Selected.user.lastName}</p>
                                                 </div>
@@ -185,8 +190,8 @@ class DocumentViewerComponent extends React.Component {
                                             <div class="label-div">
                                                 <label>File Preview:</label>
                                             </div>
-                                            {isDocument == true && (
-                                                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`} width="100%" height="623px" frameBorder="0">
+                                            {isDocument == 'document' && (
+                                                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${url}`} width="100%" height="623px" frameBorder="0">
                                                     This is an embedded
                                                     <a target="_blank" href="http://office.com">
                                                         Microsoft Office
@@ -199,10 +204,10 @@ class DocumentViewerComponent extends React.Component {
                                             )}
                                             {isDocument == "image" && (
                                                 <div>
-                                                    <img class="img-responsive" src={`${settings.imageUrl}/upload/${document.Selected.name}`} />
+                                                    <img class="img-responsive" src={`${url}`} />
                                                 </div>
                                             )}
-                                            {isDocument == "pdf" && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width="100%" height="623px" />}
+                                            {isDocument == "pdf" && <embed src={`${url}`} type={documentContentType} width="100%" height="623px" />}
                                         </div>
                                     </div>
                                     <div class="col-md-4">

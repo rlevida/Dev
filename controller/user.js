@@ -527,9 +527,8 @@ exports.post = {
         Promise.all(files).then(e => {
             if (e.length > 0) {
                 const { filename, userId } = e[0];
-                const url = global.AWSLink + global.environment + "/profile_pictures/" + filename;
-                Users.update({ avatar: url }, { where: { id: userId } }).then(res => {
-                    cb({ status: true, data: global.AWSLink + global.environment + "/profile_pictures/" + filename });
+                Users.update({ avatar: filename }, { where: { id: userId } }).then(res => {
+                    cb({ status: true, data: filename });
                 });
             } else {
                 cb({ status: false, data: [] });

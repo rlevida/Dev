@@ -37,7 +37,7 @@ const app = express();
 
 // auth
 if (global.environment == "staging") {
-    app.use(serverAuth);
+    // app.use(serverAuth);
 }
 
 app.set("superSecret", config.secret); // secret variable

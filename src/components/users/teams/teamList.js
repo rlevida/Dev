@@ -10,7 +10,8 @@ import { showToast, getData, putData } from '../../../globalFunction';
         teams: store.teams,
         loggedUser: store.loggedUser,
         users: store.users,
-        teams: store.teams
+        teams: store.teams,
+        settings: store.settings
     }
 })
 export default class TeamList extends React.Component {
@@ -90,7 +91,7 @@ export default class TeamList extends React.Component {
     }
 
     render() {
-        const { teams, loggedUser } = { ...this.props };
+        const { teams, loggedUser, settings } = { ...this.props };
         const currentPage = (typeof teams.Count.current_page != "undefined") ? teams.Count.current_page : 1;
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";
@@ -134,7 +135,9 @@ export default class TeamList extends React.Component {
                                                             return (
                                                                 <div class="thumbnail-profile" key={index}>
                                                                     <span title={firstName + " " + lastName}>
-                                                                        <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                        <img
+                                                                            src={`${settings.site_url}api/file/profile_pictures/${avatar}`}
+                                                                            alt="Profile Picture" class="img-responsive" />
                                                                     </span>
                                                                 </div>
                                                             )

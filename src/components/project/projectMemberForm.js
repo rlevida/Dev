@@ -15,7 +15,8 @@ let keyTimer = "";
         teams: store.teams,
         project: store.project,
         loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        settings: store.settings
     };
 })
 export default class ProjectMemberForm extends React.Component {
@@ -184,7 +185,7 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     render() {
-        const { users, members, teams, dispatch, loggedUser } = this.props;
+        const { users, members, teams, dispatch, loggedUser, settings } = { ...this.props };
         const { showAllUsers } = this.state;
         let userList = _.cloneDeep(users.SelectList);
         let teamList = _.cloneDeep(teams.SelectList);
@@ -234,7 +235,9 @@ export default class ProjectMemberForm extends React.Component {
                             customLabel={o => {
                                 return (
                                     <div class="drop-profile">
-                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                        {o.image != "" && <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                            alt="Profile Picture" class="img-responsive" />}
                                         <p class="m0">{o.label}</p>
                                     </div>
                                 );
@@ -242,7 +245,9 @@ export default class ProjectMemberForm extends React.Component {
                             customSelected={({ value: o }) => {
                                 return (
                                     <div class="drop-profile">
-                                        {o.image != "" && <img src={o.image} alt="Profile Picture" class="img-responsive" />}
+                                        {o.image != "" && <img
+                                            src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                            alt="Profile Picture" class="img-responsive" />}
                                         <p class="m0">{o.label}</p>
                                     </div>
                                 );

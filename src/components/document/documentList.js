@@ -12,7 +12,8 @@ import _ from "lodash";
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        settings: store.settings
     };
 })
 class DocumentList extends React.Component {
@@ -457,7 +458,7 @@ class DocumentList extends React.Component {
     }
 
     render() {
-        const { dispatch, document, folder, match } = { ...this.props };
+        const { dispatch, document, folder, match, settings } = { ...this.props };
         const { Count } = { ...document };
         const currentPage = typeof Count.current_page != "undefined" ? Count.current_page : 1;
         const lastPage = typeof Count.last_page != "undefined" ? Count.last_page : 1;
@@ -521,7 +522,9 @@ class DocumentList extends React.Component {
                                                                 <div class="display-flex">
                                                                     <div class="thumbnail-profile">
                                                                         <span title={data.user.firstName + " " + data.user.lastName}>
-                                                                            <img src={data.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            <img
+                                                                                src={`${settings.site_url}api/file/profile_pictures/${data.user.avatar}`}
+                                                                                alt="Profile Picture" class="img-responsive" />
                                                                         </span>
                                                                     </div>
                                                                 </div>

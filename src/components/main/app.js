@@ -24,7 +24,8 @@ let keyTimer = "";
         project: store.project,
         reminder: store.reminder,
         loggedUser: store.loggedUser,
-        notification: store.notification
+        notification: store.notification,
+        settings: store.settings
     };
 })
 class Main extends React.Component {
@@ -73,7 +74,7 @@ class Main extends React.Component {
         const { dispatch, user, location } = this.props;
 
         getData(`/api/globalORM/settings`, {}, c => {
-            dispatch({ type: "UPDATE_SETTINGS", value: c.data.value, name: "imageUrl" });
+            dispatch({ type: "UPDATE_SETTINGS", value: c.data.value });
         });
 
         if (location.pathname !== "/notification") {
@@ -261,7 +262,7 @@ class Main extends React.Component {
 
     render() {
         const { showLeft } = { ...this.state };
-        const { project, loggedUser, notification } = { ...this.props };
+        const { project, loggedUser, notification, settings } = { ...this.props };
         const { avatar } = loggedUser.data;
         let pages = [
             {
@@ -333,7 +334,7 @@ class Main extends React.Component {
             });
         }
 
-        if(loggedUser.data.userRole === 1){
+        if (loggedUser.data.userRole === 1) {
             pages.push({
                 label: "Terms of Use and Privacy Policy",
                 icon: "fa-info",
@@ -348,7 +349,7 @@ class Main extends React.Component {
         const currentPage = _.find(pages, page => {
             return page.path_name == parentPath;
         });
-        
+
         const getProjectDetailsPath = currentPath.split("/");
         const showProjectMenu = getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined";
         const currentProjectPage = typeof getProjectDetailsPath[3] == "undefined" ? "dashboard" : getProjectDetailsPath[3];
@@ -389,7 +390,7 @@ class Main extends React.Component {
                                                         {o.label == "Info" ? (
                                                             <div class="project-image-wrapper">
                                                                 <span>
-                                                                    <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                                    <img src={`${settings.site_url}api/file/project_pictures/${project.Selected.picture}`} alt="Project Picture" class="img-responsive" />
                                                                 </span>
                                                             </div>
                                                         ) : (
@@ -428,7 +429,9 @@ class Main extends React.Component {
                                                                 <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
                                                                     <div class="menu-profile">
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" ? (
-                                                                            <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            <img
+                                                                             src={`${settings.site_url}api/file/profile_pictures/${e.from.avatar}`}
+                                                                             alt="Profile Picture" class="img-responsive" />
                                                                         ) : (
                                                                                 <span class="n-tod-warning">
                                                                                     <i class="fa fa-exclamation-circle" />
@@ -503,7 +506,7 @@ class Main extends React.Component {
                                         )}
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
-                                                <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                <img src={`${settings.site_url}api/file/profile_pictures/${avatar}`} alt="Profile Picture" class="img-responsive" />
                                             </div>
                                         </Link>
                                     </div>
