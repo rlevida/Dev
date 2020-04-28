@@ -557,7 +557,7 @@ export default class ConversationForm extends React.Component {
                                         <div class="thumbnail-profile" key={index}>
                                             <span title={user.firstName + " " + user.lastName}>
                                                 <img
-                                                    src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
+                                                    src={`${settings.site_url}api/file/profile_pictures/${user.avatar}`}
                                                     alt="Profile Picture" class="img-responsive" />
                                             </span>
                                         </div>
