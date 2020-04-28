@@ -12,7 +12,7 @@ import { notificationType } from "../../../globalFunction";
 })
 export default class Component extends React.Component {
     render() {
-        const { dispatch, data, index, handleNotificationRedirect, markAsRead.settings } = { ...this.props }
+        const { dispatch, data, index, handleNotificationRedirect, markAsRead, settings } = { ...this.props }
         const { from, dateAdded, workstream_notification, task_notification } = { ...data };
         const { workstream } = { ...workstream_notification };
         const { task } = { ...task_notification };
