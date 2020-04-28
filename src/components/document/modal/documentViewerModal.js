@@ -113,7 +113,7 @@ class DocumentViewerComponent extends React.Component {
 
     render() {
         const { document, settings } = this.props;
-        let isDocument = true,
+        let isDocument = 'document',
             ext = "",
             documentContentType = "";
 
@@ -130,6 +130,7 @@ class DocumentViewerComponent extends React.Component {
         }
 
         let url = `${settings.site_url}api/file/upload/${document.Selected.name}?Token=${settings.token}`;
+
         return (
             <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
@@ -189,7 +190,7 @@ class DocumentViewerComponent extends React.Component {
                                             <div class="label-div">
                                                 <label>File Preview:</label>
                                             </div>
-                                            {isDocument == true && (
+                                            {isDocument == 'document' && (
                                                 <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${url}`} width="100%" height="623px" frameBorder="0">
                                                     This is an embedded
                                                     <a target="_blank" href="http://office.com">
@@ -206,7 +207,7 @@ class DocumentViewerComponent extends React.Component {
                                                     <img class="img-responsive" src={`${url}`} />
                                                 </div>
                                             )}
-                                            {isDocument == "pdf" && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width="100%" height="623px" />}
+                                            {isDocument == "pdf" && <embed src={`${url}`} type={documentContentType} width="100%" height="623px" />}
                                         </div>
                                     </div>
                                     <div class="col-md-4">
