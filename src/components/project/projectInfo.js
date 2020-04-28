@@ -83,7 +83,7 @@ export default class ProjectInfo extends React.Component {
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
     }
     render() {
-        const { project, workstream, members, loggedUser } = { ...this.props };
+        const { project, workstream, members, loggedUser, settings } = { ...this.props };
         const { Selected } = project;
         const { project: projectName = "", workstream: workstreamList = [], type, color, projectManager = [], creator } = Selected;
         const workstreamCurrentPage = typeof workstream.Count.current_page != "undefined" ? workstream.Count.current_page : 1;
@@ -209,7 +209,9 @@ export default class ProjectInfo extends React.Component {
                                             </div>
                                             <div class="col-lg-4 md-12 col-sm-12">
                                                 <div class="project-info-picture">
-                                                    <img src={Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                    <img
+                                                        src={`${settings.site_url}api/file/project_pictures/${Selected.picture}`}
+                                                        alt="Profile Picture" class="img-responsive" />
                                                 </div>
                                             </div>
 

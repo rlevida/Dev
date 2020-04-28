@@ -10,7 +10,8 @@ let keyTimer;
     return {
         loggedUser: store.loggedUser,
         task: store.task,
-        users: store.users
+        users: store.users,
+        settings: store.settings
     }
 })
 
@@ -121,7 +122,7 @@ export default class TaskFilters extends React.Component {
         }, 1500);
     }
     render() {
-        const { task, dispatch, users, show_tab = true, show_action = true, loggedUser } = { ...this.props };
+        const { task, dispatch, users, show_tab = true, show_action = true, loggedUser, settings } = { ...this.props };
         const { Filter } = { ...task }
         const tabs = [
             { id: "assignedToMe", name: 'Assigned to me' },
@@ -224,7 +225,9 @@ export default class TaskFilters extends React.Component {
                                     return (
                                         <div class="drop-profile">
                                             {
-                                                (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                (o.image != "") && <img
+                                                    src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                    alt="Profile Picture" class="img-responsive" />
                                             }
                                             <p class="m0">{o.label}</p>
                                         </div>
@@ -234,7 +237,9 @@ export default class TaskFilters extends React.Component {
                                     return (
                                         <div class="drop-profile" title={o.label}>
                                             {
-                                                (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                (o.image != "") && <img
+                                                    src={`${settings.site_url}api/file/profile_pictures/${o.image}`}
+                                                    alt="Profile Picture" class="img-responsive" />
                                             }
                                             <p class="m0">{(o.label).substring(0, 17)}{((o.label).length > 17) ? "..." : ""}</p>
                                         </div>

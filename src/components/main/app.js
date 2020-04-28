@@ -506,7 +506,6 @@ class Main extends React.Component {
                                         )}
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
-                                                {/* src={`${settings.site_url}api/file/project_pictures/${project.Selected.picture}`} */}
                                                 <img src={`${settings.site_url}api/file/profile_pictures/${avatar}`} alt="Profile Picture" class="img-responsive" />
                                             </div>
                                         </Link>
