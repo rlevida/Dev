@@ -89,7 +89,7 @@ module.exports = async (params) => {
         })
 
         if (emailNotificationData.length > 0) {
-
+            
             switch (notificationType) {
                 case "messageSend":
                     await messageSendNotification({ emailNotificationData });

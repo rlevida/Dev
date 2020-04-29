@@ -275,51 +275,51 @@ html,
 	color: white !important;
 }
 
-/**
-  tree view
-*/
-.tree-view ul,
-li {
-	list-style: none;
-	margin: 0;
-	padding: 10px 0 10px 20px;
-}
-.dropdown-menu li {
-	padding: 5px 0 5px 0px;
-}
+// /**
+//   tree view
+// */
+// .tree-view ul,
+// li {
+// 	list-style: none;
+// 	margin: 0;
+// 	padding: 10px 0 10px 20px;
+// }
+// .dropdown-menu li {
+// 	padding: 5px 0 5px 0px;
+// }
 
-.tree-view ul {
-	padding-left: 1em;
-}
-.tree-view li {
-	padding-left: 1em;
-	border: 1px dotted black;
-	border-width: 0 0 1px 1px;
-}
-.tree-view li.container {
-	border-bottom: 0px;
-}
-.tree-view li.empty {
-	font-style: italic;
-	color: silver;
-	border-color: silver;
-}
-.tree-view li .text-container {
-	margin: 0;
-	background: #f2f2f2;
-	position: relative;
-	top: 0.5em;
-	font-size: 20px;
-}
-.tree-view li ul {
-	border-top: 1px dotted black;
-	margin-left: -1em;
-	padding-left: 2em;
-}
-.tree-view ul li:last-child ul {
-	border-left: 1px solid white;
-	margin-left: -17px;
-}
+// .tree-view ul {
+// 	padding-left: 1em;
+// }
+// .tree-view li {
+// 	padding-left: 1em;
+// 	border: 1px dotted black;
+// 	border-width: 0 0 1px 1px;
+// }
+// .tree-view li.container {
+// 	border-bottom: 0px;
+// }
+// .tree-view li.empty {
+// 	font-style: italic;
+// 	color: silver;
+// 	border-color: silver;
+// }
+// .tree-view li .text-container {
+// 	margin: 0;
+// 	background: #f2f2f2;
+// 	position: relative;
+// 	top: 0.5em;
+// 	font-size: 20px;
+// }
+// .tree-view li ul {
+// 	border-top: 1px dotted black;
+// 	margin-left: -1em;
+// 	padding-left: 2em;
+// }
+// .tree-view ul li:last-child ul {
+// 	border-left: 1px solid white;
+// 	margin-left: -17px;
+// }
 .navspan {
 	cursor: pointer;
 }
@@ -3400,7 +3400,7 @@ td .display-flex {
 	align-items: center;
 }
 .n {
-	width: 50%;
+	width: 90%;
 }
 .n-from,
 .n-title {
@@ -3853,26 +3853,8 @@ td .display-flex {
     overflow-y: auto;
     border: solid 1px #bfbebe;
     padding: 10px;
-    width: 100%;
-}
-
-.terms-and-conditions > .mce-container {
-    border: 0px !important;
-    outline: none !important;
-    box-shadow: none !important;
-    pointer-events: none;
-}
-
-.terms-and-conditions > .tox-tinymce {
-    border: 0px !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-.terms-and-conditions > .tox .tox-edit-area {
-    border: 0px !important;
-    outline: none !important;
-    box-shadow: none !important;
+	width: 100%;
+	margin-top: 20px;
 }
 
 .mce-panel {
@@ -3882,4 +3864,9 @@ td .display-flex {
 .tc-checkbox > .custom-checkbox{
 padding-left: 20px!important;
 display: inline;
+}
+
+.div-disabled{
+	pointer-events: none;
+	cursor: not-allowed !important;
 }

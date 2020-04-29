@@ -30,9 +30,10 @@ export default class TaskListCategory extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = { ...this.props };
+        const { dispatch, date } = { ...this.props };
         const taskId = getParameterByName("task-id");
 
+        dispatch({ type: "SET_TASK_CATEGORY_LOADING", [date]: true });
         dispatch({ type: "SET_TASK_LIST", list: [] });
         this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
         if (taskId != null && currentTaskId === "") {
@@ -44,10 +45,12 @@ export default class TaskListCategory extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { task } = this.props;
+        const { dispatch, task, date } = this.props;
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => {
+                dispatch({ type: "SET_TASK_CATEGORY_LOADING", [date]: true });
                 this.getList(1);
+                // window.stop();
             });
         }
     }
@@ -191,6 +194,7 @@ export default class TaskListCategory extends React.Component {
         }
         getData(fetchUrl, {}, c => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
+            dispatch({ type: "SET_TASK_CATEGORY_LOADING", [date]: false });
         });
     }
 

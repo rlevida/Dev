@@ -585,7 +585,7 @@ export default class TaskDetails extends React.Component {
             return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id;
         });
         const approver = _.filter(task_members, o => {
-            return o.memberType == "approver" && Selected.approvalRequired > 0;
+            return o.memberType == "approver" && Selected.approvalRequired > 0 && typeof o.user != 'undefined';
         });
         const followers = _.filter(task_members, o => {
             return o.memberType == "follower";
@@ -915,25 +915,18 @@ export default class TaskDetails extends React.Component {
                                                 <div class="col-md-6">
                                                     <div class="label-div">
                                                         <label>Approver:</label>
-                                                        {approver.length > 0 ? (
-                                                            _.map(approver, (member, index) => {
-                                                                const taskApproverUser = member;
-                                                                if (taskApproverUser.user) {
-                                                                    return (
-                                                                        <div key={index}>
-                                                                            <div class="profile-div">
-                                                                                <div class="thumbnail-profile">
-                                                                                    <img
-                                                                                        src={`${settings.site_url}api/file/profile_pictures/${taskApproverUser.user.avatar}`}
-                                                                                        alt="Profile Picture" class="img-responsive" />
-                                                                                </div>
-                                                                                <p class="m0">{taskApproverUser.user.firstName + " " + taskApproverUser.user.lastName}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                            })
-                                                        ) : (
+                                                        {approver.length > 0
+                                                            ? (
+                                                                <div class="profile-div">
+                                                                    <div class="thumbnail-profile">
+                                                                        <img
+                                                                            src={`${settings.site_url}api/file/profile_pictures/${approver[0].user.avatar}`}
+                                                                            alt="Profile Picture" class="img-responsive" />
+                                                                    </div>
+                                                                    <p class="m0">{approver[0].user.firstName + " " + approver[0].user.lastName}</p>
+                                                                </div>
+                                                            )
+                                                            : (
                                                                 <p class="m0">N/A</p>
                                                             )}
                                                     </div>

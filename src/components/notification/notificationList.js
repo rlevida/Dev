@@ -70,26 +70,40 @@ class NotificationList extends React.Component {
             });
         }
 
-        if (project_notification.isDeleted == 1 || project_notification.isActive == 0) {
+        if (project_notification && (project_notification.isDeleted == 1 || project_notification.isActive == 0)) {
             showToast('error', 'Project is now inactive');
-        } else if (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0) {
+        } else if (workstream_notification && (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0)) {
             showToast('error', 'Workstream is now inactive');
         } else {
-            let url = `/projects/${projectId}`;
+
+            let url = '';
+
             switch (notif.type) {
-                case "fileNewUpload":
+                case "fileNewUpload": {
+                    if (notif.taskId === null) {
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?tab=document`;
+                    } else {
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
+                    }
+                }
+                case "fileTagged":
                     {
-                        if (notif.taskId === null) {
-                            history.push(`${url}/workstreams/${workstreamId}?tab=document`);
-                        } else {
-                            history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-                        }
+                        url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
                     }
                     break;
                 case "messageSend":
                 case "messageMentioned":
                     {
-                        history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+                        url = `/account#/projects/${projectId}/messages?note-id=${notif.note_notification.id}`;
+                    }
+                    break;
+                case "commentReplies":
+                    {
+                        if (notif.taskId === null) {
+                            url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
+                        } else {
+                            url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
+                        }
                     }
                     break;
                 case "taskAssgined":
@@ -97,21 +111,24 @@ class NotificationList extends React.Component {
                 case "taskApprover":
                 case "taskTagged":
                 case "taskApproved":
-                case "commentReplies":
                 case "taskMemberCompleted":
                 case "taskFollowingCompleted":
                 case "taskDeadline":
                 case "taskTeamDeadline":
                 case "taskFollowingDeadline":
-                case "taskResponsibleDeadline":
-                case "taskResponsibleBeforeDeadLine":
+                case "taskResponsibleDeadLine":
+                case "taskResponsibleBeforeDeadline":
                 case "taskBeforeDeadline":
                 case "taskAssigned":
                     {
-                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
                     }
                     break;
+                default:
+                    break;
             }
+            window.location.href = url;
+            window.location.reload(); 
         }
     }
 
