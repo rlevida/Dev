@@ -88,7 +88,7 @@ export default class Component extends React.Component {
             try {
                 const { termsAndConditions } = { ...getTermsAndConditionsResponse.data }
                 this.setState({ termsAndConditions: termsAndConditions })
-                $(`#termsAndCondition`).modal("show");
+                $(`#termsAndConditionModal`).modal("show");
             } catch (err) {
                 showToast('error', 'Something went wrong. Please try again.')
             }
