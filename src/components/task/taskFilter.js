@@ -55,7 +55,7 @@ export default class TaskFilters extends React.Component {
     }
 
     fetchUserList(options) {
-        const { show_tab = true, dispatch, loggedUser, projectId = "", } = { ...this.props };
+        const { dispatch, loggedUser, projectId = "", } = { ...this.props };
 
         if (projectId != "") {
             let projectMemberUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
@@ -87,7 +87,7 @@ export default class TaskFilters extends React.Component {
     }
 
     setTaskList(name, values) {
-        const { dispatch, task } = this.props;
+        const { dispatch, task } = { ...this.props };
 
         if (task.Filter.type != values) {
             dispatch({ type: "SET_TASK_FILTER", filter: { [name]: values } });
@@ -136,12 +136,14 @@ export default class TaskFilters extends React.Component {
             { id: "Completed", name: "Completed" },
             { id: "Rejected", name: "Rejected" }
         ];
+        const enableFilter = !task.TaskCatergoryLoading['Today'] && !task.TaskCatergoryLoading['This week'] && !task.TaskCatergoryLoading['This month'] && !task.TaskCatergoryLoading['Succeeding month']
+
         return (
-            <div class="filter">
+            <div class={`filter ${enableFilter ? '' : 'div-disabled'}`} >
                 {
                     (show_action == true || show_tab == true) && <div class="row mb10">
                         {
-                            (show_tab) && <div class="col-md-6 col-sm-12 col-xs-12 pd0">
+                            (show_tab) && <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
                                 <div class="flex-row tab-row mb0">
                                     {
                                         _.map(tabs, (tab, index) => {

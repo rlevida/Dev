@@ -25,7 +25,13 @@ export default function reducer(
         },
         SelectedId: [],
         SelectList: [],
-        TaskComponentCurrentPage: ""
+        TaskComponentCurrentPage: "",
+        TaskCatergoryLoading: {
+            "Today": false,
+            "This week": false,
+            "This month": false,
+            "Succeeding month": false
+        }
     },
     action
 ) {
@@ -116,6 +122,9 @@ export default function reducer(
         }
         case "RESET_TASK": {
             return { ...state, ...action }
+        }
+        case "SET_TASK_CATEGORY_LOADING": {
+            return { ...state, TaskCatergoryLoading: { ...state.TaskCatergoryLoading, ...action } }
         }
         default:
             return state;
