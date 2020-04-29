@@ -2307,7 +2307,6 @@ exports.put = {
                                                             return key;
                                                         });
 
-                                                        console.log(newObject)
                                                         resolve({
                                                             data: updatedResponse,
                                                             ...(_.isEmpty(newObject) == false
@@ -2439,6 +2438,7 @@ exports.put = {
                                                                             return oldUser != newUser;
                                                                         })
                                                                         .map(o => {
+                                                                            console.log(o)
                                                                             return {
                                                                                 old:
                                                                                     o.old != "undefined" && _.isEmpty(o.old) == false
@@ -2456,7 +2456,11 @@ exports.put = {
                                                                                 usersId: body.userId,
                                                                                 linkType: "task",
                                                                                 linkId: relatedTaskObj.data.id,
-                                                                                title: _.isEmpty(o.new) ? (_.isEmpty(o.old) == false ? o.old.user.firstName + " " + o.old.user.lastName : "") : o.new.user.firstName + " " + o.new.user.lastName
+                                                                                title: (typeof o.new !== 'undefined' && typeof o.new.user !== 'undefined')
+                                                                                    ? o.new.user.firstName + " " + o.new.user.lastName
+                                                                                    : (typeof o.old !== 'undefined' && typeof o.old.user !== 'undefined')
+                                                                                        ? o.old.user.firstName + " " + o.old.user.lastName
+                                                                                        : ""
                                                                             };
                                                                         })
                                                                         .value();
