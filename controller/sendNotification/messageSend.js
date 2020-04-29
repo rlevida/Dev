@@ -11,7 +11,7 @@ module.exports = async (params) => {
             project_notification: { project },
             conversation_notification: { comment, dateAdded },
             note_notification: { note },
-            workstream_notification: { workstream }
+            workstream_notification
         } = { ...emailObj }
 
         const url = `${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}`;
@@ -19,6 +19,8 @@ module.exports = async (params) => {
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         const nameTo = func.toCapitalizeFirstLetter(to.firstName);
         const nameFrom = func.toCapitalizeFirstLetter(from.firstName);
+        const workstream = workstream_notification ? workstream_notification.workstream : 'N/A'
+
         const html = await ejs.renderFile(`${__dirname}/email-template/messageSend.ejs`,
             {
                 data: {
