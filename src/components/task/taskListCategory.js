@@ -50,7 +50,6 @@ export default class TaskListCategory extends React.Component {
             this.setState({ loading: "RETRIEVING" }, () => {
                 dispatch({ type: "SET_TASK_CATEGORY_LOADING", [date]: true });
                 this.getList(1);
-                // window.stop();
             });
         }
     }
@@ -59,6 +58,7 @@ export default class TaskListCategory extends React.Component {
         const { id, status, periodic, periodTask, approvalRequired } = { ...selectedTask };
         const { dispatch, loggedUser, task } = { ...this.props };
         const taskStatus = status == "Completed" && approvalRequired == 0 ? "In Progress" : status == "Completed" && approvalRequired == 1 ? "For Approval" : "Completed";
+
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD HH:mm:ss") }, c => {
             if (c.status == 200) {
                 if (periodic) {
@@ -105,8 +105,8 @@ export default class TaskListCategory extends React.Component {
     }
 
     getList(page) {
-        const { dispatch, date, task, workstream_id = "", user_id = "" } = this.props;
-        const { Filter } = task;
+        const { dispatch, date, task, workstream_id = "", user_id = "" } = { ...this.props };
+        const { Filter } = { ...task };
         let fromDate = "";
         let toDate = "";
 
@@ -179,8 +179,21 @@ export default class TaskListCategory extends React.Component {
                 fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: Filter.taskStatus })}`;
             }
         }
+
         if (Filter.taskAssigned != "") {
             fetchUrl += `&assigned=${Filter.taskAssigned}`;
+        }
+
+        if (Filter.taskDeadlineStartDate != null) {
+            const taskDeadlineStartDate = moment(moment(Filter.taskDeadlineStartDate)).endOf('day').format('YYYY-MM-DD');
+            const taskDeadlineEndDate = moment(moment(Filter.taskDeadlineEndDate != null ? Filter.taskDeadlineEndDate : moment())).add(1, 'days').startOf('day').format('YYYY-MM-DD');
+            fetchUrl += `&taskDeadlineStartDate=${taskDeadlineStartDate}&taskDeadlineEndDate=${taskDeadlineEndDate}`;
+        }
+
+        if (Filter.taskCompletionStartDate != null) {
+            const taskCompletionStartDate = moment(moment(Filter.taskCompletionStartDate)).endOf('day').format('YYYY-MM-DD');
+            const taskCompletionEndDate = moment(moment(Filter.taskCompletionEndDate != null ? Filter.taskCompletionEndDate : moment())).add(1, 'days').startOf('day').format('YYYY-MM-DD');
+            fetchUrl += `&taskCompletionStartDate=${taskCompletionStartDate}&taskCompletionEndDate=${taskCompletionEndDate}`;
         }
 
         if (date === "Succeeding month" || date === "This month") {

@@ -608,7 +608,7 @@ export default class TaskForm extends React.Component {
                                             </div>
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class="form-group input-inline">
+                                                    <div class="form-group">
                                                         <div>
                                                             <label>Start Date:</label>
                                                             {typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != "" && (
