@@ -11,7 +11,11 @@ export default function reducer(
             task: "",
             selected_month: "",
             projectId: "",
-            type: ""
+            type: "",
+            taskDeadlineStartDate: null,
+            taskDeadlineEndDate: null,
+            taskCompletionStartDate: null,
+            taskCompletionEndDate: null
         },
         FormActive: "List",
         FormAction: "",

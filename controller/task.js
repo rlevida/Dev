@@ -425,6 +425,38 @@ exports.get = {
             ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== "" ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }),
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { projectId: queryString.projectId } : {}),
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "" ? { workstreamId: queryString.workstreamId } : {}),
+            ...(typeof queryString.taskDeadlineStartDate != "undefined" && queryString.taskDeadlineStartDate !== "" && queryString.taskDeadlineStartDate != null
+                ? {
+                    dueDate: {
+                        [Sequelize.Op.between]: [
+                            moment(queryString.taskDeadlineStartDate, "YYYY-MM-DD")
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")
+                            ,
+                            moment(queryString.taskDeadlineEndDate, "YYYY-MM-DD")
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")
+                            ,
+                        ]
+                    }
+                }
+                : {}),
+            ...(typeof queryString.taskCompletionStartDate != "undefined" && queryString.taskCompletionStartDate !== "" && queryString.taskCompletionStartDate != null
+                ? {
+                    dateCompleted: {
+                        [Sequelize.Op.between]: [
+                            moment(queryString.taskCompletionStartDate, "YYYY-MM-DD")
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")
+                            ,
+                            moment(queryString.taskCompletionEndDate, "YYYY-MM-DD")
+                                .utc()
+                                .format("YYYY-MM-DD HH:mm")
+                            ,
+                        ]
+                    }
+                }
+                : {}),
             ...(typeof queryString.task != "undefined" && queryString.task != ""
                 ? {
                     [Sequelize.Op.and]: [
@@ -783,6 +815,7 @@ exports.get = {
     profileTask: async (req, cb) => {
         const queryString = req.query;
         Tasks.findAll({
+            raw: true,
             where: {
                 isDeleted: 0,
                 dueDate: {
@@ -839,9 +872,6 @@ exports.get = {
                 ]
             ]
         })
-            .map(response => {
-                return response.toJSON();
-            })
             .then(response => {
                 cb({ status: true, data: response });
             });
@@ -865,220 +895,220 @@ exports.get = {
 
         async.parallel(
             {
-                assigned_to_me: parallelCallback => {
-                    try {
-                        Tasks.findAll({
-                            group: ["projectId"],
-                            where: {
-                                isDeleted: 0,
-                                dueDate: {
-                                    [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
-                                },
-                                status: {
-                                    [Op.ne]: "Completed"
-                                }
-                            },
-                            include: [
-                                {
-                                    attributes: [],
-                                    model: Members,
-                                    as: "task_members",
-                                    required: true,
-                                    where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "assignedTo" }
-                                },
-                                {
-                                    model: Projects,
-                                    as: "task_project",
-                                    required: true,
-                                    where: {
-                                        isActive: 1,
-                                        isDeleted: 0
-                                    }
-                                },
-                                {
-                                    model: Workstream,
-                                    as: "workstream",
-                                    required: true,
-                                    where: {
-                                        isActive: 1,
-                                        isDeleted: 0
-                                    }
-                                }
-                            ],
-                            attributes: [
-                                "projectId",
-                                [
-                                    models.sequelize.literal(
-                                        'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
-                                    ),
-                                    "issues"
-                                ],
-                                [
-                                    models.sequelize.literal(
-                                        'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                        moment(queryString.date, "YYYY-MM-DD")
-                                            .utc()
-                                            .format("YYYY-MM-DD HH:mm") +
-                                        '" THEN task.id END)'
-                                    ),
-                                    "due_today"
-                                ]
-                            ]
-                        })
-                            .map(response => {
-                                return response.toJSON();
-                            })
-                            .then(response => {
-                                parallelCallback(null, response);
-                            });
-                    } catch (err) {
-                        parallelCallback(err);
-                    }
-                },
-                following: parallelCallback => {
-                    Tasks.findAll({
-                        group: ["projectId"],
-                        where: {
-                            isDeleted: 0,
-                            dueDate: {
-                                [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
-                            },
-                            status: {
-                                [Op.ne]: "Completed"
-                            }
-                        },
-                        include: [
-                            {
-                                attributes: [],
-                                model: Members,
-                                as: "task_members",
-                                required: true,
-                                where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "follower" }
-                            },
-                            {
-                                model: Projects,
-                                as: "task_project",
-                                required: true,
-                                where: {
-                                    isActive: 1,
-                                    isDeleted: 0
-                                }
-                            },
-                            {
-                                model: Workstream,
-                                as: "workstream",
-                                required: true,
-                                where: {
-                                    isActive: 1,
-                                    isDeleted: 0
-                                }
-                            }
-                        ],
-                        attributes: [
-                            "projectId",
-                            [
-                                models.sequelize.literal(
-                                    'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                    moment(queryString.date, "YYYY-MM-DD")
-                                        .utc()
-                                        .format("YYYY-MM-DD HH:mm") +
-                                    '" THEN task.id END)'
-                                ),
-                                "issues"
-                            ],
-                            [
-                                models.sequelize.literal(
-                                    'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                    moment(queryString.date, "YYYY-MM-DD")
-                                        .utc()
-                                        .format("YYYY-MM-DD HH:mm") +
-                                    '" THEN task.id END)'
-                                ),
-                                "due_today"
-                            ]
-                        ]
-                    })
-                        .map(response => {
-                            return response.toJSON();
-                        })
-                        .then(response => {
-                            parallelCallback(null, response);
-                        });
-                },
-                team: parallelCallback => {
-                    Tasks.findAll({
-                        group: ["projectId"],
-                        where: {
-                            isDeleted: 0,
-                            dueDate: {
-                                [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
-                            },
-                            status: {
-                                [Op.ne]: "Completed"
-                            }
-                        },
-                        include: [
-                            {
-                                attributes: [],
-                                model: Members,
-                                as: "task_members",
-                                required: true,
-                                where: { linkType: "task", usersType: "users", userTypeLinkId: allTeams, isDeleted: 0, memberType: "assignedTo" }
-                            },
-                            {
-                                model: Projects,
-                                as: "task_project",
-                                required: true,
-                                where: {
-                                    isActive: 1,
-                                    isDeleted: 0
-                                }
-                            },
-                            {
-                                model: Workstream,
-                                as: "workstream",
-                                required: true,
-                                where: {
-                                    isActive: 1,
-                                    isDeleted: 0
-                                }
-                            }
-                        ],
-                        attributes: [
-                            "projectId",
-                            [
-                                models.sequelize.literal(
-                                    'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
-                                    moment(queryString.date, "YYYY-MM-DD")
-                                        .utc()
-                                        .format("YYYY-MM-DD HH:mm") +
-                                    '" THEN task.id END)'
-                                ),
-                                "issues"
-                            ],
-                            [
-                                models.sequelize.literal(
-                                    'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
-                                    moment(queryString.date, "YYYY-MM-DD")
-                                        .utc()
-                                        .format("YYYY-MM-DD HH:mm") +
-                                    '" THEN task.id END)'
-                                ),
-                                "due_today"
-                            ]
-                        ]
-                    })
-                        .map(response => {
-                            return response.toJSON();
-                        })
-                        .then(response => {
-                            parallelCallback(null, response);
-                        });
-                }
+                // assigned_to_me: parallelCallback => {
+                //     try {
+                //         Tasks.findAll({
+                //             group: ["task.projectId"],
+                //             where: {
+                //                 isDeleted: 0,
+                //                 dueDate: {
+                //                     [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
+                //                 },
+                //                 status: {
+                //                     [Op.ne]: "Completed"
+                //                 }
+                //             },
+                //             include: [
+                //                 {
+                //                     attributes: [],
+                //                     model: Members,
+                //                     as: "task_members",
+                //                     required: true,
+                //                     where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "assignedTo" }
+                //                 },
+                //                 {
+                //                     model: Projects,
+                //                     as: "task_project",
+                //                     required: true,
+                //                     where: {
+                //                         isActive: 1,
+                //                         isDeleted: 0
+                //                     }
+                //                 },
+                //                 {
+                //                     model: Workstream,
+                //                     as: "workstream",
+                //                     required: true,
+                //                     where: {
+                //                         isActive: 1,
+                //                         isDeleted: 0
+                //                     }
+                //                 }
+                //             ],
+                //             attributes: [
+                //                 "projectId",
+                //                 [
+                //                     models.sequelize.literal(
+                //                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
+                //                         moment(queryString.date, "YYYY-MM-DD")
+                //                             .utc()
+                //                             .format("YYYY-MM-DD HH:mm") +
+                //                         '" THEN task.id END)'
+                //                     ),
+                //                     "issues"
+                //                 ],
+                //                 [
+                //                     models.sequelize.literal(
+                //                         'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
+                //                         moment(queryString.date, "YYYY-MM-DD")
+                //                             .utc()
+                //                             .format("YYYY-MM-DD HH:mm") +
+                //                         '" THEN task.id END)'
+                //                     ),
+                //                     "due_today"
+                //                 ]
+                //             ]
+                //         })
+                //             .map(response => {
+                //                 return response.toJSON();
+                //             })
+                //             .then(response => {
+                //                 parallelCallback(null, response);
+                //             });
+                //     } catch (err) {
+                //         parallelCallback(err);
+                //     }
+                // },
+                // following: parallelCallback => {
+                //     Tasks.findAll({
+                //         group: ["task.projectId"],
+                //         where: {
+                //             isDeleted: 0,
+                //             dueDate: {
+                //                 [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
+                //             },
+                //             status: {
+                //                 [Op.ne]: "Completed"
+                //             }
+                //         },
+                //         include: [
+                //             {
+                //                 attributes: [],
+                //                 model: Members,
+                //                 as: "task_members",
+                //                 required: true,
+                //                 where: { linkType: "task", usersType: "users", userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "follower" }
+                //             },
+                //             {
+                //                 model: Projects,
+                //                 as: "task_project",
+                //                 required: true,
+                //                 where: {
+                //                     isActive: 1,
+                //                     isDeleted: 0
+                //                 }
+                //             },
+                //             {
+                //                 model: Workstream,
+                //                 as: "workstream",
+                //                 required: true,
+                //                 where: {
+                //                     isActive: 1,
+                //                     isDeleted: 0
+                //                 }
+                //             }
+                //         ],
+                //         attributes: [
+                //             "projectId",
+                //             [
+                //                 models.sequelize.literal(
+                //                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
+                //                     moment(queryString.date, "YYYY-MM-DD")
+                //                         .utc()
+                //                         .format("YYYY-MM-DD HH:mm") +
+                //                     '" THEN task.id END)'
+                //                 ),
+                //                 "issues"
+                //             ],
+                //             [
+                //                 models.sequelize.literal(
+                //                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
+                //                     moment(queryString.date, "YYYY-MM-DD")
+                //                         .utc()
+                //                         .format("YYYY-MM-DD HH:mm") +
+                //                     '" THEN task.id END)'
+                //                 ),
+                //                 "due_today"
+                //             ]
+                //         ]
+                //     })
+                //         .map(response => {
+                //             return response.toJSON();
+                //         })
+                //         .then(response => {
+                //             parallelCallback(null, response);
+                //         });
+                // },
+                // team: parallelCallback => {
+                //     Tasks.findAll({
+                //         group: ["task.projectId"],
+                //         where: {
+                //             isDeleted: 0,
+                //             dueDate: {
+                //                 [Op.lte]: moment(queryString.date, "YYYY-MM-DD")
+                //             },
+                //             status: {
+                //                 [Op.ne]: "Completed"
+                //             }
+                //         },
+                //         include: [
+                //             {
+                //                 attributes: [],
+                //                 model: Members,
+                //                 as: "task_members",
+                //                 required: true,
+                //                 where: { linkType: "task", usersType: "users", userTypeLinkId: allTeams, isDeleted: 0, memberType: "assignedTo" }
+                //             },
+                //             {
+                //                 model: Projects,
+                //                 as: "task_project",
+                //                 required: true,
+                //                 where: {
+                //                     isActive: 1,
+                //                     isDeleted: 0
+                //                 }
+                //             },
+                //             {
+                //                 model: Workstream,
+                //                 as: "workstream",
+                //                 required: true,
+                //                 where: {
+                //                     isActive: 1,
+                //                     isDeleted: 0
+                //                 }
+                //             }
+                //         ],
+                //         attributes: [
+                //             "projectId",
+                //             [
+                //                 models.sequelize.literal(
+                //                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' +
+                //                     moment(queryString.date, "YYYY-MM-DD")
+                //                         .utc()
+                //                         .format("YYYY-MM-DD HH:mm") +
+                //                     '" THEN task.id END)'
+                //                 ),
+                //                 "issues"
+                //             ],
+                //             [
+                //                 models.sequelize.literal(
+                //                     'COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' +
+                //                     moment(queryString.date, "YYYY-MM-DD")
+                //                         .utc()
+                //                         .format("YYYY-MM-DD HH:mm") +
+                //                     '" THEN task.id END)'
+                //                 ),
+                //                 "due_today"
+                //             ]
+                //         ]
+                //     })
+                //         .map(response => {
+                //             return response.toJSON();
+                //         })
+                //         .then(response => {
+                //             parallelCallback(null, response);
+                //         });
+                // }
             },
             (err, response) => {
                 if (err != null) {

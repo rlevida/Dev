@@ -287,3 +287,21 @@ export class Searchbar extends React.Component {
         );
     }
 }
+
+export const DatePickerCustomInput = ({ ref, value, onClick, onClear, placeholder }) => {
+    return (
+        <div className="date-picker-wrapper">
+            <div className="react-datepicker__input-container">
+                {value &&
+                    <i onClick={onClear} aria-hidden="true" className="date-picker-icon fa fa-times" />
+                }
+                <input
+                    className="date-picker-input form-control"
+                    type="text" value={value} placeholder={placeholder}
+                    onClick={onClick}
+                    autoComplete={false}
+                    readOnly="true" />
+            </div>
+        </div>
+    )
+}

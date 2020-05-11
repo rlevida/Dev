@@ -1,8 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { Searchbar, DropDown } from "../../globalComponents";
-import { getData } from "../../globalFunction";
+import { Searchbar, DropDown, DatePickerCustomInput } from "../../globalComponents";
+import { getData, showToast } from "../../globalFunction";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 let keyTimer;
 
@@ -24,7 +26,8 @@ export default class TaskFilters extends React.Component {
             "handleChange",
             "setDropDown",
             "fetchUserList",
-            "setAssignMemberUserList"
+            "setAssignMemberUserList",
+            "onChangeRaw"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -105,13 +108,31 @@ export default class TaskFilters extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch, task } = this.props;
-        const { Filter } = task;
+        const { dispatch, task } = { ...this.props };
+        const { Filter } = _.cloneDeep(task);
 
-        if (Filter[name] != e) {
+        if (name == "taskDeadlineStartDate" && Filter.taskDeadlineEndDate != null && e != null && e.isAfter(Filter.taskDeadlineEndDate)) {
+            showToast("error", "The start date must be before or equal the end date.", 260000);
+            return;
+        }
+
+        if (name == "taskCompletionStartDate" && Filter.taskCompletionEndDate != null && e != null && e.isAfter(Filter.taskCompletionEndDate)) {
+            showToast("error", "The start date must be before or equal the end date.", 260000);
+            return;
+        }
+
+        if (JSON.stringify(Filter[name]) !== JSON.stringify(e)) {
             dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_TASK_LIST", list: [] });
             dispatch({ type: "SET_TASK_FILTER", filter: { [name]: e } });
+        }
+    }
+
+
+    onChangeRaw(e) {
+        if (moment(e.target.value, "MMMM DD, YYYY", true).isValid() == false) {
+            let { dispatch } = this.props;
+            dispatch({ type: "SET_TASK_FILTER", filter: { [e.target.name]: e } });
         }
     }
 
@@ -121,6 +142,7 @@ export default class TaskFilters extends React.Component {
             this.fetchUserList(options);
         }, 1500);
     }
+
     render() {
         const { task, dispatch, users, show_tab = true, show_action = true, loggedUser, settings } = { ...this.props };
         const { Filter } = { ...task }
@@ -250,6 +272,99 @@ export default class TaskFilters extends React.Component {
                             />
                         </div>
                     }
+                    <div class="flex-col">
+                        <div style={{ marginRight: '10px' }}>
+                            <p class="note m0">Deadline:</p>
+                            <div
+                                style={{ marginBottom: '5px' }}
+                            >
+                                <DatePicker
+                                    name="startDate"
+                                    dateFormat="MMMM DD, YYYY"
+                                    placeholderText="Select date from"
+                                    class="form-control"
+                                    isClearable={true}
+                                    value={
+                                        moment(Filter.taskDeadlineStartDate, "MMMM DD, YYYY", true).isValid()
+                                            ? moment(Filter.taskDeadlineStartDate, "MMMM DD, YYYY").format("MMMM DD, YYYY")
+                                            : null}
+                                    onBlur={this.onChangeRaw}
+                                    startDate={Filter.taskDeadlineStartDate}
+                                    endDate={Filter.taskDeadlineEndDate}
+                                    onChange={(date) => this.setDropDown("taskDeadlineStartDate", date)}
+                                    customInput={<DatePickerCustomInput onClear={() => this.setDropDown('taskDeadlineStartDate', null)} />}
+                                />
+                            </div>
+                            <div>
+                                <DatePicker
+                                    name="endDate"
+                                    dateFormat="MMMM DD, YYYY"
+                                    placeholderText="Select date to"
+                                    class="form-control"
+                                    isClearable={true}
+                                    startDate={Filter.taskDeadlineStartDate}
+                                    endDate={Filter.taskDeadlineEndDate}
+                                    minDate={Filter.taskDeadlineStartDate}
+                                    value={
+                                        moment(Filter.taskDeadlineEndDate, "MMMM DD, YYYY", true).isValid()
+                                            ? moment(Filter.taskDeadlineEndDate, "MMMM DD, YYYY").format("MMMM DD, YYYY")
+                                            : null
+                                    }
+                                    onBlur={this.onChangeRaw}
+                                    onChange={(date) => this.setDropDown("taskDeadlineEndDate", date)}
+                                    customInput={<DatePickerCustomInput onClear={() => this.setDropDown('taskDeadlineEndDate', null)} />}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-col">
+                        <div style={{ marginRight: '10px' }}>
+                            <p class="note m0">Completion:</p>
+                            <div
+                                style={{ marginBottom: '5px' }}
+                            >
+                                <DatePicker
+                                    name="taskCompletionStartDate"
+                                    dateFormat="MMMM DD, YYYY"
+                                    placeholderText="Select date from"
+                                    class="form-control"
+                                    ref="taskCompletionStartDate"
+                                    isClearable={true}
+                                    value={
+                                        moment(Filter.taskCompletionStartDate, "MMMM DD, YYYY", true).isValid()
+                                            ? moment(Filter.taskCompletionStartDate, "MMMM DD, YYYY").format("MMMM DD, YYYY")
+                                            : null}
+                                    startDate={Filter.taskCompletionStartDate}
+                                    endDate={Filter.taskCompletionEndDate}
+                                    onBlur={this.onChangeRaw}
+                                    onChange={(date) => this.setDropDown("taskCompletionStartDate", date)}
+                                    customInput={<DatePickerCustomInput onClear={() => this.setDropDown('taskCompletionStartDate', null)} />}
+
+                                />
+                            </div>
+                            <div>
+                                <DatePicker
+                                    name="taskCompletionEndDate"
+                                    dateFormat="MMMM DD, YYYY"
+                                    placeholderText="Select date to"
+                                    class="form-control"
+                                    ref="taskCompletionEndDate"
+                                    isClearable={true}
+                                    startDate={Filter.taskCompletionStartDate}
+                                    endDate={Filter.taskCompletionEndDate}
+                                    minDate={Filter.taskCompletionStartDate}
+                                    value={
+                                        moment(Filter.taskCompletionEndDate, "MMMM DD, YYYY", true).isValid()
+                                            ? moment(Filter.taskCompletionEndDate, "MMMM DD, YYYY").format("MMMM DD, YYYY")
+                                            : null
+                                    }
+                                    onBlur={this.onChangeRaw}
+                                    onChange={(date) => this.setDropDown("taskCompletionEndDate", date)}
+                                    customInput={<DatePickerCustomInput onClear={() => this.setDropDown('taskCompletionEndDate', null)} />}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         )
