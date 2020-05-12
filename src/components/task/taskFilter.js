@@ -125,6 +125,13 @@ export default class TaskFilters extends React.Component {
             return;
         }
 
+        console.log(name, e)
+
+        if (name == 'taskCompletionStartDate' && e != null) {
+            console.log(`here`)
+            dispatch({ type: "SET_TASK_FILTER", filter: { ['taskStatus']: 'Completed' } });
+        }
+
         if (JSON.stringify(Filter[name]) !== JSON.stringify(e)) {
             dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_TASK_LIST", list: [] });
