@@ -12,5 +12,9 @@ switch (page) {
         require('./container/resetPassword');
         break;
     case "createPassword":
-        require('./container/createPassword')
+        require('./container/createPassword');
+        break;
+    case 'activationExpired':
+        require('./container/activationExpired');
+        break;
 }
