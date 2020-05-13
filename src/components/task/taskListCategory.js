@@ -474,7 +474,7 @@ export default class TaskListCategory extends React.Component {
                 </div>
             );
         } catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 }
