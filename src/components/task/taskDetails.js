@@ -376,7 +376,7 @@ export default class TaskDetails extends React.Component {
                 }
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     }
 

@@ -823,7 +823,7 @@ exports.post = {
             const userFindResult = await Users.findOne({ where: { id: req.user.id } });
 
             const sender = userFindResult.toJSON();
-
+            console.log(`here`)
             const receiver = await Conversation.findAll({
                 where: {
                     linkType: bodyData.linkType,
@@ -903,7 +903,12 @@ exports.post = {
                     include: [
                         {
                             model: Members,
-                            as: "assignee"
+                            as: "assignee",
+                            where: {
+                                memberType: 'assignedTo',
+                                linkType: 'task',
+                                isDeleted: 0,
+                            }
                         },
                         {
                             model: Workstream,
@@ -916,6 +921,7 @@ exports.post = {
                 });
 
                 const taskObj = taskFindResult.toJSON();
+
                 const commentReceiver = req.user.id !== taskObj.assignee[0].userTypeLinkId ? taskObj.assignee[0].userTypeLinkId : "";
 
                 if (commentReceiver) {

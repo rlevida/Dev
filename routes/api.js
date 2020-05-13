@@ -111,7 +111,7 @@ router.get("/downloadDocument", (req, res, next) => {
         },
         (err, data) => {
             if (err) {
-                console.log("Error in Uploading to AWS. [" + err + "]");
+                console.error("Error in Uploading to AWS. [" + err + "]");
             } else {
                 fileStream.write(data.Body);
                 res.download(`${origin}`, `${origin}`, c => {
