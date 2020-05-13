@@ -22,6 +22,7 @@ var serverAuth = require("./auth");
 // if (process.env.ENABLE_CRON == 1) {
     require("./script/taskCompletedNotification");
     require("./script/taskDuedateNotification");
+    require('./script/expiredActivationPassword');
     require("./script/backup");
 // }
 

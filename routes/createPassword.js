@@ -12,18 +12,17 @@ router.get('/', function (req, res, next) {
         UsersCreatePassword
             .findOne({ where: { hash: hash } })
             .then((ret) => {
-                const dateCreated = moment(ret.dateUpdated);
-                const dateDuration = moment().subtract(30, "days");
-
-                if (ret != null && dateCreated > dateDuration) {
+                if (ret != null) {
                     res.render('auth', {
                         title: global.site_name + ' - Create Password',
                         global: global,
                         page: 'createPassword'
                     });
                 } else {
-                    res.render('error', {
-                        message: 'Link not found or already been expired. Please try again.',
+                    res.render('auth', {
+                        title: global.site_name,
+                        global: global,
+                        page: 'activationExpired'
                     });
                 }
             })
