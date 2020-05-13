@@ -577,7 +577,7 @@ export default class TaskDetails extends React.Component {
         const commentType = conversation.Selected.type || "";
         const { Loading, Selected } = taskObj;
 
-        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId, task_preceding = [] } = Selected;
+        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId, task_preceding = [], periodInstance, periodic, periodType } = Selected;
         const assigned = _.find(task_members, o => {
             return o.memberType == "assignedTo";
         });
@@ -955,6 +955,26 @@ export default class TaskDetails extends React.Component {
                                                                     </div>
                                                                 );
                                                             })}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{
+                                                        alignItems: 'center',
+                                                        marginBottom: '5px'
+                                                    }}>
+                                                        <label>Recurrence:</label>
+                                                        <div class="ml20">
+                                                            <div class="label-div">
+                                                                <label>Instance:</label>
+                                                                <div>
+                                                                    <p class="m0">{periodInstance}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="label-div">
+                                                                <label>Period:</label>
+                                                                <div>
+                                                                    <p class="m0">{(periodType.charAt(0).toUpperCase() + periodType.slice(1)).replace('s', '')}</p>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

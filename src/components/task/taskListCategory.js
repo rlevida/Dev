@@ -254,7 +254,7 @@ export default class TaskListCategory extends React.Component {
     }
 
     renderRow(taskData) {
-        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
+        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, periodInstance, periodType, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
         const { task, workstream_id = "", loggedUser, settings } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate).startOf("days");
@@ -289,6 +289,10 @@ export default class TaskListCategory extends React.Component {
         const precedingCompleted = task_preceding.filter(e => {
             return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
         });
+
+        const recurrence = periodic
+            ? `${periodInstance}${periodType.charAt(0).toUpperCase()}`
+            : 'N/A'
 
         return (
             <tr key={index}>
@@ -337,6 +341,9 @@ export default class TaskListCategory extends React.Component {
                             {periodic == 1 && <i class="fa fa-refresh ml10" aria-hidden="true" />}
                         </a>
                     </div>
+                </td>
+                <td data-label="Recurrence">
+                    {recurrence}
                 </td>
                 <td data-label="Status">
                     <p class={`m0 ${status == "Completed" ? "text-green" : status == "For Approval" ? "text-orange" : ""}`}>{status}</p>
@@ -434,7 +441,8 @@ export default class TaskListCategory extends React.Component {
                                         <tr>
                                             <th scope="col" class="td-left">
                                                 Task Name
-                                        </th>
+                                            </th>
+                                            <th scope="col">Recurrence</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Deadline</th>
                                             <th scope="col">Time Remaining</th>
