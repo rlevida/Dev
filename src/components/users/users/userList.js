@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
 
-import { getData, putData, showToast } from "../../../globalFunction";
+import { getData, postData, putData, showToast } from "../../../globalFunction";
 import { OnOffSwitch, Loading, DeleteModal } from "../../../globalComponents";
 
 import { connect } from "react-redux";
@@ -130,6 +130,22 @@ export default class UserList extends React.Component {
         });
     }
 
+    sendActivationLink(data) {
+        const dataToBeSubmitted = {
+            id: data.id,
+            username: data.username,
+            firstName: data.firstName,
+            emailAddress: data.emailAddress,
+        }
+        postData(`/api/createPassword`, dataToBeSubmitted, (c) => {
+            if (!c.error) {
+                showToast("success", "Activation link successfully sent.");
+            } else {
+                showToast("error", c.error);
+            }
+        })
+    }
+
     render() {
         const { users, loggedUser, settings } = this.props;
         const currentPage = typeof users.Count != "undefined" && _.isEmpty(users.Count) == false ? users.Count.current_page : 1;
@@ -196,6 +212,7 @@ export default class UserList extends React.Component {
                                                 <ul class="dropdown-menu">
                                                     <li>
                                                         <a onClick={() => this.handleEdit(user)}>Edit</a>
+                                                        {!user.isActive && <a onClick={() => this.sendActivationLink(user)}>Send Activation Link</a>}
                                                     </li>
                                                     {/* <li><a onClick={() => this.deleteData(user)}>Delete</a></li> */}
                                                 </ul>
