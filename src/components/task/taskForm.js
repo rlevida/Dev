@@ -369,29 +369,33 @@ export default class TaskForm extends React.Component {
                 postData(`/api/task`, submitData, c => {
                     if (c.status == 200 && !c.data.error) {
                         const { id, approvalRequired, approverId, dueDate, startDate, periodic, period, periodInstance, periodType, projectId, workstream, task, task_members, checklist, description } = { ...c.data[0] };
-                        dispatch({
-                            type: "SET_TASK_SELECTED",
-                            Selected: {
-                                id,
-                                approvalRequired,
-                                approverId,
-                                ...(task_members.length > 0 ? { assignedTo: task_members[0].userTypeLinkId } : {}),
-                                dueDate: dueDate != null ? moment(dueDate) : null,
-                                startDate: startDate != null ? moment(startDate) : null,
-                                description,
-                                periodic,
-                                period,
-                                periodInstance,
-                                periodType,
-                                projectId,
-                                task,
-                                workstream,
-                                workstreamId: workstream.id,
-                                checklist
-                            }
-                        });
-                        this.getTaskDetails();
-                        showToast("success", "Task successfully added.", undefined, true);
+                        try {
+                            dispatch({
+                                type: "SET_TASK_SELECTED",
+                                Selected: {
+                                    id,
+                                    approvalRequired,
+                                    approverId,
+                                    ...(task_members.length > 0 ? { assignedTo: task_members[0].userTypeLinkId } : {}),
+                                    dueDate: dueDate != null ? moment(dueDate) : null,
+                                    startDate: startDate != null ? moment(startDate) : null,
+                                    description,
+                                    periodic,
+                                    period,
+                                    periodInstance,
+                                    periodType,
+                                    projectId,
+                                    task,
+                                    workstream,
+                                    workstreamId: workstream.id,
+                                    checklist
+                                }
+                            });
+                            this.getTaskDetails();
+                            showToast("success", "Task successfully added.", undefined, true);
+                        } catch (error) {
+                            console.error(error)
+                        }
                     } else {
                         showToast("error", c.data.error);
                     }
