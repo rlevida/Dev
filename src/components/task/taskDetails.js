@@ -972,7 +972,7 @@ export default class TaskDetails extends React.Component {
                                                             <div class="label-div">
                                                                 <label>Period:</label>
                                                                 <div>
-                                                                    <p class="m0">{(periodType.charAt(0).toUpperCase() + periodType.slice(1)).replace('s', '')}</p>
+                                                                    <p class="m0">{periodic ? (periodType.charAt(0).toUpperCase() + periodType.slice(1)).replace('s', '') : 'N/A'}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
