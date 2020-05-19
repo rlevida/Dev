@@ -32,13 +32,13 @@ class NotificationService {
     }
 
     enqueue(topic, message) {
-        console.log(`Enqueue on topic: ${topic} with message: ${JSON.stringify(message)}`);
+        // console.log(`Enqueue on topic: ${topic} with message: ${JSON.stringify(message)}`);
         const notification = new Notification(topic, message);
         this._notes.push(notification);
     }
 
     postFromOutbox() {
-        console.log(`Posting ${this._notes.length} notifications`);
+        // console.log(`Posting ${this._notes.length} notifications`);
         this._notes.forEach(note => {
             this.socketIo.emit(note.topic, note.message);
         });
@@ -47,7 +47,7 @@ class NotificationService {
 
     private initIo() {
         const siteUrl = this.siteUrl();
-        console.log(`Site url for socket io: ${siteUrl}`);
+        // console.log(`Site url for socket io: ${siteUrl}`);
         this.socketIo = io(siteUrl, {
             transports: ['websocket'],
             reconnection: true,

@@ -270,7 +270,6 @@ describe('project controller', () => {
             })
             .set('Cookie', 'app.sid=6RjchYV2k2AFkvmMt29LBhvhohKiJMzpyw9w7qPqTnwv; connect.sid=s%3A_NC1DyVkmb0bxom_C3b2hgBSlZNczTM6.oxC%2BcODgGaaYQEA183WotfJIxIJDmX0HI8Cixa23OQ4; io=RShglpq5sCuLhUUJAAAB')
             .expect(200);
-            console.log(result.body.result.length)
         expect(result.body.result).toHaveLength(25);
         done();
     });

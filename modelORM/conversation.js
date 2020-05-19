@@ -43,9 +43,9 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-      tableName: 'conversation',
-      charset: 'utf8mb4'
-    });
+    tableName: 'conversation',
+    charset: 'utf8mb4'
+  });
 
   Conversation.associate = function (models) {
     Conversation.belongsTo(models.Notes, {
@@ -72,6 +72,10 @@ module.exports = function (sequelize, DataTypes) {
       as: 'users_conversation',
       foreignKey: 'usersId',
     });
+    Conversation.belongsTo(models.Document, {
+      as: 'document_conversation',
+      foreignKey: 'linkId'
+    })
   }
 
   return Conversation;

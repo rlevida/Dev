@@ -125,7 +125,15 @@ module.exports = (sequelize, DataTypes) => {
       as: 'document_log',
       foreignKey: 'linkId'
     })
+    Document.hasMany(models.Conversation, {
+      as: 'document_conversation',
+      foreignKey: 'linkId'
+    })
+    Document.hasMany(models.Document, {
+      as: 'folder_document',
+      foreignKey: "folderId",
+      useJunctionTable: false
+    })
   };
-  
   return Document;
 };

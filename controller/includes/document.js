@@ -1,5 +1,5 @@
 const models = require("../../modelORM");
-const { Document, DocumentRead, Starred, Tasks, Tag, Users, Workstream, Notes } = models;
+const { Document, DocumentRead, Starred, Tasks, Tag, Users, Workstream, Notes, Conversation } = models;
 
 exports.documentIncludes = documentIncludes = (params) => {
     return DocumentIncludes = [
@@ -75,6 +75,12 @@ exports.documentIncludes = documentIncludes = (params) => {
             model: DocumentRead,
             as: "document_read",
             required: false
-        }
+        },
+        {
+            model: Document,
+            as: "folder_document",
+            required: false,
+            subQuery: true
+        },
     ];
 }
