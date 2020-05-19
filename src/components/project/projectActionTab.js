@@ -54,6 +54,21 @@ export default class ProjectActionTab extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({
+            type: "SET_PROJECT_FILTER",
+            filter: {
+                projectProgress: "All",
+                projectNameSort: "asc",
+                projectType: 1,
+                typeId: 1,
+                isActive: 1,
+                search: ''
+            }
+        });
+    }
+
     setDropDown(name, e) {
         const { dispatch } = this.props;
         dispatch({

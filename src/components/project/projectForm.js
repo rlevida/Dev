@@ -7,6 +7,8 @@ import { DeleteModal, DropDown, ColorPicker } from "../../globalComponents";
 import ProjectMemberForm from "./projectMemberForm";
 import WorkstreamForm from "../workstream/workstreamForm";
 import WorkstreamList from "../workstream/workstreamList";
+import Switch from 'rc-switch';
+require('rc-switch/assets/index.css');
 
 let keyTimer = "";
 
@@ -270,27 +272,60 @@ export default class ProjectForm extends React.Component {
         });
     }
 
+    onSwitchChange(params) {
+        const { dispatch, project } = { ...this.props };
+        const isActive = params.active > 0 ? 0 : 1;
+
+        try {
+            putData(`/api/project/projectMemberStatus/${params.id}`, { isActive: isActive }, c => {
+                if (c.status == 200) {
+                    if (params.member_type == "User") {
+                        const currentMember = _.map(project.Selected.members, o => {
+                            o.isActive = o.member_id === params.id ? isActive : o.isActive
+                            return o
+                        });
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, members: currentMember } });
+                    } else {
+                        const currentTeam = _.map(project.Selected.team, o => {
+                            o.isActive = o.id === params.id ? isActive : o.isActive
+                            return o
+                        });
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
+                    }
+                } else {
+                    showToast("error", "Something went wrong. Please try again.");
+                }
+            });
+        } catch (error) {
+            console.error(error)
+            showToast("error", "Something went wrong. Please try again.");
+        }
+    }
+
     render() {
         const { dispatch, project, loggedUser, status, type, users, document, members, settings } = { ...this.props };
         const { Files, Loading: documentLoading } = document;
         const typeValue = typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false ? members.Selected.name : "";
+
         const memberList = [
-            ..._.map(project.Selected.members, ({ firstName, lastName, member_id, id, emailAddress }) => {
+            ..._.map(project.Selected.members, ({ firstName, lastName, member_id, id, emailAddress, isActive }) => {
                 return {
                     id: member_id,
                     name: firstName + " " + lastName,
                     member_type: "User",
                     member_type_id: id,
-                    email: emailAddress
+                    email: emailAddress,
+                    active: isActive
                 };
             }),
-            ..._.map(project.Selected.team, ({ id, team }) => {
+            ..._.map(project.Selected.team, ({ id, team, isActive }) => {
                 return {
                     id: id,
                     name: team.team,
                     member_type: "Team",
                     member_type_id: team.id,
-                    users_team: team.users_team
+                    users_team: team.users_team,
+                    active: isActive
                 };
             })
         ];
@@ -566,7 +601,7 @@ export default class ProjectForm extends React.Component {
                                                 </thead>
                                                 <tbody>
                                                     {_.orderBy(memberList, ["name"], ["asc"]).map((params, index) => {
-                                                        const { name, member_type, member_type_id, email = "N/A", users_team = [] } = params;
+                                                        const { name, member_type, member_type_id, email = "N/A", users_team = [], active } = params;
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Name" class="td-left">
@@ -584,11 +619,19 @@ export default class ProjectForm extends React.Component {
                                                                         : "N/A"}
                                                                 </td>
                                                                 <td data-label="Actions">
+
                                                                     {((project.Selected.projectManagerId != member_type_id && member_type == "User") || member_type == "Team") && (
-                                                                        <a href="javascript:void(0);" title="DELETE" onClick={e => this.deleteMember(params)} class="btn btn-action">
-                                                                            <span class="fa fa-trash" />
-                                                                        </a>
+                                                                        <div>
+                                                                            <Switch
+                                                                                onClick={() => this.onSwitchChange(params)}
+                                                                                checked={!!active}
+                                                                            />
+                                                                            <a href="javascript:void(0);" title="DELETE" onClick={e => this.deleteMember(params)} class="btn btn-action">
+                                                                                <span class="fa fa-trash" />
+                                                                            </a>
+                                                                        </div>
                                                                     )}
+
                                                                 </td>
                                                             </tr>
                                                         );

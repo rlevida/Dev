@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 
 import Container from "./folderContainer";
-// require('rc-collapse/assets/index.css');
+
 
 const itemSource = {
     beginDrag(props) {

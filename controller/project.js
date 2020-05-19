@@ -121,7 +121,7 @@ exports.get = {
                     isDeleted: 0
                 },
                 required: false,
-                attributes: ["userTypeLinkId", "memberType"]
+                attributes: ['userTypeLinkId', 'memberType', 'isActive']
             });
         } else {
             associationArray.push({
@@ -323,11 +323,11 @@ exports.get = {
                                     attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
                                 }).map(o => {
                                     const userResponse = o.toJSON();
+                                    const membersResponse = _.find(responseObj.members, { userTypeLinkId: userResponse.id })
                                     return {
                                         ...userResponse,
-                                        member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
-                                            return userResponse.id == userTypeLinkId;
-                                        }).id
+                                        member_id: membersResponse.id,
+                                        isActive: membersResponse.isActive
                                     };
                                 });
 
@@ -504,7 +504,7 @@ exports.get = {
                         isDeleted: 0
                     },
                     required: false,
-                    attributes: ["id", "userTypeLinkId"]
+                    attributes: ["id", "userTypeLinkId", 'isActive']
                 },
                 {
                     model: Members,
@@ -538,7 +538,7 @@ exports.get = {
                             attributes: ["id"]
                         }
                     ],
-                    attributes: ["id"]
+                    attributes: ["id", 'isActive']
                 }
             ];
         }
@@ -568,11 +568,11 @@ exports.get = {
                             attributes: ["id", "firstName", "lastName", "avatar", "emailAddress"]
                         }).map(o => {
                             const userResponse = o.toJSON();
+                            const projectMembersResponse = _.find(responseObj.members, { userTypeLinkId: userResponse.id })
                             return {
                                 ...userResponse,
-                                member_id: _.find(responseObj.members, ({ userTypeLinkId }) => {
-                                    return userResponse.id == userTypeLinkId;
-                                }).id
+                                member_id: projectMembersResponse.id,
+                                isActive: projectMembersResponse.isActive
                             };
                         });
                     }
@@ -1655,6 +1655,27 @@ exports.put = {
         try {
             Members.update(d.data, {
                 where: filter
+            }).then(res => {
+                cb({
+                    status: true,
+                    data: res
+                });
+            });
+        } catch (err) {
+            cb({
+                status: false,
+                error: err
+            });
+        }
+    },
+    projectMemberStatus: (req, cb) => {
+        let { id } = req.params;
+        let body = req.body;
+
+        try {
+            Members.update(body, {
+                where: { id },
+                logging: true,
             }).then(res => {
                 cb({
                     status: true,
