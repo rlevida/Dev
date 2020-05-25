@@ -64,72 +64,85 @@ class NotificationList extends React.Component {
         const { history, dispatch, loggedUser, notification } = { ...this.props };
         const { taskId, workstreamId, projectId, project_notification, workstream_notification } = { ...notif };
 
-        if (!notif.isRead) {
-            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, c => {
-                dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
-            });
-        }
+        getData(`/api/project/getProjectMembers?page=1&linkId=${notif.projectId}&linkType=project&memberType=assignedTo&isActive=1`, {}, async (projectMembersResponse) => {
 
-        if (project_notification && (project_notification.isDeleted == 1 || project_notification.isActive == 0)) {
-            showToast('error', 'Project is now inactive');
-        } else if (workstream_notification && (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0)) {
-            showToast('error', 'Workstream is now inactive');
-        } else {
+            const isMember = projectMembersResponse.data.filter((projectMemberObj) => {
+                return projectMemberObj.id === notif.usersId
+            })
 
-            let url = '';
+            if (isMember.length === 0) {
+                showToast("error", "You have been remove from this project.");
+                return;
+            }
 
-            switch (notif.type) {
-                case "fileNewUpload": {
-                    if (notif.taskId === null) {
-                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?tab=document`;
-                    } else {
-                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
-                    }
-                }
-                case "fileTagged":
-                    {
-                        url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
-                    }
-                    break;
-                case "messageSend":
-                case "messageMentioned":
-                    {
-                        url = `/account#/projects/${projectId}/messages?note-id=${notif.note_notification.id}`;
-                    }
-                    break;
-                case "commentReplies":
-                    {
+            if (!notif.isRead) {
+                await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
+                    dispatch({ type: "SET_NOTIFICATION_COUNT", Count: notification.NotificationCount - 1 });
+                });
+            }
+
+            if (project_notification && (project_notification.isDeleted == 1 || project_notification.isActive == 0)) {
+                showToast('error', 'Project is now inactive');
+            } else if (workstream_notification && (workstream_notification.isDeleted == 1 || workstream_notification.isActive == 0)) {
+                showToast('error', 'Workstream is now inactive');
+            } else {
+
+                let url = '';
+
+                switch (notif.type) {
+                    case "fileNewUpload": {
                         if (notif.taskId === null) {
-                            url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
+                            url = `/account#/projects/${projectId}/workstreams/${workstreamId}?tab=document`;
                         } else {
                             url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
                         }
                     }
-                    break;
-                case "taskAssgined":
-                case "taskAssignedComment":
-                case "taskApprover":
-                case "taskTagged":
-                case "taskApproved":
-                case "taskMemberCompleted":
-                case "taskFollowingCompleted":
-                case "taskDeadline":
-                case "taskTeamDeadline":
-                case "taskFollowingDeadline":
-                case "taskResponsibleDeadLine":
-                case "taskResponsibleBeforeDeadline":
-                case "taskBeforeDeadline":
-                case "taskAssigned":
-                    {
-                        url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
-                    }
-                    break;
-                default:
-                    break;
+                    case "fileTagged":
+                        {
+                            url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
+                        }
+                        break;
+                    case "messageSend":
+                    case "messageMentioned":
+                        {
+                            url = `/account#/projects/${projectId}/messages?note-id=${notif.note_notification.id}`;
+                        }
+                        break;
+                    case "commentReplies":
+                        {
+                            if (notif.taskId === null) {
+                                url = `/account#/projects/${projectId}/files?file-id=${notif.documentId}`;
+                            } else {
+                                url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
+                            }
+                        }
+                        break;
+                    case "taskAssgined":
+                    case "taskAssignedComment":
+                    case "taskApprover":
+                    case "taskTagged":
+                    case "taskApproved":
+                    case "taskMemberCompleted":
+                    case "taskFollowingCompleted":
+                    case "taskDeadline":
+                    case "taskTeamDeadline":
+                    case "taskFollowingDeadline":
+                    case "taskResponsibleDeadLine":
+                    case "taskResponsibleBeforeDeadline":
+                    case "taskBeforeDeadline":
+                    case "taskAssigned":
+                        {
+                            url = `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}`;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                window.location.href = url;
+                window.location.reload();
             }
-            window.location.href = url;
-            window.location.reload(); 
-        }
+        });
+
     }
 
     async markAsRead(data) {

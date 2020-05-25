@@ -27,7 +27,7 @@ router.use(function (req, res, next) {
                         {
                             model: Members,
                             as: "user_projects",
-                            where: { usersType: "users", linkType: "project" },
+                            where: { usersType: "users", linkType: "project", isActive: 1 },
                             required: false,
                             include: [
                                 {

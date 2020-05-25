@@ -78,7 +78,8 @@ router.use(function (req, res, next) {
                                                 linkType: 'project',
                                                 usersType: 'team',
                                                 userTypeLinkId: _.map(users_team, ({ team }) => { return team.id }),
-                                                isDeleted: 0
+                                                isDeleted: 0,
+                                                isActive: 1
                                             }
                                         })
                                         .map((o) => {
@@ -92,7 +93,8 @@ router.use(function (req, res, next) {
                                                 linkType: 'project',
                                                 usersType: 'users',
                                                 userTypeLinkId: response.id,
-                                                isDeleted: 0
+                                                isDeleted: 0,
+                                                isActive: 1
                                             }
                                         })
                                         .map((o) => {

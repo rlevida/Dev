@@ -277,7 +277,7 @@ export default class ProjectForm extends React.Component {
         const isActive = params.active > 0 ? 0 : 1;
 
         try {
-            putData(`/api/project/projectMemberStatus/${params.id}`, { isActive: isActive }, c => {
+            putData(`/api/project/projectMemberStatus/${params.id}?project_id=${project.Selected.id}`, { isActive: isActive }, c => {
                 if (c.status == 200) {
                     if (params.member_type == "User") {
                         const currentMember = _.map(project.Selected.members, o => {
@@ -293,7 +293,7 @@ export default class ProjectForm extends React.Component {
                         dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
                     }
                 } else {
-                    showToast("error", "Something went wrong. Please try again.");
+                    showToast("error", c.data.message);
                 }
             });
         } catch (error) {

@@ -17,7 +17,7 @@ class ProjectSummaryService {
             .replace('{{memberSelectClause}}', hasMembers ? ` ,project_team_members_summary_v.members as team, project_members_summary_v.members as members` : ``)
             .replace('{{memberFromClause}}', hasMembers ? ` ,project_team_members_summary_v, project_members_summary_v` : ``)
             .replace('{{memberWhereClause}}', hasMembers ? ` and project_team_members_summary_v.projectId = project.id and project_members_summary_v.projectId = project.id` : ``)
-            .replace('{{adminWhereClause}}', !isAdmin ? ` and project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project')` : ``)
+            .replace('{{adminWhereClause}}', !isAdmin ? ` and project.id in (select linkId from members where userTypeLinkId = :userId AND linkType = 'project' AND isActive = 1)` : ``)
             .replace('{{progressWhereClause}}', projectProgress ? this.projectProcess(projectProgress) : ``)
             .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
             .replace('{{projectWhereClause}}', project ? ` and LOWER(project.project) like '%${project.toLowerCase()}%'` : ``)
