@@ -8,7 +8,8 @@ export default function reducer(
             projectNameSort: "asc",
             projectType: 1,
             typeId: 1,
-            isActive: 1
+            isActive: 1,
+            search: ''
         },
         FormActive: "List",
         List: [],

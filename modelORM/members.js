@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: '0'
     },
+    isActive: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '1'
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true
