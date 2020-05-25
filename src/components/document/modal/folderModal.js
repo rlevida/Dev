@@ -35,7 +35,7 @@ class FolderModal extends React.Component {
         this.getWorkstreamList();
         this.fetchFolderList();
 
-        $("#folderModal").on("hidden.bs.modal", function() {
+        $("#folderModal").on("hidden.bs.modal", function () {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
         });
     }
@@ -72,7 +72,7 @@ class FolderModal extends React.Component {
         let result = true;
 
         $(".folder-form *").validator("validate");
-        $(".folder-form .form-group").each(function() {
+        $(".folder-form .form-group").each(function () {
             if ($(this).hasClass("has-error")) {
                 result = false;
             }
@@ -92,20 +92,15 @@ class FolderModal extends React.Component {
                     type: "folder",
                     project: projectId,
                     uploadedBy: loggedUser.data.id,
-                    status: "new"
+                    status: "new",
+                    ...(folder.Selected.id && !document.Selected.folderId ? { folderId: folder.Selected.id } : {}),
+                    ...(document.Selected.folderId ? { folderId: document.Selected.folderId } : {})
+
                 }
             ],
             tagWorkstream: typeof document.Selected.tagWorkstream !== "undefined" ? document.Selected.tagWorkstream : [],
             projectId: projectId,
-            folderId: null
         };
-
-        if (folder.Selected.id && !document.Selected.folderId) {
-            dataToSubmit = { ...dataToSubmit, folderId: folder.Selected.id };
-        }
-        if (document.Selected.folderId) {
-            dataToSubmit = { ...dataToSubmit, folderId: document.Selected.folderId };
-        }
 
         postData(`/api/document`, dataToSubmit, c => {
             const { result } = { ...c.data };

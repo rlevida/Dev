@@ -6,7 +6,7 @@ module.exports = async (params) => {
     const documentBulkCreateData = documents.map(async (document) => {
         let whereObj = {
             ...(typeof document.origin != "undefined" && document.origin != "" ? { origin: document.origin } : {}),
-            ...(typeof folderId != "undefined" && folderId != "" ? { folderId: folderId } : { folderId: null }),
+            ...(typeof document.folderId != "undefined" && document != "" ? { folderId: document.folderId } : { folderId: null }),
             ...(typeof document.status != "undefined" && document.status != "" ? { status: document.status } : {}),
             ...(typeof document.type != "undefined" && document.type != "" ? { type: document.type } : {})
         };
@@ -28,11 +28,12 @@ module.exports = async (params) => {
             });
             resolve({
                 ...document,
-                folderId: typeof folderId !== "undefined" ? folderId : null,
+                folderId: typeof document.folderId !== "undefined" ? document.folderId : null,
                 documentNameCount: findDocumentLinkResult.length > 0 ? findDocumentLinkResult[0].document.documentNameCount + 1 : 0
             })
         })
     })
+
     const documentBulkCreateDataPromise = await Promise.all(documentBulkCreateData).then((promiseResponse) => {
         return promiseResponse;
     })

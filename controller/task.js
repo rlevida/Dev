@@ -2468,7 +2468,6 @@ exports.put = {
                                                                             return oldUser != newUser;
                                                                         })
                                                                         .map(o => {
-                                                                            console.log(o)
                                                                             return {
                                                                                 old:
                                                                                     o.old != "undefined" && _.isEmpty(o.old) == false
