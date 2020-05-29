@@ -14,6 +14,7 @@ exports.post = {
             html += `<p>Id: ${body.id}</p>`;
             html += `<p>Username: ${body.username}</p>`;
             html += `<p>Please access the link below to activate your account and create your password..</p>`;
+            html += `<p>Activation link will expire in 30 days. Please contact your CloudCfo Admin for a new activation link.</p>`
             html += `<a href="${process.env.NODE_ENV == "production" ? "https:" : "http:"}${global.site_url}createPassword?hash=${hash}">Click Here</a>`;
             html += `<p>Regards,<br>Admin</p>`;
 
