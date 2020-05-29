@@ -6,6 +6,8 @@ import ConversationForm from "./conversationsForm";
 import ConversationList from "./conversationList";
 let keyTimer = "";
 
+import ConversationFilter from "./conversationFilter";
+
 @connect(store => {
     return {
         socket: store.socket.container,
@@ -32,7 +34,7 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         window.stop();
     }
 
@@ -87,22 +89,26 @@ export default class Component extends React.Component {
         const { Filter } = { ...notes };
         const projectId = match != "" ? match.params.projectId : project_id;
         return (
-            <div class={workstream_id == "" ? "card" : ""}>
-                <div class={`mb20 ${workstream_id == "" ? "bb" : ""}`}>
-                    <div class={`mb20 ${workstream_id == "" ? "container-fluid mb20" : ""}`}>
-                        <div class="row content-row">
-                            <div class="col-md-6 col-sm-12 pd0">
-                                {workstream_id != "" && (
-                                    <div class="card-header">
-                                        <h4 class="title m0">Messages</h4>
-                                    </div>
-                                )}
-                                {workstream_id == "" && <h3 class="title m0">Messages</h3>}
-                            </div>
-                            {typeof notes.Selected.id != "undefined" && notes.Selected.id != "" && (
-                                <div class="col-md-6 col-sm-12 col-xs-12 pd0">
-                                    {/* <div class="mb20 display-flex"> */}
-                                    {/* <input
+            <div>
+                <div class="card mb20">
+                    <ConversationFilter />
+                </div>
+                <div class={workstream_id == "" ? "card" : ""}>
+                    <div class={`mb20 ${workstream_id == "" ? "bb" : ""}`}>
+                        <div class={`mb20 ${workstream_id == "" ? "container-fluid mb20" : ""}`}>
+                            <div class="row content-row">
+                                <div class="col-md-6 col-sm-12 pd0">
+                                    {workstream_id != "" && (
+                                        <div class="card-header">
+                                            <h4 class="title m0">Messages</h4>
+                                        </div>
+                                    )}
+                                    {workstream_id == "" && <h3 class="title m0">Messages</h3>}
+                                </div>
+                                {typeof notes.Selected.id != "undefined" && notes.Selected.id != "" && (
+                                    <div class="col-md-6 col-sm-12 col-xs-12 pd0">
+                                        {/* <div class="mb20 display-flex"> */}
+                                        {/* <input
                                             type="text"
                                             name="note"
                                             class="form-control"
@@ -117,30 +123,31 @@ export default class Component extends React.Component {
                                                 <i class="fa fa-times-circle-o ml5" aria-hidden="true"></i>
                                             </a>
                                         } */}
-                                    <a
-                                        class="btn btn-default ml10 pull-right"
-                                        onClick={e => {
-                                            dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
-                                            dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
-                                        }}
-                                    >
-                                        <span>
-                                            <i class="fa fa-plus mr10" aria-hidden="true" />
-                                            New Message
+                                        <a
+                                            class="btn btn-default ml10 pull-right"
+                                            onClick={e => {
+                                                dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
+                                                dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
+                                            }}
+                                        >
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true" />
+                                                New Message
                                         </span>
-                                    </a>
-                                    {/* </div> */}
-                                </div>
-                            )}
+                                        </a>
+                                        {/* </div> */}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="row content-row row-eq-height">
-                    <div class="col-md-4 col-sm-12">
-                        <ConversationList projectId={projectId} workstreamId={workstream_id} />
-                    </div>
-                    <div class="col-md-8 col-sm-12">
-                        <ConversationForm projectId={projectId} workstreamId={workstream_id} />
+                    <div class="row content-row row-eq-height">
+                        <div class="col-md-4 col-sm-12">
+                            <ConversationList projectId={projectId} workstreamId={workstream_id} />
+                        </div>
+                        <div class="col-md-8 col-sm-12">
+                            <ConversationForm projectId={projectId} workstreamId={workstream_id} />
+                        </div>
                     </div>
                 </div>
             </div>

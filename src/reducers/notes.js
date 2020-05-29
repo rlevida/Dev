@@ -7,7 +7,11 @@ export default function reducer(
         Filter: {
             title: "",
             note: "",
-            message: ""
+            message: "",
+            privacyType: '',
+            workstreamId: '',
+            people: '',
+            status: ''
         },
         FormActive: "List",
         FormAction: "",
