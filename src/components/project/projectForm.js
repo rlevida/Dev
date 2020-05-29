@@ -39,11 +39,16 @@ export default class ProjectForm extends React.Component {
         const { dispatch, project } = this.props;
 
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, c => {
+
             dispatch({ type: "SET_TEAM_LIST", list: c.data });
             dispatch({ type: "SET_PROJECT_FILTER", filter: { ["typeId"]: 1 } });
         });
+
+
         this.fetchProjetLeadList();
     }
+
+
 
     componentWillUnmount() {
         const { dispatch } = this.props;
@@ -300,6 +305,25 @@ export default class ProjectForm extends React.Component {
             console.error(error)
             showToast("error", "Something went wrong. Please try again.");
         }
+    }
+
+
+    handleSelectProjectMemberStatus(field, value) {
+        const { dispatch, project } = { ...this.props };
+
+        dispatch({ type: "SET_MEMBER_FILTER", filter: { [field]: value } });
+
+        let requestUrl = `/api/project/detail/${project.Selected.id}?info=${1}&action=edit&memberStatus=${value}`
+
+        getData(requestUrl, {}, c => {
+            if (c.data) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, ...c.data } });
+                dispatch({ type: "SET_PROJECT_MANAGER_ID", id: project.Selected.projectManagerId });
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+            } else {
+                window.location.href = "/account#/inactive-project";
+            }
+        });
     }
 
     render() {
@@ -578,6 +602,7 @@ export default class ProjectForm extends React.Component {
                             </div>
                             {typeof project.Selected.id != "undefined" && (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal"))) && (
                                 <div class="bt">
+
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>
                                         <p>
@@ -586,6 +611,19 @@ export default class ProjectForm extends React.Component {
                                     </div>
                                     <ProjectMemberForm />
                                     <div class="mt20">
+                                        <div style={{ width: '20%' }}>
+                                            <label>Member Status:</label>
+                                            <DropDown
+                                                id="workstream-options"
+                                                options={[{ id: 1, name: 'Active' }, { id: 0, name: 'Inactive' }]}
+                                                selected={members.Filter.status}
+                                                loading={true}
+                                                isClearable={true}
+                                                onChange={e => {
+                                                    this.handleSelectProjectMemberStatus("status", e == null ? null : e.value);
+                                                }}
+                                            />
+                                        </div>
                                         {memberList.length > 0 && (
                                             <table>
                                                 <thead>

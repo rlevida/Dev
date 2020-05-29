@@ -7,7 +7,8 @@ export default function reducer(state = {
     Loading: "RETRIEVING",
     Selected: {},
     SelectedId: [],
-    SelectList: []
+    SelectList: [],
+    Filter: {}
 }, action) {
     switch (action.type) {
         case "ADD_MEMBER_TO_LIST": {
@@ -75,6 +76,11 @@ export default function reducer(state = {
         }
         case "SET_MEMBER_SELECT_LIST": {
             return { ...state, SelectList: action.List, Loading: '' }
+        }
+        case "SET_MEMBER_FILTER": {
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
+            return { ...state, Filter: updatedFilter };
         }
         default:
             return state;

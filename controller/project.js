@@ -464,6 +464,7 @@ exports.get = {
         let associationIncludes = [],
             hasInfo = parseInt(queryString.info) ? true : false;
 
+        console.log(typeof queryString.memberStatus)
         if (hasInfo) {
             associationIncludes = [
                 {
@@ -501,7 +502,10 @@ exports.get = {
                     where: {
                         usersType: "users",
                         linkType: "project",
-                        isDeleted: 0
+                        isDeleted: 0,
+                        ...(typeof queryString.memberStatus !== 'undefined' && queryString.memberStatus !== '' && queryString.memberStatus !== 'null'
+                            ? { isActive: queryString.memberStatus }
+                            : {})
                     },
                     required: false,
                     attributes: ["id", "userTypeLinkId", 'isActive']
@@ -512,7 +516,10 @@ exports.get = {
                     where: {
                         usersType: "team",
                         linkType: "project",
-                        isDeleted: 0
+                        isDeleted: 0,
+                        ...(typeof queryString.memberStatus !== 'undefined' && queryString.memberStatus !== '' && queryString.memberStatus !== 'null'
+                            ? { isActive: queryString.memberStatus }
+                            : {})
                     },
                     required: false,
                     include: [
