@@ -89,10 +89,10 @@ export default class UserList extends React.Component {
         return arr.join("\r\n");
     }
 
-    updateActiveStatus(id, active) {
+    updateActiveStatus(user) {
         const { dispatch } = this.props;
-        putData(`/api/user/${id}`, { id: id, isActive: active == 1 ? 0 : 1 }, c => {
-            dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: c.data });
+        putData(`/api/user/status/${user.id}`, { isActive: user.isActive == 1 ? 0 : 1 }, c => {
+            dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: { ...user, active: user.active == 1 ? 0 : 1 } });
             showToast("success", "Successfully Updated.");
         });
     }
@@ -205,7 +205,7 @@ export default class UserList extends React.Component {
                                                         : "actions"
                                                 }
                                             >
-                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
+                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user)} />
                                                 <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown">
                                                     <span class="fa fa-ellipsis-v" title="MORE" />
                                                 </a>
