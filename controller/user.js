@@ -843,5 +843,20 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err });
         }
+    },
+    status: async (req, cb) => {
+        try {
+            Users.update(req.body, { where: { id: req.params.id } }).then((c) => {
+                if (req.body.isActive === 1) {
+                    UsersCreatePassword.destroy({ where: { usersId: req.params.id } }).then(() => {
+                        cb({ status: true, data: c });
+                    })
+                } else {
+                    cb({ status: true, data: c });
+                }
+            })
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
     }
 };
