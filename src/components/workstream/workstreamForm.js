@@ -48,7 +48,7 @@ export default class WorkstreamForm extends React.Component {
 
     fetchMemberList(options) {
         const { dispatch, project } = this.props;
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${project.Selected.id}&linkType=project&project_type=${project.Selected.type.type}&memberType=responsible`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${project.Selected.id}&linkType=project&project_type=${project.Selected.type.type}&memberType=responsible&isActive=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
