@@ -636,7 +636,8 @@ exports.get = {
                                 usersType: "users",
                                 userTypeLinkId: userId,
                                 linkType: "project",
-                                isDeleted: 0
+                                isDeleted: 0,
+                                isActive: 1
                             },
                             {
                                 usersType: "team",
@@ -644,7 +645,8 @@ exports.get = {
                                     return o.teamId;
                                 }),
                                 linkType: "project",
-                                isDeleted: 0
+                                isDeleted: 0,
+                                isActive: 1
                             }
                         ]
                     }
@@ -725,7 +727,7 @@ exports.get = {
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != ""
                 ? { usersType: queryString.usersType }
                 : {}),
-            ...(typeof queryString.isActive != "undefined" && queryString.isAcive != ''
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != ''
                 ? { isActive: queryString.isActive }
                 : {}),
             isDeleted: 0

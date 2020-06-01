@@ -116,7 +116,7 @@ export default class TaskForm extends React.Component {
         const { Selected } = task;
         const projectId = Selected.projectId || project.Selected.id;
 
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&isActive=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
@@ -188,7 +188,7 @@ export default class TaskForm extends React.Component {
         const { Selected } = task;
         const projectId = Selected.projectId || project.Selected.id;
 
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&memberType=approver`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&memberType=approver&isActive=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
