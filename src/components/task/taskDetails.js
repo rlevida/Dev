@@ -54,7 +54,8 @@ export default class TaskDetails extends React.Component {
                 "renameDocument",
                 "editDocument",
                 "tagChecklist",
-                "updateDocumentChecklist"
+                "updateDocumentChecklist",
+                "deleteComment"
             ],
             fn => {
                 this[fn] = this[fn].bind(this);
@@ -253,12 +254,65 @@ export default class TaskDetails extends React.Component {
         }
     }
 
-    renderActivityLogs({ comment = "", linkType = "", actionType = "", type, user, users, dateAdded }) {
-        const { settings } = { ...this.props }
+    renderActivityLogs(params) {
+        const { comment = "", linkType = "", actionType = "", type, user, users, dateAdded, isDeleted, id } = { ...params }
+        const { settings, loggedUser, conversation, dispatch } = { ...this.props }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
-        if (type == "conversation") {
+
+        if (type === 'conversation' && isDeleted) {
+            return (
+                <div key={users.id} class="comment">
+                    <div class="thumbnail-profile">
+                        <img
+                            src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
+                            alt="Profile Picture" class="img-responsive" />
+                    </div>
+                    <div>
+                        <p class="m0">{users.firstName + " " + users.lastName} has deleted a comment</p>
+                        <p class="note m0">
+                            Posted {date} by {users.firstName + " " + users.lastName}.
+                        </p>
+                    </div>
+                </div>
+            );
+        } else if (type === 'conversation' && conversation.CommentToEdit.id === id) {
+            return (
+                <div>
+                    <MentionsInput
+                        value={conversation.CommentToEdit.comment}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: { ...conversation.CommentToEdit, comment: e.target.value } })
+                        }}
+                        style={defaultStyle}
+                        classNames={{
+                            mentions__input: "form-control"
+                        }}
+                        placeholder={"Type your comment"}
+                        markup="{[__display__](__id__)}"
+                        inputRef={input => {
+                            this.mentionInput = input;
+                        }}
+                    >
+                        <Mention trigger="@" data={this.renderUsers} appendSpaceOnAdd={true} style={{ backgroundColor: "#ecf0f1", padding: 1 }} />
+                    </MentionsInput>
+                    <div>
+                        {
+                            (conversation.CommentToEdit.comment !== "" && conversation.CommentToEdit.comment !== comment.replace(' (Edited)', '')) && (
+                                <a class="btn btn-violet mt10 mr5" onClick={() => this.updateComment(params)}>
+                                    <span>Save</span>
+                                </a>
+                            )
+                        }
+                        <a class="btn btn-violet mt10" onClick={() => dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: '' })} >
+                            <span>Cancel</span>
+                        </a>
+                    </div>
+                </div>
+            )
+
+        } else if (type === "conversation" && conversation.CommentToEdit === '') {
             return (
                 <div key={users.id} class="comment">
                     <div class="thumbnail-profile">
@@ -272,10 +326,16 @@ export default class TaskDetails extends React.Component {
                             Posted {date} by {users.firstName + " " + users.lastName}.
                         </p>
                         <p class="note m0">
-                            <a onClick={() => this.replyComment(users)}>Reply</a>
+                            <a onClick={() => this.replyComment(users)} style={{ marginRight: '5px' }}>Reply</a>
+                            {loggedUser.data.id === users.id &&
+                                <span>
+                                    <a onClick={() => this.editComment(params)} style={{ marginRight: '5px' }}>Edit</a>
+                                    <a onClick={() => this.deleteComment(params)} style={{ marginRight: '5px' }}>Delete</a>
+                                </span>
+                            }
                         </p>
                     </div>
-                </div>
+                </div >
             );
         } else {
             const linkTypeName = linkType == "checklist" ? "subtask" : linkType;
@@ -287,6 +347,51 @@ export default class TaskDetails extends React.Component {
                     </p>
                 </div>
             );
+        }
+    }
+
+    editComment(params) {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: { ...params, comment: params.comment.replace(' (Edited)', '') } });
+    }
+
+    updateComment(previousComment) {
+        const { conversation, dispatch } = { ...this.props }
+        const dataToBeSubmited = {
+            comment: `${conversation.CommentToEdit.comment} (Edited)`
+        }
+
+        try {
+            putData(`/api/conversation/updateConversation/${previousComment.id}`, dataToBeSubmited, (c) => {
+                const newList = conversation.List.map((conversationObj) => {
+                    if (conversationObj.id === previousComment.id) {
+                        conversationObj = { ...conversationObj, ...c.data }
+                    }
+                    return conversationObj
+                })
+                dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: '' });
+                dispatch({ type: "SET_COMMENT_LIST", list: newList });
+            })
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    deleteComment(comment) {
+        const { dispatch, conversation } = { ...this.props };
+        try {
+            putData(`/api/conversation/updateConversation/${comment.id}`, { isDeleted: 1 }, (c) => {
+                const newList = conversation.List.map((conversationObj) => {
+                    if (conversationObj.id === comment.id) {
+                        conversationObj.isDeleted = 1
+                    }
+                    return conversationObj
+                })
+
+                dispatch({ type: "SET_COMMENT_LIST", list: newList });
+            })
+        } catch (error) {
+            console.error(error)
         }
     }
 

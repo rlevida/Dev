@@ -1301,8 +1301,23 @@ exports.put = {
     index: (req, cb) => {
         const body = req.body;
         const conversationId = req.params.id;
+
         Notes.update(body, { where: { id: conversationId } }).then(response => {
             Notes.findOne({
+                where: {
+                    id: conversationId
+                }
+            }).then(o => {
+                cb({ status: true, data: o.toJSON() });
+            });
+        });
+    },
+    updateConversation: (req, cb) => {
+        const body = req.body;
+        const conversationId = req.params.id;
+
+        Conversation.update(body, { where: { id: conversationId } }).then(() => {
+            Conversation.findOne({
                 where: {
                     id: conversationId
                 }
