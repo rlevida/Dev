@@ -1726,9 +1726,6 @@ exports.put = {
                             {
                                 memberType: "responsible",
                                 linkType: "workstream",
-                                linkId: _.map(taskList, ({ workstreamId }) => {
-                                    return workstreamId;
-                                }),
                                 usersType: "users",
                                 userTypeLinkId: userIdStack,
                                 isDeleted: 0
@@ -1738,11 +1735,13 @@ exports.put = {
                 }).map(o => {
                     return o.toJSON();
                 });
+
                 if (teamMemberList.length > 0) {
                     const taskCount = await Tasks.findAll({
                         group: ["status"],
                         where: {
                             isDeleted: 0,
+                            status: { [Op.ne]: 'Completed' },
                             id: _(teamMemberList)
                                 .filter(({ linkType }) => {
                                     return linkType == "task";
@@ -1757,20 +1756,37 @@ exports.put = {
                         return response.toJSON();
                     });
 
-                    if (
-                        _.filter(taskCount, ({ status }) => {
-                            return status == "Completed";
-                        }).length > 0
-                    ) {
-                        cb({ status: false, error: "The user(s) have already completed task for this project. Removal of his membership not allowed." });
-                    } else if (
-                        _.filter(taskCount, ({ status }) => {
-                            return status == "In Progress";
-                        }).length > 0
-                    ) {
+                    const isWorkstreamResponsible = userMemberList.filter((memberObj) => {
+                        return memberObj.memberType === 'responsible' && memberObj.linkType === 'workstream'
+                    })
+
+                    if (taskCount.length > 0) {
                         cb({ status: false, error: "The user(s) are currently assigned to an open task. Please re-assign the task first before removing the user from the project membership." });
-                    } else {
+                    } else if (isWorkstreamResponsible.length > 0) {
                         cb({ status: false, error: "The user(s) are workstream responsible. Please change the responsible of the workstreams before removing the user from the project membership." });
+                    } else {
+                        Members.update(
+                            { isActive: 0 },
+                            {
+                                where: {
+                                    [Op.or]: [
+                                        { id: memberId },
+                                        {
+                                            memberType: "follower",
+                                            linkType: "task",
+                                            linkId: _.map(taskList, ({ id }) => {
+                                                return id;
+                                            }),
+                                            usersType: "users",
+                                            userTypeLinkId: checkMember.userTypeLinkId,
+                                            isDeleted: 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ).then(res => {
+                            cb({ status: true, data: res });
+                        });
                     }
                 } else {
                     Members.update(
@@ -1797,7 +1813,6 @@ exports.put = {
                     });
                 }
             } else {
-                console.log(checkMember)
                 const userMemberList = await Members.findAll({
                     where: {
                         [Op.or]: [
@@ -1824,9 +1839,6 @@ exports.put = {
                             {
                                 memberType: "responsible",
                                 linkType: "workstream",
-                                linkId: _.map(taskList, ({ workstreamId }) => {
-                                    return workstreamId;
-                                }),
                                 usersType: "users",
                                 userTypeLinkId: checkMember.userTypeLinkId,
                                 isDeleted: 0
@@ -1843,6 +1855,7 @@ exports.put = {
                         group: ["status"],
                         where: {
                             isDeleted: 0,
+                            status: { [Op.ne]: 'Completed' },
                             id: _(userMemberList)
                                 .filter(({ linkType }) => {
                                     return linkType == "task";
@@ -1857,20 +1870,37 @@ exports.put = {
                         return response.toJSON();
                     });
 
-                    if (
-                        _.filter(taskCount, ({ status }) => {
-                            return status == "Completed";
-                        }).length > 0
-                    ) {
-                        cb({ status: false, error: "This user has already completed task for this project. Removal of his membership not allowed." });
-                    } else if (
-                        _.filter(taskCount, ({ status }) => {
-                            return status == "In Progress";
-                        }).length > 0
-                    ) {
+                    const isWorkstreamResponsible = userMemberList.filter((memberObj) => {
+                        return memberObj.memberType === 'responsible' && memberObj.linkType === 'workstream'
+                    })
+
+                    if (taskCount.length > 0) {
                         cb({ status: false, error: "The user is currently assigned to an open task. Please re-assign the task first before removing the user from the project membership." });
-                    } else {
+                    } else if (isWorkstreamResponsible.length > 0) {
                         cb({ status: false, error: "The user is a workstream responsible. Please change the responsible of the workstream before removing the user from the project membership." });
+                    } else {
+                        Members.update(
+                            { isActive: 0 },
+                            {
+                                where: {
+                                    [Op.or]: [
+                                        { id: memberId },
+                                        {
+                                            memberType: "follower",
+                                            linkType: "task",
+                                            linkId: _.map(taskList, ({ id }) => {
+                                                return id;
+                                            }),
+                                            usersType: "users",
+                                            userTypeLinkId: checkMember.userTypeLinkId,
+                                            isDeleted: 0
+                                        }
+                                    ]
+                                }
+                            }
+                        ).then(res => {
+                            cb({ status: true, data: res });
+                        });
                     }
 
                 } else {
