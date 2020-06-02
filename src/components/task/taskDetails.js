@@ -79,6 +79,7 @@ export default class TaskDetails extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: {} });
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+        dispatch({ type: "SET_COMMENT_TO_EDIT", comment: '' })
     }
 
     editTask() {
@@ -260,93 +261,97 @@ export default class TaskDetails extends React.Component {
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = duration.asDays() > 1 ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
+        try {
 
-        if (type === 'conversation' && isDeleted) {
-            return (
-                <div key={users.id} class="comment">
-                    <div class="thumbnail-profile">
-                        <img
-                            src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
-                            alt="Profile Picture" class="img-responsive" />
-                    </div>
-                    <div>
-                        <p class="m0">{users.firstName + " " + users.lastName} has deleted a comment</p>
-                        <p class="note m0">
-                            Posted {date} by {users.firstName + " " + users.lastName}.
+            if (type === 'conversation' && isDeleted) {
+                return (
+                    <div key={users.id} class="comment">
+                        <div class="thumbnail-profile">
+                            <img
+                                src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
+                                alt="Profile Picture" class="img-responsive" />
+                        </div>
+                        <div>
+                            <p class="m0">{users.firstName + " " + users.lastName} has deleted a comment</p>
+                            <p class="note m0">
+                                Posted {date} by {users.firstName + " " + users.lastName}.
                         </p>
+                        </div>
                     </div>
-                </div>
-            );
-        } else if (type === 'conversation' && conversation.CommentToEdit.id === id) {
-            return (
-                <div>
-                    <MentionsInput
-                        value={conversation.CommentToEdit.comment}
-                        onChange={(e) => {
-                            dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: { ...conversation.CommentToEdit, comment: e.target.value } })
-                        }}
-                        style={defaultStyle}
-                        classNames={{
-                            mentions__input: "form-control"
-                        }}
-                        placeholder={"Type your comment"}
-                        markup="{[__display__](__id__)}"
-                        inputRef={input => {
-                            this.mentionInput = input;
-                        }}
-                    >
-                        <Mention trigger="@" data={this.renderUsers} appendSpaceOnAdd={true} style={{ backgroundColor: "#ecf0f1", padding: 1 }} />
-                    </MentionsInput>
+                );
+            } else if (type === 'conversation' && conversation.CommentToEdit.id === id) {
+                return (
                     <div>
-                        {
-                            (conversation.CommentToEdit.comment !== "" && conversation.CommentToEdit.comment !== comment.replace(' (Edited)', '')) && (
-                                <a class="btn btn-violet mt10 mr5" onClick={() => this.updateComment(params)}>
-                                    <span>Save</span>
-                                </a>
-                            )
-                        }
-                        <a class="btn btn-violet mt10" onClick={() => dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: '' })} >
-                            <span>Cancel</span>
-                        </a>
-                    </div>
-                </div>
-            )
-
-        } else if (type === "conversation" && conversation.CommentToEdit === '') {
-            return (
-                <div key={users.id} class="comment">
-                    <div class="thumbnail-profile">
-                        <img
-                            src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
-                            alt="Profile Picture" class="img-responsive" />
-                    </div>
-                    <div>
-                        <MentionConvert string={comment} />
-                        <p class="note m0">
-                            Posted {date} by {users.firstName + " " + users.lastName}.
-                        </p>
-                        <p class="note m0">
-                            <a onClick={() => this.replyComment(users)} style={{ marginRight: '5px' }}>Reply</a>
-                            {loggedUser.data.id === users.id &&
-                                <span>
-                                    <a onClick={() => this.editComment(params)} style={{ marginRight: '5px' }}>Edit</a>
-                                    <a onClick={() => this.deleteComment(params)} style={{ marginRight: '5px' }}>Delete</a>
-                                </span>
+                        <MentionsInput
+                            value={conversation.CommentToEdit.comment}
+                            onChange={(e) => {
+                                dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: { ...conversation.CommentToEdit, comment: e.target.value } })
+                            }}
+                            style={defaultStyle}
+                            classNames={{
+                                mentions__input: "form-control"
+                            }}
+                            placeholder={"Type your comment"}
+                            markup="{[__display__](__id__)}"
+                            inputRef={input => {
+                                this.mentionInput = input;
+                            }}
+                        >
+                            <Mention trigger="@" data={this.renderUsers} appendSpaceOnAdd={true} style={{ backgroundColor: "#ecf0f1", padding: 1 }} />
+                        </MentionsInput>
+                        <div>
+                            {
+                                (conversation.CommentToEdit.comment !== "" && conversation.CommentToEdit.comment !== comment.replace(' (Edited)', '')) && (
+                                    <a class="btn btn-violet mt10 mr5" onClick={() => this.updateComment(params)}>
+                                        <span>Save</span>
+                                    </a>
+                                )
                             }
+                            <a class="btn btn-violet mt10" onClick={() => dispatch({ type: 'SET_COMMENT_TO_EDIT', comment: '' })} >
+                                <span>Cancel</span>
+                            </a>
+                        </div>
+                    </div>
+                )
+
+            } else if (type === "conversation") {
+                return (
+                    <div key={users.id} class="comment">
+                        <div class="thumbnail-profile">
+                            <img
+                                src={`${settings.site_url}api/file/profile_pictures/${users.avatar}`}
+                                alt="Profile Picture" class="img-responsive" />
+                        </div>
+                        <div>
+                            <MentionConvert string={comment} />
+                            <p class="note m0">
+                                Posted {date} by {users.firstName + " " + users.lastName}.
+                        </p>
+                            <p class="note m0">
+                                <a onClick={() => this.replyComment(users)} style={{ marginRight: '5px' }}>Reply</a>
+                                {loggedUser.data.id === users.id &&
+                                    <span>
+                                        <a onClick={() => this.editComment(params)} style={{ marginRight: '5px' }}>Edit</a>
+                                        <a onClick={() => this.deleteComment(params)} style={{ marginRight: '5px' }}>Delete</a>
+                                    </span>
+                                }
+                            </p>
+                        </div>
+                    </div >
+                );
+            } else {
+                const linkTypeName = linkType == "checklist" ? "subtask" : linkType;
+                return (
+                    <div>
+                        <p class="ml10 mt10">
+                            <strong>{user.firstName + " " + user.lastName + " "}</strong>
+                            {actionType + ` ${linkTypeName == "task" ? "the" : "a"} ` + linkTypeName}. {date}
                         </p>
                     </div>
-                </div >
-            );
-        } else {
-            const linkTypeName = linkType == "checklist" ? "subtask" : linkType;
-            return (
-                <div>
-                    <p class="ml10 mt10">
-                        <strong>{user.firstName + " " + user.lastName + " "}</strong>
-                        {actionType + ` ${linkTypeName == "task" ? "the" : "a"} ` + linkTypeName}. {date}
-                    </p>
-                </div>
-            );
+                );
+            }
+        } catch (error) {
+            console.log(error)
         }
     }
 

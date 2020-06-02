@@ -66,7 +66,6 @@ export default function reducer(state = {
             return { ...state, List: [], Count: {} }
         }
         case "SET_COMMENT_TO_EDIT": {
-            console.log(action)
             return { ...state, CommentToEdit: action.comment }
         }
         default:
