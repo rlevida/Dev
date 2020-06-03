@@ -435,7 +435,7 @@ export default class TaskDetails extends React.Component {
 
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
+            let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project&isActive=1`;
             if (typeof query != "undefined" && query != "") {
                 fetchUrl += `&memberName=${query}`;
             }
