@@ -161,7 +161,6 @@ exports.get = {
                 }
             }
 
-            console.log(`sortBy`, queryString.sortBy)
             const findDocument = await Document.findAndCountAll({
                 ...options,
                 where: documentWhereObj,
@@ -173,7 +172,9 @@ exports.get = {
                         where: documentLinkWhereObj,
                         required: true
                     }],
-                order: [typeof queryString.sortBy !== 'undefined' ? queryString.sortBy.split("-") : ["dateAdded", "desc"]],
+                order: [typeof queryString.sortBy !== 'undefined'
+                    ? [Sequelize.fn("lower", Sequelize.col(`document.${queryString.sortBy.split("-")[0]}`)), queryString.sortBy.split("-")[1]]
+                    : ["dateAdded", "desc"]],
             })
 
             /* Get all documents that are link to the project */
