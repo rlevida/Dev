@@ -102,7 +102,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'shareId'
     })
     Document.hasMany(models.DocumentLink, {
-      as: 'project_member',
+      as: 'document_link',
       foreignKey: 'documentId'
     })
     Document.hasMany(models.Starred, {

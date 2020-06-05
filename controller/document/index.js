@@ -22,7 +22,6 @@ exports.get = {
             let associationStack = documentIncludes();
             const options = {
                 ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {}),
-                order: [["dateAdded", "DESC"]]
             };
 
             const documentLinkWhereObj = {
@@ -162,24 +161,44 @@ exports.get = {
                 }
             }
 
-            /* Get all documents that are link to the project */
-            const findDocumentLinkResult = await DocumentLink.findAndCountAll({
+            console.log(`sortBy`, queryString.sortBy)
+            const findDocument = await Document.findAndCountAll({
                 ...options,
-                where: documentLinkWhereObj,
+                where: documentWhereObj,
                 include: [
+                    ...associationStack,
                     {
-                        model: Document,
-                        as: "document",
-                        where: documentWhereObj,
-                        include: associationStack,
-                    }
-                ]
+                        model: DocumentLink,
+                        as: 'document_link',
+                        where: documentLinkWhereObj,
+                        required: true
+                    }],
+                order: [typeof queryString.sortBy !== 'undefined' ? queryString.sortBy.split("-") : ["dateAdded", "desc"]],
             })
 
-            const { rows, count } = { ...findDocumentLinkResult };
+            /* Get all documents that are link to the project */
+            // const findDocumentLinkResult = await DocumentLink.findAndCountAll({
+            //     ...options,
+            //     where: documentLinkWhereObj,
+            //     include: [
+            //         {
+            //             model: Document,
+            //             as: "document",
+            //             where: documentWhereObj,
+            //             required: true,
+            //             include: associationStack,
+            //             // order: [typeof queryString.sortBy !== 'undefined' ? queryString.sortBy.split("-") : ["dateAdded", "desc"]],
+            //         }
+            //     ],
+            //     order: [[Document, 'id', 'desc']]
+            // })
 
-            const documentResult = rows.map((documentLink) => {
-                const tagDocumentObj = documentLink.document.toJSON();
+            // console.log(findDocumentLinkResult)
+
+            const { rows, count } = { ...findDocument };
+
+            const documentResult = rows.map((documentObj) => {
+                const tagDocumentObj = documentObj.toJSON();
                 const tagTaskArray = tagDocumentObj.tagDocumentTask
                     .map(e => {
                         if (e.tagTask) {
@@ -209,8 +228,10 @@ exports.get = {
             }
 
             const results = { count: documentPaginationCount, result: documentResult };
+
             cb({ status: true, data: results });
         } catch (error) {
+            console.error(error)
             cb({ status: false, error: error });
         }
 

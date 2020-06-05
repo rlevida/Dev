@@ -93,8 +93,14 @@ class DocumentList extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
-        const { ActiveTab } = { ...document };
+        const { ActiveTab, Filter } = { ...document };
+
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+
+        if (Filter.sortBy) {
+            requestUrl += `&sortBy=${Filter.sortBy}`
+        }
+
         if (ActiveTab === "trash") {
             requestUrl += `&isActive=0`;
         } else {
@@ -504,7 +510,7 @@ class DocumentList extends React.Component {
                                         </thead>
                                         <tbody>
                                             {document.Loading === "" &&
-                                                _.orderBy(document.List, ["dateAdded"], ["desc"]).map((data, index) => {
+                                                (document.List).map((data, index) => {
                                                     const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
                                                     const moveOptions = document.List.filter((folderOptions) => { return folderOptions.id != data.id }).concat(document.SubFolders).map((folderOption) => {
                                                         return { ...folderOption, name: `${folderOption.name}${folderOption.documentNameCount > 0 ? `(${folderOption.documentNameCount})` : ""}` }
