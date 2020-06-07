@@ -802,7 +802,6 @@ exports.get = {
                 },
                 async (err, results) => {
                     let userMemberIds = _.uniq([...results.users, ...results.team_users]);
-                    console.log(queryString)
                     if ((typeof queryString.project_type != "undefined" && queryString.project_type != "") || (typeof queryString.memberType != "undefined" && queryString.memberType != "")) {
                         userMemberIds = await UsersRole.findAll({
                             where: {
