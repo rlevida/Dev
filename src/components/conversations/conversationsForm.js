@@ -580,10 +580,12 @@ export default class ConversationForm extends React.Component {
                                                             </p>
                                                             <div class={`${includeFilterTitle ? notes.Filter.title : ""}`} style={{ wordBreak: "break-word" }}>
                                                                 <MentionConvert string={comment} />
-                                                                <p class="note m0">
-                                                                    <a onClick={() => this.editComment(conversationObj)} class="mr5">Edit</a>
-                                                                    <a onClick={() => this.deleteComment(conversationObj)}>Delete</a>
-                                                                </p>
+                                                                {users.id === loggedUser.data.id &&
+                                                                    <p class="note m0">
+                                                                        <a onClick={() => this.editComment(conversationObj)} class="mr5">Edit</a>
+                                                                        <a onClick={() => this.deleteComment(conversationObj)}>Delete</a>
+                                                                    </p>
+                                                                }
                                                             </div>
 
                                                             {conversationDocuments.length > 0 &&
