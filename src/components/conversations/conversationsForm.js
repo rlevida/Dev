@@ -54,7 +54,7 @@ export default class ConversationForm extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchUsers();
+        // this.fetchUsers();
         this.fetchWorkstreamList();
     }
 
@@ -66,6 +66,10 @@ export default class ConversationForm extends React.Component {
         if (prevProps.conversation.List.length != this.props.conversation.List.length) {
             this.refs.fileUploader.value = "";
         }
+
+        if (!_.isEqual(prevProps.notes.Selected, this.props.notes.Selected)) {
+            this.fetchUsers();
+        }
     }
 
     scrollToBottom() {
@@ -75,11 +79,15 @@ export default class ConversationForm extends React.Component {
     }
 
     fetchUsers(options) {
-        const { dispatch, projectId } = this.props;
+        const { dispatch, projectId, notes } = this.props;
         let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
+        }
+
+        if (notes.Selected.privacyType === 'Private') {
+            fetchUrl += `&memberType=external`
         }
 
         getData(fetchUrl, {}, c => {
@@ -435,7 +443,6 @@ export default class ConversationForm extends React.Component {
                                             <a onClick={this.updateMessage}>Make {notes.Selected.privacyType == "Private" ? "Public" : "Private"}</a>
                                         </li>
                                         <li>
-                                            {console.log(notes.Selected.status)}
                                             <a onClick={this.updateMessage}>{notes.Selected.status == "OPEN" ? "Closed" : "Open"}</a>
                                         </li>
                                     </ul>
