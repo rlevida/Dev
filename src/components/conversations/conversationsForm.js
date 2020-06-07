@@ -44,7 +44,7 @@ export default class ConversationForm extends React.Component {
                 "handleEditTitle",
                 "updateMessage",
                 "handleShowEmoticons",
-                "handleCommentChange"
+                "handleCommentChange",
             ],
             fn => {
                 this[fn] = this[fn].bind(this);
@@ -300,11 +300,12 @@ export default class ConversationForm extends React.Component {
 
     updateMessage() {
         const { dispatch, notes } = { ...this.props };
-        const { id, title, privacyType } = notes.Selected;
+        const { id, title, privacyType, status } = notes.Selected;
         const noteList = notes.List;
         const newprivacyType = privacyType == "Private" ? "Public" : "Private";
+        const newStatus = status === 'OPEN' ? 'CLOSED' : 'OPEN';
 
-        putData(`/api/conversation/${id}`, { note: title, privacyType: newprivacyType }, c => {
+        putData(`/api/conversation/${id}`, { note: title, privacyType: newprivacyType, status: newStatus }, c => {
             const noteIndex = _.findIndex(noteList, { id });
             const updatedObject = _.merge(noteList[noteIndex], { note: title, privacyType: newprivacyType });
             noteList.splice(noteIndex, 1, updatedObject);
@@ -315,6 +316,7 @@ export default class ConversationForm extends React.Component {
                 Selected: {
                     ...notes.Selected,
                     privacyType: newprivacyType,
+                    status: newStatus,
                     editTitle: false
                 }
             });
@@ -432,6 +434,10 @@ export default class ConversationForm extends React.Component {
                                         <li>
                                             <a onClick={this.updateMessage}>Make {notes.Selected.privacyType == "Private" ? "Public" : "Private"}</a>
                                         </li>
+                                        <li>
+                                            {console.log(notes.Selected.status)}
+                                            <a onClick={this.updateMessage}>{notes.Selected.status == "OPEN" ? "Closed" : "Open"}</a>
+                                        </li>
                                     </ul>
                                 </div>
                             )}
@@ -447,7 +453,7 @@ export default class ConversationForm extends React.Component {
                                 onChange={e => {
                                     this.setDropDown("workstreamId", e == null ? "" : e.value);
                                 }}
-                                disabled={workstreamId != ""}
+                                disabled={workstreamId != "" || notes.Selected.status === 'CLOSED'}
                                 placeholder={"Select workstream"}
                             />
                         </div>
@@ -507,6 +513,7 @@ export default class ConversationForm extends React.Component {
                         </div>
                         <div class="form-group" id="message-div">
                             <MentionsInput
+                                disabled={notes.Selected.status === 'CLOSED'}
                                 value={typeof notes.Selected.message == "undefined" || notes.Selected.message == null ? "" : notes.Selected.message}
                                 onChange={this.handleCommentChange.bind(this, "message")}
                                 style={defaultStyle}
@@ -566,6 +573,7 @@ export default class ConversationForm extends React.Component {
                             </div>
                             {(typeof notes.Selected.createdBy == "undefined" || notes.Selected.createdBy == loggedUser.data.id) && (
                                 <DropDown
+                                    disabled={notes.Selected.status === 'CLOSED'}
                                     multiple={true}
                                     required={true}
                                     options={_(userList)

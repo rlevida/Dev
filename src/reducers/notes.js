@@ -98,7 +98,9 @@ export default function reducer(
         }
         case "SET_NOTES_FILTER": {
             const { Filter } = { ...state };
-            const updatedFilter = _.merge({}, Filter, action.filter);
+            const updatedFilter = { ...Filter, ...action.filter };
+            // const updatedFilter = _.merge({}, Filter, action.filter);
+            // console.log(`updated filter`, updatedFilter)
             return { ...state, Filter: updatedFilter };
         }
         default:

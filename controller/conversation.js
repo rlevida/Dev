@@ -119,6 +119,17 @@ exports.get = {
                         as: "user"
                     }
                 ]
+            },
+            {
+                model: Tag,
+                as: 'tagged_users',
+                required: true,
+                where: {
+                    linkType: 'user',
+                    tagType: 'notes',
+                    isDeleted: 0,
+                    ...(queryString.taggedUsers ? { linkId: JSON.parse(queryString.taggedUsers) } : {})
+                }
             }
         ];
 
@@ -193,8 +204,15 @@ exports.get = {
                         return tagTypeId;
                     })
                 }
-                : {})
+                : {}),
+            ...(typeof queryString.status !== 'undefined' && queryString.status !== ''
+                ? { status: queryString.status }
+                : {}),
+            ...(typeof queryString.privacyType !== 'undefined' && queryString.privacyType !== ''
+                ? { privacyType: queryString.privacyType }
+                : {}),
         };
+
         if (typeof queryString.starredUser !== "undefined" && queryString.starredUser !== "") {
             getAssociation.push({
                 model: Starred,

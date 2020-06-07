@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import Mark from "mark.js";
 import { Loading } from "../../globalComponents";
 import { showToast, getData, postData, getParameterByName } from "../../globalFunction";
+import { request } from "http";
 
 let keyTimer = "";
 let filterCount = 0;
@@ -51,7 +52,6 @@ export default class ConversationList extends React.Component {
         const { projectId, dispatch, notes, loggedUser, workstreamId } = { ...this.props };
         const { List, Filter } = notes;
         let requestUrl = `/api/conversation/conversationNotes?page=${page}&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
-
         if (workstreamId != "") {
             requestUrl += `&workstreamId=${workstreamId}`;
         }
@@ -63,6 +63,19 @@ export default class ConversationList extends React.Component {
         }
         if (Filter.message != "") {
             requestUrl += `&message=${Filter.message}`;
+        }
+        if (Filter.privacyType) {
+            requestUrl += `&privacyType=${Filter.privacyType}`
+        }
+        if (Filter.status) {
+            requestUrl += `&status=${Filter.status}`
+        }
+        if (Filter.workstreamId) {
+            requestUrl += `&workstreamId=${Filter.workstreamId}`;
+        }
+        if (Filter.taggedUsers && Filter.taggedUsers.length > 0) {
+            const taggedUsers = Filter.taggedUsers.map((e) => { return e.value });
+            requestUrl += `&taggedUsers=${JSON.stringify(taggedUsers)}`;
         }
 
         getData(requestUrl, {}, c => {
@@ -143,7 +156,8 @@ export default class ConversationList extends React.Component {
         );
     }
 
-    openMessage({ note, id, noteWorkstream, notesTagTask, privacyType, createdBy, projectId }) {
+    openMessage(params) {
+        const { note, id, noteWorkstream, notesTagTask, privacyType, createdBy, projectId, status } = { ...params }
         const { dispatch, notes, loggedUser } = { ...this.props };
         const { id: noteId = 0 } = notes.Selected;
 
@@ -156,6 +170,7 @@ export default class ConversationList extends React.Component {
                     id,
                     privacyType,
                     createdBy,
+                    status,
                     workstream: noteWorkstream ? noteWorkstream : "",
                     workstreamId: noteWorkstream ? noteWorkstream.id : "",
                     users: _.map(notesTagTask, ({ user }) => {
@@ -184,7 +199,7 @@ export default class ConversationList extends React.Component {
                         projectId: noteWorkstream ? noteWorkstream.project.id : projectId,
                         usersId: loggedUser.data.id
                     },
-                    c => {}
+                    c => { }
                 );
             }, 1500);
         }

@@ -24,6 +24,11 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.ENUM('Private', 'Public'),
       allowNull: true
     },
+    status: {
+      type: DataTypes.ENUM('OPEN', 'CLOSED'),
+      defaultValue: 'OPEN',
+      allowNull: false
+    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true
@@ -76,7 +81,11 @@ module.exports = function (sequelize, DataTypes) {
     Notes.hasOne(models.Notification, {
       as: 'note_notification',
       foreignKey: 'id'
-    })
+    });
+    Notes.hasMany(models.Tag, {
+      as: 'tagged_users',
+      foreignKey: 'tagTypeId'
+    });
   }
   return Notes;
 };

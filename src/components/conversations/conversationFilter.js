@@ -34,56 +34,14 @@ class ConversationFilter extends React.Component {
 
     handleDropdown(name, value) {
         const { dispatch } = { ...this.props };
-
         dispatch({ type: "SET_NOTES_FILTER", filter: { [name]: value } });
     }
 
     setDropDownMultiple(name, values) {
-        const { dispatch, notes } = this.props;
-        const selected = { ...notes.Selected, [name]: values };
-        console.log(name, values)
-        // dispatch({ type: "SET_NOTES_SELECTED", Selected: selected });
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_NOTES_FILTER", filter: { [name]: values } });
     }
 
-    handleFilter() {
-        const { dispatch, loggedUser, match, document, folder } = { ...this.props };
-        const projectId = match.params.projectId;
-        const { uploadFrom, uploadTo, uploadedBy, tagWorkstream, tagTask, fileName } = { ...document.Filter };
-        const { ActiveTab } = { ...document };
-        let requestUrl = `/api/document?isArchived=0&isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-
-        if (ActiveTab === "active") {
-            requestUrl += `&folderId=null&type=document`;
-        }
-        if (ActiveTab === "library") {
-            if (folder.Selected.id) {
-                requestUrl += `&folderId=${folder.Selected.id}`;
-            } else if (!uploadFrom && !uploadTo && !uploadedBy && !tagWorkstream && !tagTask && !fileName) {
-                requestUrl += `&type=folder&folderId=null`;
-            }
-        }
-
-        if (uploadFrom && uploadTo) {
-            requestUrl += `&uploadFrom=${moment(uploadFrom).format("YYYY-MM-DD")}&uploadTo=${moment(uploadTo).format("YYYY-MM-DD")}`;
-        }
-        if (uploadedBy) {
-            requestUrl += `&uploadedBy=${uploadedBy}`;
-        }
-        if (tagWorkstream) {
-            requestUrl += `&workstream=${tagWorkstream}`;
-        }
-        if (tagTask) {
-            requestUrl += `&task=${tagTask}`;
-        }
-        if (fileName) {
-            requestUrl += `&fileName=${fileName}`;
-        }
-        getData(`${requestUrl}`, {}, c => {
-            const { result, count } = { ...c.data };
-            dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
-        });
-    }
 
     getWorkstreamList(options) {
         keyTimer && clearTimeout(keyTimer);
@@ -114,7 +72,7 @@ class ConversationFilter extends React.Component {
 
     render() {
         const { notes, workstream, teams, loggedUser, settings } = this.props;
-        const { workstreamId, people, privacyType, status } = { ...notes.Filter };
+        const { workstreamId, people, privacyType, status, taggedUsers } = { ...notes.Filter };
         const userList = teams.MemberList;
 
         return (
@@ -140,7 +98,7 @@ class ConversationFilter extends React.Component {
                             <label>Public/Private:</label>
                             <DropDown
                                 id="public-private-options"
-                                options={[{ id: 'public', name: 'Public' }, { id: 'private', name: 'Private' }]}
+                                options={[{ id: 'Puublic', name: 'Public' }, { id: 'Private', name: 'Private' }]}
                                 selected={privacyType}
                                 loading={true}
                                 isClearable={true}
@@ -152,10 +110,10 @@ class ConversationFilter extends React.Component {
                             />
                         </div>
                         <div class="col-lg-4 col-md-4 col-sm-4 mt10">
-                            <label>Open/Closed:</label>
+                            <label>Status:</label>
                             <DropDown
                                 id="open-closed-options"
-                                options={[{ id: 'open', name: 'Open' }, { id: 'closed', name: 'Closed' }]}
+                                options={[{ id: 'OPEN', name: 'Open' }, { id: 'CLOSED', name: 'Closed' }]}
                                 selected={status}
                                 loading={true}
                                 isClearable={true}
@@ -178,10 +136,10 @@ class ConversationFilter extends React.Component {
                                     })
                                     .value()}
                                 onInputChange={this.getUsers}
-                                selected={people === '' ? [] : people}
+                                selected={taggedUsers === '' ? [] : taggedUsers}
                                 placeholder={"Search users"}
                                 onChange={e => {
-                                    this.setDropDownMultiple("users", e == null ? [] : e);
+                                    this.setDropDownMultiple("taggedUsers", e == null ? [] : e);
                                 }}
                                 customLabel={o => {
                                     return (
@@ -204,10 +162,11 @@ class ConversationFilter extends React.Component {
                                                 class="Select-value-icon close-custom"
                                                 aria-hidden="true"
                                                 onClick={() => {
-                                                    const updatedList = _.remove(notes.Selected.users, ({ value }) => {
+                                                    const updatedList = _.remove(taggedUsers, ({ value }) => {
                                                         return value != o.value;
                                                     });
-                                                    this.setDropDownMultiple("users", updatedList);
+
+                                                    this.setDropDownMultiple("taggedUsers", updatedList);
                                                 }}
                                             >
                                                 ×
