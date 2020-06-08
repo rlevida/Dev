@@ -45,6 +45,7 @@ export default class ConversationForm extends React.Component {
                 "updateMessage",
                 "handleShowEmoticons",
                 "handleCommentChange",
+                "updateStatus",
             ],
             fn => {
                 this[fn] = this[fn].bind(this);
@@ -308,12 +309,11 @@ export default class ConversationForm extends React.Component {
 
     updateMessage() {
         const { dispatch, notes } = { ...this.props };
-        const { id, title, privacyType, status } = notes.Selected;
+        const { id, title, privacyType } = notes.Selected;
         const noteList = notes.List;
         const newprivacyType = privacyType == "Private" ? "Public" : "Private";
-        const newStatus = status === 'OPEN' ? 'CLOSED' : 'OPEN';
 
-        putData(`/api/conversation/${id}`, { note: title, privacyType: newprivacyType, status: newStatus }, c => {
+        putData(`/api/conversation/${id}`, { note: title, privacyType: newprivacyType, }, c => {
             const noteIndex = _.findIndex(noteList, { id });
             const updatedObject = _.merge(noteList[noteIndex], { note: title, privacyType: newprivacyType });
             noteList.splice(noteIndex, 1, updatedObject);
@@ -324,11 +324,34 @@ export default class ConversationForm extends React.Component {
                 Selected: {
                     ...notes.Selected,
                     privacyType: newprivacyType,
-                    status: newStatus,
                     editTitle: false
                 }
             });
             showToast("success", "Message successfully updated.");
+        });
+    }
+
+    updateStatus() {
+        const { dispatch, notes } = { ...this.props };
+        const { id, title, status } = notes.Selected;
+        const noteList = notes.List;
+        const newStatus = status === 'OPEN' ? 'CLOSED' : 'OPEN';
+
+        putData(`/api/conversation/${id}`, { note: title, status: newStatus }, c => {
+            const noteIndex = _.findIndex(noteList, { id });
+            const updatedObject = _.merge(noteList[noteIndex], { note: title, status: newStatus });
+            noteList.splice(noteIndex, 1, updatedObject);
+
+            dispatch({ type: "SET_NOTES_LIST", list: noteList });
+            dispatch({
+                type: "SET_NOTES_SELECTED",
+                Selected: {
+                    ...notes.Selected,
+                    status: newStatus,
+                    editTitle: false
+                }
+            });
+            showToast("success", "Status successfully updated.");
         });
     }
 
@@ -489,7 +512,7 @@ export default class ConversationForm extends React.Component {
                                             <a onClick={this.updateMessage}>Make {notes.Selected.privacyType == "Private" ? "Public" : "Private"}</a>
                                         </li>
                                         <li>
-                                            <a onClick={this.updateMessage}>{notes.Selected.status == "OPEN" ? "Closed" : "Open"}</a>
+                                            <a onClick={this.updateStatus}>{notes.Selected.status == "OPEN" ? "Closed" : "Open"}</a>
                                         </li>
                                     </ul>
                                 </div>
