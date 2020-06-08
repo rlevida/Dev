@@ -1,14 +1,12 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import moment from "moment";
 import { withRouter } from "react-router";
 import { getData } from "../../globalFunction";
 import { DropDown, Loading } from "../../globalComponents";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-let delayTimer = "";
 let keyTimer = "";
 
 @connect(store => {
@@ -27,13 +25,23 @@ let keyTimer = "";
 class ConversationFilter extends React.Component {
     constructor(props) {
         super(props);
-        _.map(["handleDropdown", "getWorkstreamList", "fetchWorkstreamList", 'setDropDownMultiple'], fn => {
+        _.map(["handleDropdown", "getWorkstreamList", "fetchWorkstreamList", 'setDropDownMultiple', 'getUsers', 'fetchUsers'], fn => {
             this[fn] = this[fn].bind(this);
         });
+        this.state = {
+            workstreamOptions: [],
+            peopleOptions: []
+        };
+    }
+
+    componentDidMount() {
+        this.fetchWorkstreamList();
+        this.fetchUsers();
     }
 
     handleDropdown(name, value) {
         const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: {} })
         dispatch({ type: "SET_NOTES_FILTER", filter: { [name]: value } });
     }
 
@@ -51,7 +59,7 @@ class ConversationFilter extends React.Component {
     }
 
     fetchWorkstreamList(options) {
-        const { dispatch, loggedUser, match } = { ...this.props };
+        const { loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
         let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
@@ -65,15 +73,42 @@ class ConversationFilter extends React.Component {
                     return { id: e.id, name: e.workstream };
                 })
                 .value();
-            dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
-            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+
+            this.setState({ ...this.state, workstreamOptions: workstreamOptions })
+        });
+    }
+
+    getUsers(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchUsers(options);
+        }, 1500);
+    }
+
+    fetchUsers(options) {
+        const { match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&memberName=${options}`;
+        }
+
+        getData(fetchUrl, {}, c => {
+            const peopleOptions = _(c.data)
+                .map(e => {
+                    return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar };
+                })
+                .value();
+            this.setState({ ...this.state, peopleOptions: peopleOptions })
         });
     }
 
     render() {
-        const { notes, workstream, teams, loggedUser, settings } = this.props;
-        const { workstreamId, people, privacyType, status, taggedUsers } = { ...notes.Filter };
-        const userList = teams.MemberList;
+        const { workstreamOptions, peopleOptions } = { ...this.state };
+        const { notes, teams, loggedUser, settings } = { ...this.props };
+        const { workstreamId, privacyType, status, taggedUsers } = { ...notes.Filter };
 
         return (
             <div>
@@ -98,7 +133,7 @@ class ConversationFilter extends React.Component {
                             <label>Public/Private:</label>
                             <DropDown
                                 id="public-private-options"
-                                options={[{ id: 'Puublic', name: 'Public' }, { id: 'Private', name: 'Private' }]}
+                                options={[{ id: 'Public', name: 'Public' }, { id: 'Private', name: 'Private' }]}
                                 selected={privacyType}
                                 loading={true}
                                 isClearable={true}
@@ -129,7 +164,7 @@ class ConversationFilter extends React.Component {
                             <DropDown
                                 multiple={true}
                                 required={true}
-                                options={_(userList)
+                                options={_(peopleOptions)
                                     .uniqBy("id")
                                     .filter(o => {
                                         return o.id != loggedUser.data.id;
@@ -181,7 +216,7 @@ class ConversationFilter extends React.Component {
                             <label>Workstream:</label>
                             <DropDown
                                 id="workstream-options"
-                                options={workstream.SelectList}
+                                options={workstreamOptions}
                                 onInputChange={this.getWorkstreamList}
                                 selected={workstreamId}
                                 loading={true}
