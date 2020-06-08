@@ -240,7 +240,7 @@ class DocumentActionTab extends React.Component {
                                 </div>
                             </div>
                             <div class="button-action">
-                                {(document.ActiveTab === "active" || document.ActiveTab === 'library') && document.Loading === "" &&
+                                {(document.ActiveTab !== 'activities') && document.Loading === "" &&
                                     <div class="document-sort-by">
                                         <DropDown multiple={false} required={false} options={sortOptions} selected={Filter.sort} onChange={e => this.handleSearchFilter("sortBy", e.value)} label="Sort by:" />
                                     </div>
