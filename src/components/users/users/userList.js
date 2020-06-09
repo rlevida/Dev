@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
 
-import { getData, putData, showToast } from "../../../globalFunction";
+import { getData, postData, putData, showToast } from "../../../globalFunction";
 import { OnOffSwitch, Loading, DeleteModal } from "../../../globalComponents";
 
 import { connect } from "react-redux";
@@ -89,10 +89,10 @@ export default class UserList extends React.Component {
         return arr.join("\r\n");
     }
 
-    updateActiveStatus(id, active) {
+    updateActiveStatus(user) {
         const { dispatch } = this.props;
-        putData(`/api/user/${id}`, { id: id, isActive: active == 1 ? 0 : 1 }, c => {
-            dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: c.data });
+        putData(`/api/user/status/${user.id}`, { isActive: user.isActive == 1 ? 0 : 1 }, c => {
+            dispatch({ type: "UPDATE_DATA_USER_LIST", UpdatedData: { ...user, active: user.active == 1 ? 0 : 1 } });
             showToast("success", "Successfully Updated.");
         });
     }
@@ -128,6 +128,22 @@ export default class UserList extends React.Component {
             });
             dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
         });
+    }
+
+    sendActivationLink(data) {
+        const dataToBeSubmitted = {
+            id: data.id,
+            username: data.username,
+            firstName: data.firstName,
+            emailAddress: data.emailAddress,
+        }
+        postData(`/api/createPassword`, dataToBeSubmitted, (c) => {
+            if (!c.error) {
+                showToast("success", "Activation link successfully sent.");
+            } else {
+                showToast("error", c.error);
+            }
+        })
     }
 
     render() {
@@ -189,13 +205,14 @@ export default class UserList extends React.Component {
                                                         : "actions"
                                                 }
                                             >
-                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
+                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user)} />
                                                 <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown">
                                                     <span class="fa fa-ellipsis-v" title="MORE" />
                                                 </a>
                                                 <ul class="dropdown-menu">
                                                     <li>
                                                         <a onClick={() => this.handleEdit(user)}>Edit</a>
+                                                        {!user.isActive && <a onClick={() => this.sendActivationLink(user)}>Send Activation Link</a>}
                                                     </li>
                                                     {/* <li><a onClick={() => this.deleteData(user)}>Delete</a></li> */}
                                                 </ul>

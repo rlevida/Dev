@@ -5,7 +5,8 @@ export default function reducer(state = {
     Selected: {},
     SelectedId: [],
     Filter: {},
-    Loading: "RETRIEVING"
+    Loading: "RETRIEVING",
+    CommentToEdit: ''
 }, action) {
     switch (action.type) {
         case "ADD_COMMENT_LIST": {
@@ -63,6 +64,9 @@ export default function reducer(state = {
         }
         case "CLEAR_COMMENT": {
             return { ...state, List: [], Count: {} }
+        }
+        case "SET_COMMENT_TO_EDIT": {
+            return { ...state, CommentToEdit: action.comment }
         }
         default:
             return state;

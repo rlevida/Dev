@@ -3,7 +3,7 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const models = require("../../modelORM");
 const moment = require("moment");
-const { Document, DocumentLink, DocumentRead, Tag, Users, ActivityLogsDocument } = models;
+const { Document, DocumentLink, DocumentRead, Tag, Users, ActivityLogsDocument, Conversation } = models;
 
 const createDocument = require("./utils/createDocument");
 const createDocumentTag = require("./utils/createDocumentTag");
@@ -22,7 +22,6 @@ exports.get = {
             let associationStack = documentIncludes();
             const options = {
                 ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "" ? { offset: limit * parseInt(queryString.page) - limit, limit } : {}),
-                order: [["dateAdded", "DESC"]]
             };
 
             const documentLinkWhereObj = {
@@ -36,7 +35,6 @@ exports.get = {
                 ...(typeof queryString.type != "undefined" && queryString.type != "" ? { type: queryString.type } : {}),
                 ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "" ? { isDeleted: parseInt(queryString.isDeleted) } : {}),
                 ...(typeof queryString.isActive != "undefined" && queryString.isActive != "" ? { isActive: parseInt(queryString.isActive) } : {}),
-                ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
                 ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "" ? { isCompleted: parseInt(queryString.isCompleted) } : {}),
                 ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "" ? { isArchived: parseInt(queryString.isArchived) } : {}),
                 ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined"
@@ -119,24 +117,89 @@ exports.get = {
                 delete find(associationStack, { as: "user" }).where;
             }
 
-            /* Get all documents that are link to the project */
-            const findDocumentLinkResult = await DocumentLink.findAndCountAll({
+            if (typeof queryString.comment != 'undefined' && queryString.comment !== '' && queryString.activeTab !== 'library') {
+                const searchComment = {
+                    model: Conversation,
+                    as: 'document_conversation',
+                    where: {
+                        linkType: 'document',
+                        isDeleted: 0,
+                        [Op.or]: [
+                            Sequelize.where(Sequelize.fn("lower", Sequelize.col("comment")), {
+                                [Op.like]: Sequelize.fn("lower", `%${queryString.comment}%`)
+                            })
+                        ]
+                    },
+                    attributes: [],
+                    required: true
+                }
+                associationStack.push(searchComment)
+            } else {
+                delete find(associationStack, { as: "document_conversation" });
+            }
+
+            if (typeof queryString.comment !== 'undefined' && queryString.comment !== '' && queryString.activeTab === 'library') {
+                find(associationStack, { as: "folder_document" })['include'] = [{
+                    model: Conversation,
+                    as: 'document_conversation',
+                    where: {
+                        linkType: 'document',
+                        isDeleted: 0,
+                        [Op.or]: [
+                            Sequelize.where(Sequelize.fn("lower", Sequelize.col("comment")), {
+                                [Op.like]: Sequelize.fn("lower", `%${queryString.comment}%`)
+                            })
+                        ]
+                    },
+                    required: true
+                }]
+                find(associationStack, { as: "folder_document" }).required = true
+            } else {
+                documentWhereObj = {
+                    ...documentWhereObj,
+                    ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "" ? { folderId: queryString.folderId == "null" ? null : queryString.folderId } : {}),
+                }
+            }
+
+            const findDocument = await Document.findAndCountAll({
                 ...options,
-                where: documentLinkWhereObj,
+                where: documentWhereObj,
                 include: [
+                    ...associationStack,
                     {
-                        model: Document,
-                        as: "document",
-                        where: documentWhereObj,
-                        include: associationStack,
-                    }
-                ]
+                        model: DocumentLink,
+                        as: 'document_link',
+                        where: documentLinkWhereObj,
+                        required: true
+                    }],
+                order: [typeof queryString.sortBy !== 'undefined'
+                    ? [Sequelize.fn("lower", Sequelize.col(`document.${queryString.sortBy.split("-")[0]}`)), queryString.sortBy.split("-")[1]]
+                    : ["dateAdded", "desc"]],
             })
 
-            const { rows, count } = { ...findDocumentLinkResult };
+            /* Get all documents that are link to the project */
+            // const findDocumentLinkResult = await DocumentLink.findAndCountAll({
+            //     ...options,
+            //     where: documentLinkWhereObj,
+            //     include: [
+            //         {
+            //             model: Document,
+            //             as: "document",
+            //             where: documentWhereObj,
+            //             required: true,
+            //             include: associationStack,
+            //             // order: [typeof queryString.sortBy !== 'undefined' ? queryString.sortBy.split("-") : ["dateAdded", "desc"]],
+            //         }
+            //     ],
+            //     order: [[Document, 'id', 'desc']]
+            // })
 
-            const documentResult = rows.map((documentLink) => {
-                const tagDocumentObj = documentLink.document.toJSON();
+            // console.log(findDocumentLinkResult)
+
+            const { rows, count } = { ...findDocument };
+
+            const documentResult = rows.map((documentObj) => {
+                const tagDocumentObj = documentObj.toJSON();
                 const tagTaskArray = tagDocumentObj.tagDocumentTask
                     .map(e => {
                         if (e.tagTask) {
@@ -158,15 +221,18 @@ exports.get = {
                 return omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask", "tagDocumentNotes");
             });
 
+
+
             const documentPaginationCount = {
                 total_count: count,
                 ...(typeof queryString.page != "undefined" && queryString.page != "" ? { current_page: count > 0 ? toNumber(queryString.page) : 0, last_page: ceil(count / limit) } : {})
             }
 
             const results = { count: documentPaginationCount, result: documentResult };
-            cb({ status: true, data: results });
 
+            cb({ status: true, data: results });
         } catch (error) {
+            console.error(error)
             cb({ status: false, error: error });
         }
 
@@ -377,16 +443,14 @@ exports.post = {
         try {
             const data = req.body;
             const projectId = data.projectId;
-            const folderId = data.folderId;
             const usersId = req.user.id
             const isDuplicate = req.query.isDuplicate;
-
             const documents = data.DocumentToSave.filter((documentObj) => {
                 return documentObj.name && documentObj.origin && documentObj.project && documentObj.status && documentObj.type
             })
 
             /* Create Document */
-            const documentBulkCreateResult = await createDocument({ documents: documents, folderId, projectId });
+            const documentBulkCreateResult = await createDocument({ documents, projectId });
 
             /* Document tags */
             if (typeof data.tagWorkstream !== "undefined") {
@@ -409,7 +473,6 @@ exports.post = {
             cb({ status: true, data: { result: result, activityLogs: documentActivityLogs } });
 
         } catch (error) {
-            console.log(error)
             cb({ status: false, error: error })
         }
     },

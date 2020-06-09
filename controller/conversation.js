@@ -823,7 +823,7 @@ exports.post = {
             const userFindResult = await Users.findOne({ where: { id: req.user.id } });
 
             const sender = userFindResult.toJSON();
-
+            console.log(`here`)
             const receiver = await Conversation.findAll({
                 where: {
                     linkType: bodyData.linkType,
@@ -903,7 +903,12 @@ exports.post = {
                     include: [
                         {
                             model: Members,
-                            as: "assignee"
+                            as: "assignee",
+                            where: {
+                                memberType: 'assignedTo',
+                                linkType: 'task',
+                                isDeleted: 0,
+                            }
                         },
                         {
                             model: Workstream,
@@ -916,6 +921,7 @@ exports.post = {
                 });
 
                 const taskObj = taskFindResult.toJSON();
+
                 const commentReceiver = req.user.id !== taskObj.assignee[0].userTypeLinkId ? taskObj.assignee[0].userTypeLinkId : "";
 
                 if (commentReceiver) {
@@ -1301,8 +1307,23 @@ exports.put = {
     index: (req, cb) => {
         const body = req.body;
         const conversationId = req.params.id;
+
         Notes.update(body, { where: { id: conversationId } }).then(response => {
             Notes.findOne({
+                where: {
+                    id: conversationId
+                }
+            }).then(o => {
+                cb({ status: true, data: o.toJSON() });
+            });
+        });
+    },
+    updateConversation: (req, cb) => {
+        const body = req.body;
+        const conversationId = req.params.id;
+
+        Conversation.update(body, { where: { id: conversationId } }).then(() => {
+            Conversation.findOne({
                 where: {
                     id: conversationId
                 }

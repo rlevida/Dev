@@ -50,7 +50,6 @@ export default class TaskListCategory extends React.Component {
             this.setState({ loading: "RETRIEVING" }, () => {
                 dispatch({ type: "SET_TASK_CATEGORY_LOADING", [date]: true });
                 this.getList(1);
-                // window.stop();
             });
         }
     }
@@ -59,6 +58,7 @@ export default class TaskListCategory extends React.Component {
         const { id, status, periodic, periodTask, approvalRequired } = { ...selectedTask };
         const { dispatch, loggedUser, task } = { ...this.props };
         const taskStatus = status == "Completed" && approvalRequired == 0 ? "In Progress" : status == "Completed" && approvalRequired == 1 ? "For Approval" : "Completed";
+
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD HH:mm:ss") }, c => {
             if (c.status == 200) {
                 if (periodic) {
@@ -105,8 +105,8 @@ export default class TaskListCategory extends React.Component {
     }
 
     getList(page) {
-        const { dispatch, date, task, workstream_id = "", user_id = "" } = this.props;
-        const { Filter } = task;
+        const { dispatch, date, task, workstream_id = "", user_id = "" } = { ...this.props };
+        const { Filter } = { ...task };
         let fromDate = "";
         let toDate = "";
 
@@ -179,8 +179,21 @@ export default class TaskListCategory extends React.Component {
                 fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: Filter.taskStatus })}`;
             }
         }
+
         if (Filter.taskAssigned != "") {
             fetchUrl += `&assigned=${Filter.taskAssigned}`;
+        }
+
+        if (Filter.taskDeadlineStartDate != null) {
+            const taskDeadlineStartDate = moment(moment(Filter.taskDeadlineStartDate)).endOf('day').format('YYYY-MM-DD');
+            const taskDeadlineEndDate = moment(moment(Filter.taskDeadlineEndDate != null ? Filter.taskDeadlineEndDate : moment())).add(1, 'days').startOf('day').format('YYYY-MM-DD');
+            fetchUrl += `&taskDeadlineStartDate=${taskDeadlineStartDate}&taskDeadlineEndDate=${taskDeadlineEndDate}`;
+        }
+
+        if (Filter.taskCompletionStartDate != null) {
+            const taskCompletionStartDate = moment(moment(Filter.taskCompletionStartDate)).endOf('day').format('YYYY-MM-DD');
+            const taskCompletionEndDate = moment(moment(Filter.taskCompletionEndDate != null ? Filter.taskCompletionEndDate : moment())).add(1, 'days').startOf('day').format('YYYY-MM-DD');
+            fetchUrl += `&taskCompletionStartDate=${taskCompletionStartDate}&taskCompletionEndDate=${taskCompletionEndDate}`;
         }
 
         if (date === "Succeeding month" || date === "This month") {
@@ -241,7 +254,7 @@ export default class TaskListCategory extends React.Component {
     }
 
     renderRow(taskData) {
-        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
+        const { index, id, task: task_name, dueDate, workstream, task_members, periodic, periodInstance, periodType, status, periodTask, dateCompleted, checklist, approvalRequired, approverId, task_dependency, task_preceding } = { ...taskData };
         const { task, workstream_id = "", loggedUser, settings } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate).startOf("days");
@@ -276,6 +289,10 @@ export default class TaskListCategory extends React.Component {
         const precedingCompleted = task_preceding.filter(e => {
             return e.dependencyType === "Succeeding" && e.pre_task.status === "Completed";
         });
+
+        const recurrence = periodic
+            ? `${periodInstance}${periodType.charAt(0).toUpperCase()}`
+            : 'N/A'
 
         return (
             <tr key={index}>
@@ -324,6 +341,9 @@ export default class TaskListCategory extends React.Component {
                             {periodic == 1 && <i class="fa fa-refresh ml10" aria-hidden="true" />}
                         </a>
                     </div>
+                </td>
+                <td data-label="Recurrence">
+                    {recurrence}
                 </td>
                 <td data-label="Status">
                     <p class={`m0 ${status == "Completed" ? "text-green" : status == "For Approval" ? "text-orange" : ""}`}>{status}</p>
@@ -421,7 +441,8 @@ export default class TaskListCategory extends React.Component {
                                         <tr>
                                             <th scope="col" class="td-left">
                                                 Task Name
-                                        </th>
+                                            </th>
+                                            <th scope="col">Recurrence</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Deadline</th>
                                             <th scope="col">Time Remaining</th>
@@ -453,7 +474,7 @@ export default class TaskListCategory extends React.Component {
                 </div>
             );
         } catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 }

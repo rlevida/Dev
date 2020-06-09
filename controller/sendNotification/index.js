@@ -21,7 +21,7 @@ module.exports = async (params) => {
         const projectFindResult = await Projects.findOne({ where: { id: projectId, isDeleted: 0, isActive: true }, attributes: ["appNotification", "emailNotification"], raw: true });
 
         const message = await getNotificationMessage({ notificationType, sender, task: notificationData.task, notificationApproverType });
-
+        
         const usersNotificationSettingFindResult = await UsersNotificationSetting.findAll({
             where: { usersId: receiver },
             include: [
@@ -89,7 +89,7 @@ module.exports = async (params) => {
         })
 
         if (emailNotificationData.length > 0) {
-            
+
             switch (notificationType) {
                 case "messageSend":
                     await messageSendNotification({ emailNotificationData });

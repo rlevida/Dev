@@ -64,7 +64,8 @@ var job = new CronJob(
                                     as: "assignee",
                                     where: {
                                         linkType: 'task',
-                                        memberType: 'assignedTo'
+                                        memberType: 'assignedTo',
+                                        isDeleted: 0
                                     },
                                     include: [{ model: Users, as: "user" }]
                                 },
@@ -120,7 +121,8 @@ var job = new CronJob(
                                     as: "assignee",
                                     where: {
                                         linkType: 'task',
-                                        memberType: 'assignedTo'
+                                        memberType: 'assignedTo',
+                                        isDeleted: 0
                                     },
                                     include: [{ model: Users, as: "user" }]
                                 },

@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 
 import Container from "./folderContainer";
-// require('rc-collapse/assets/index.css');
+
 
 const itemSource = {
     beginDrag(props) {
@@ -92,7 +92,7 @@ class FieldContainer extends React.Component {
         } else if (folder.Selected.id !== data.id) {
             getData(
                 `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${
-                    typeof data.id !== "undefined" ? data.id : null
+                typeof data.id !== "undefined" ? data.id : null
                 }&starredUser=${loggedUser.data.id}`,
                 {},
                 c => {
@@ -110,27 +110,23 @@ class FieldContainer extends React.Component {
 
     renderFolder(data) {
         const { moveTo, document, hovered, folder } = { ...this.props };
-        const isSelected = folder.Selected.id === data.id ? true : false;
         const fileName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
-
         return (
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? "#e4e4e4" : "" }}>
                 <a
-                    href="javascript:void(0)"
                     class={`accordion-toggle collapsed`}
-                    // id={`${isSelected ? 'isSelected' : ''}`}
                     data-toggle="collapse"
-                    href={`#collapse${data.id}`}
+                    href={`#collapse-${data.id}`} 
                     role="button"
                     aria-expanded="false"
-                    aria-controls={`collapse${data.id}`}
+                    aria-controls={`collapse-${data.id}`}
                     onClick={() => this.fetchFolder(data)}
                 >
                     <i class="fa-chevron fa fa-chevron-down" />
                     <i class="fa fa-fw fa-folder" />
                     {fileName}
                 </a>
-                <div class="collapse" id={`collapse${data.id}`}>
+                <div class="collapse" id={`collapse-${data.id}`}>
                     <div class="collapse-folder-child">
                         {typeof data.childFolder !== "undefined" &&
                             data.childFolder.length > 0 &&

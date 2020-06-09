@@ -792,7 +792,7 @@ exports.post = {
                                                 projectId: body.projectId,
                                                 workstreamId: resultObj.id,
                                                 dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00"),
-                                                status:'In Progress'
+                                                status: 'In Progress'
                                             };
                                         });
 
@@ -1031,16 +1031,16 @@ exports.put = {
 
             /*Check previous and current workstream responsible */
             const previousWorkstreamResponsible = projectWorkstreamObj.responsible[0].userTypeLinkId;
-            const currentWorkstreamResponsible = workstreamObj.responsible[0].userTypeLinkId;
 
-            if (previousWorkstreamResponsible !== currentWorkstreamResponsible) {
+            if (previousWorkstreamResponsible !== body.responsible) {
+
                 await Members.update(
                     { isDeleted: 1 },
                     {
-                        where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
+                        where: { linkType: "workstream", linkId: workstreamId, usersType: "users", memberType: "responsible" }
                     }
                 )
-                const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
+                const responsible = { linkType: "workstream", linkId: workstreamId, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
                 await Members.create(responsible)
             }
 

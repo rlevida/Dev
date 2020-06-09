@@ -116,7 +116,7 @@ export default class TaskForm extends React.Component {
         const { Selected } = task;
         const projectId = Selected.projectId || project.Selected.id;
 
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&isActive=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
@@ -188,7 +188,7 @@ export default class TaskForm extends React.Component {
         const { Selected } = task;
         const projectId = Selected.projectId || project.Selected.id;
 
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&memberType=approver`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&memberType=approver&isActive=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
@@ -369,29 +369,33 @@ export default class TaskForm extends React.Component {
                 postData(`/api/task`, submitData, c => {
                     if (c.status == 200 && !c.data.error) {
                         const { id, approvalRequired, approverId, dueDate, startDate, periodic, period, periodInstance, periodType, projectId, workstream, task, task_members, checklist, description } = { ...c.data[0] };
-                        dispatch({
-                            type: "SET_TASK_SELECTED",
-                            Selected: {
-                                id,
-                                approvalRequired,
-                                approverId,
-                                ...(task_members.length > 0 ? { assignedTo: task_members[0].userTypeLinkId } : {}),
-                                dueDate: dueDate != null ? moment(dueDate) : null,
-                                startDate: startDate != null ? moment(startDate) : null,
-                                description,
-                                periodic,
-                                period,
-                                periodInstance,
-                                periodType,
-                                projectId,
-                                task,
-                                workstream,
-                                workstreamId: workstream.id,
-                                checklist
-                            }
-                        });
-                        this.getTaskDetails();
-                        showToast("success", "Task successfully added.", undefined, true);
+                        try {
+                            dispatch({
+                                type: "SET_TASK_SELECTED",
+                                Selected: {
+                                    id,
+                                    approvalRequired,
+                                    approverId,
+                                    ...(task_members.length > 0 ? { assignedTo: task_members[0].userTypeLinkId } : {}),
+                                    dueDate: dueDate != null ? moment(dueDate) : null,
+                                    startDate: startDate != null ? moment(startDate) : null,
+                                    description,
+                                    periodic,
+                                    period,
+                                    periodInstance,
+                                    periodType,
+                                    projectId,
+                                    task,
+                                    workstream,
+                                    workstreamId: workstream.id,
+                                    checklist
+                                }
+                            });
+                            this.getTaskDetails();
+                            showToast("success", "Task successfully added.", undefined, true);
+                        } catch (error) {
+                            console.error(error)
+                        }
                     } else {
                         showToast("error", c.data.error);
                     }
@@ -608,7 +612,7 @@ export default class TaskForm extends React.Component {
                                             </div>
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class="form-group input-inline">
+                                                    <div class="form-group">
                                                         <div>
                                                             <label>Start Date:</label>
                                                             {typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != "" && (

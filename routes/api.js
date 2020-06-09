@@ -27,7 +27,7 @@ router.use(function (req, res, next) {
                         {
                             model: Members,
                             as: "user_projects",
-                            where: { usersType: "users", linkType: "project" },
+                            where: { usersType: "users", linkType: "project", isActive: 1 },
                             required: false,
                             include: [
                                 {
@@ -111,7 +111,7 @@ router.get("/downloadDocument", (req, res, next) => {
         },
         (err, data) => {
             if (err) {
-                console.log("Error in Uploading to AWS. [" + err + "]");
+                console.error("Error in Uploading to AWS. [" + err + "]");
             } else {
                 fileStream.write(data.Body);
                 res.download(`${origin}`, `${origin}`, c => {

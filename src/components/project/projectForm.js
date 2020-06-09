@@ -7,6 +7,8 @@ import { DeleteModal, DropDown, ColorPicker } from "../../globalComponents";
 import ProjectMemberForm from "./projectMemberForm";
 import WorkstreamForm from "../workstream/workstreamForm";
 import WorkstreamList from "../workstream/workstreamList";
+import Switch from 'rc-switch';
+require('rc-switch/assets/index.css');
 
 let keyTimer = "";
 
@@ -37,11 +39,16 @@ export default class ProjectForm extends React.Component {
         const { dispatch, project } = this.props;
 
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, c => {
+
             dispatch({ type: "SET_TEAM_LIST", list: c.data });
             dispatch({ type: "SET_PROJECT_FILTER", filter: { ["typeId"]: 1 } });
         });
+
+
         this.fetchProjetLeadList();
     }
+
+
 
     componentWillUnmount() {
         const { dispatch } = this.props;
@@ -270,27 +277,79 @@ export default class ProjectForm extends React.Component {
         });
     }
 
+    onSwitchChange(params) {
+        const { dispatch, project } = { ...this.props };
+        const isActive = params.active > 0 ? 0 : 1;
+
+        try {
+            putData(`/api/project/projectMemberStatus/${params.id}?project_id=${project.Selected.id}`, { isActive: isActive }, c => {
+                if (c.status == 200) {
+                    if (params.member_type == "User") {
+                        const currentMember = _.map(project.Selected.members, o => {
+                            o.isActive = o.member_id === params.id ? isActive : o.isActive
+                            return o
+                        });
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, members: currentMember } });
+                    } else {
+                        const currentTeam = _.map(project.Selected.team, o => {
+                            o.isActive = o.id === params.id ? isActive : o.isActive
+                            return o
+                        });
+                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, team: currentTeam } });
+                    }
+                } else {
+                    showToast("error", c.data.message);
+                }
+            });
+        } catch (error) {
+            console.error(error)
+            showToast("error", "Something went wrong. Please try again.");
+        }
+    }
+
+
+    handleSelectProjectMemberStatus(field, value) {
+        const { dispatch, project } = { ...this.props };
+
+        dispatch({ type: "SET_MEMBER_FILTER", filter: { [field]: value } });
+
+        let requestUrl = `/api/project/detail/${project.Selected.id}?info=${1}&action=edit&memberStatus=${value}`
+
+        getData(requestUrl, {}, c => {
+            if (c.data) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...project.Selected, ...c.data } });
+                dispatch({ type: "SET_PROJECT_MANAGER_ID", id: project.Selected.projectManagerId });
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+            } else {
+                window.location.href = "/account#/inactive-project";
+            }
+        });
+    }
+
     render() {
         const { dispatch, project, loggedUser, status, type, users, document, members, settings } = { ...this.props };
         const { Files, Loading: documentLoading } = document;
         const typeValue = typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false ? members.Selected.name : "";
+
         const memberList = [
-            ..._.map(project.Selected.members, ({ firstName, lastName, member_id, id, emailAddress }) => {
+            ..._.map(project.Selected.members, ({ firstName, lastName, member_id, id, emailAddress, isActive }) => {
                 return {
                     id: member_id,
                     name: firstName + " " + lastName,
                     member_type: "User",
                     member_type_id: id,
-                    email: emailAddress
+                    email: emailAddress,
+                    active: isActive
                 };
             }),
-            ..._.map(project.Selected.team, ({ id, team }) => {
+            ..._.map(project.Selected.team, ({ id, team, isActive }) => {
                 return {
                     id: id,
                     name: team.team,
                     member_type: "Team",
                     member_type_id: team.id,
-                    users_team: team.users_team
+                    users_team: team.users_team,
+                    active: isActive
                 };
             })
         ];
@@ -543,6 +602,7 @@ export default class ProjectForm extends React.Component {
                             </div>
                             {typeof project.Selected.id != "undefined" && (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal"))) && (
                                 <div class="bt">
+
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>
                                         <p>
@@ -551,6 +611,19 @@ export default class ProjectForm extends React.Component {
                                     </div>
                                     <ProjectMemberForm />
                                     <div class="mt20">
+                                        <div style={{ width: '20%' }}>
+                                            <label>Member Status:</label>
+                                            <DropDown
+                                                id="workstream-options"
+                                                options={[{ id: 1, name: 'Active' }, { id: 0, name: 'Inactive' }]}
+                                                selected={members.Filter.status}
+                                                loading={true}
+                                                isClearable={true}
+                                                onChange={e => {
+                                                    this.handleSelectProjectMemberStatus("status", e == null ? null : e.value);
+                                                }}
+                                            />
+                                        </div>
                                         {memberList.length > 0 && (
                                             <table>
                                                 <thead>
@@ -566,7 +639,7 @@ export default class ProjectForm extends React.Component {
                                                 </thead>
                                                 <tbody>
                                                     {_.orderBy(memberList, ["name"], ["asc"]).map((params, index) => {
-                                                        const { name, member_type, member_type_id, email = "N/A", users_team = [] } = params;
+                                                        const { name, member_type, member_type_id, email = "N/A", users_team = [], active } = params;
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Name" class="td-left">
@@ -584,11 +657,19 @@ export default class ProjectForm extends React.Component {
                                                                         : "N/A"}
                                                                 </td>
                                                                 <td data-label="Actions">
+
                                                                     {((project.Selected.projectManagerId != member_type_id && member_type == "User") || member_type == "Team") && (
-                                                                        <a href="javascript:void(0);" title="DELETE" onClick={e => this.deleteMember(params)} class="btn btn-action">
-                                                                            <span class="fa fa-trash" />
-                                                                        </a>
+                                                                        <div>
+                                                                            <Switch
+                                                                                onClick={() => this.onSwitchChange(params)}
+                                                                                checked={!!active}
+                                                                            />
+                                                                            <a href="javascript:void(0);" title="DELETE" onClick={e => this.deleteMember(params)} class="btn btn-action">
+                                                                                <span class="fa fa-trash" />
+                                                                            </a>
+                                                                        </div>
                                                                     )}
+
                                                                 </td>
                                                             </tr>
                                                         );

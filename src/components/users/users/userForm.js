@@ -66,7 +66,8 @@ export default class UserForm extends React.Component {
                     lastName: users.Selected.lastName.trim(),
                     dateAdded: moment().format("YYYY-MM-DD HH:mm:ss")
                 }
-                : {})
+                : {}),
+            isActive: 0
         };
 
         if (users.Selected.username === "default" || users.Selected.firstName === "default" || users.Selected.lastName === "default") {
