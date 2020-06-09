@@ -160,4 +160,6 @@ select * from  project_team_members_summary_v;
 
 delete from members where userTypeLinkId is null;
 
+alter table members add column isActive TINYINT(1) DEFAULT '1';
+
 #----------PROJECT TEAM MEMBERS END---------
