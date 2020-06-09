@@ -550,7 +550,7 @@ exports.post = {
                     projectId: body.projectId,
                     workstreamId: body.workstreamId,
                     note: body.title,
-                    privacyType: "Private",
+                    privacyType: "Public",
                     createdBy: body.userId
                 }).then(o => {
                     return o.toJSON();

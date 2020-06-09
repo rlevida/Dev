@@ -205,6 +205,7 @@ export default class ConversationForm extends React.Component {
                     mentionedUsers: _.uniqBy(commentIds, `userId`)
                 })
             );
+
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
             postData(`/api/conversation/message`, data, c => {
                 const selectedNote = c.data[0];
