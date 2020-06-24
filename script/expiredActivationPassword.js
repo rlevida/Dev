@@ -16,7 +16,7 @@ var job = new CronJob(
             await UsersCreatePassword.destroy({
                 where: {
                     [Sequelize.Op.and]: [
-                        Sequelize.literal(`dateUpdated < NOW() + INTERVAL -1 HOUR`),
+                        Sequelize.literal(`dateUpdated < NOW() + INTERVAL -30 DAY`),
                     ]
                 },
             })
