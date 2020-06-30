@@ -81,12 +81,17 @@ export default class ProjectList extends React.Component {
     fetchProject(page) {
         const { dispatch, loggedUser, project } = this.props;
         const { List, Filter } = project;
-        const { typeId = 1, projectProgress, sort, isActive = 1 } = { ...Filter };
+        const { typeId, projectProgress, sort, isActive = 1 } = { ...Filter };
         const dueDateMoment = moment(moment().format('YYYY-MM-DD')).utc().format("YYYY-MM-DD HH:mm");
-        let fetchUrl = `/api/v2project?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=${isActive}&isDeleted=0&dueDate=${dueDateMoment}&typeId=${typeId}&hasMembers=1`;
+
+        let fetchUrl = `/api/v2project?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=${isActive}&isDeleted=0&dueDate=${dueDateMoment}&hasMembers=1`;
 
         if (projectProgress) {
             fetchUrl += `&projectProgress=${projectProgress}`;
+        }
+
+        if (isActive) {
+            fetchUrl += `&typeId=${typeId}`;
         }
 
         if (sort && sort.indexOf("project") > -1) {
