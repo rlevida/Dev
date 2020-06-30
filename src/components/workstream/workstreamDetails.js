@@ -1,7 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { Link } from "react-router-dom";
 
 import TaskTimeline from "../task/taskTimeline";
 import WorkstreamTabs from "./workstreamTabs";
@@ -20,16 +19,21 @@ export default class WorkstreamDetails extends React.Component {
         this.renderStatus = this.renderStatus.bind(this);
     }
     componentDidMount() {
-        const { match, dispatch } = { ...this.props };
-        const workstreamId = match.params.workstreamId;
-        const requestUrl = `/api/workstream?workstreamId=${workstreamId}`;
+        const { match, dispatch, location, history } = { ...this.props };
+        const { projectId, workstreamId } = { ...match.params };
+        const requestUrl = `/api/workstream?workstreamId=${workstreamId}&projectId=${projectId}`;
 
         dispatch({ type: "SET_SCREEN_LOADER", Loading: true });
 
         getData(requestUrl, {}, c => {
             if (c.status == 200) {
-                const selected = c.data.result.length > 0 ? c.data.result[0] : {};
-                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: selected });
+                if (c.data.result.length > 0) {
+                    const selected = c.data.result.length > 0 ? c.data.result[0] : {};
+                    dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: selected });
+                } else {
+                    showToast("warning", "Workstream does not exist.");
+                    history.push(location.pathname.substring(0, location.pathname.lastIndexOf("/") + 1));
+                }
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
