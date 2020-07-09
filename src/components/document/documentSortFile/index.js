@@ -139,7 +139,7 @@ class DocumentNew extends React.Component {
                                         </thead>
                                         <tbody>
                                             {document.Loading === "" &&
-                                                _.orderBy(document.List, ["dateAdded"], ["desc"]).map((data, index) => {
+                                                (document.List).map((data, index) => {
                                                     return (
                                                         <DocumentContainer
                                                             data={data}
