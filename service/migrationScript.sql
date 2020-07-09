@@ -162,4 +162,6 @@ delete from members where userTypeLinkId is null;
 
 alter table members add column isActive TINYINT(1) DEFAULT '1';
 
+alter table notes add status ENUM("OPEN","CLOSED") NOT NULL DEFAULT 'OPEN';
+
 #----------PROJECT TEAM MEMBERS END---------

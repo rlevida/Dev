@@ -5,6 +5,7 @@ CREATE TABLE `notes` (
     `workstreamId` BIGINT,
     `note` VARCHAR(255),
     `privacyType` ENUM("Private","Public"),
+    `status` ENUM("OPEN","CLOSED") NOT NULL DEFAULT 'OPEN',
     `createdBy` BIGINT,
     `isDeleted` TINYINT DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

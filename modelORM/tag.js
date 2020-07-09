@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others','notes'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others', 'notes'),
       allowNull: true
     },
     linkId: {
@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     tagType: {
-      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder','notes'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder', 'notes'),
       allowNull: true
     },
     isDeleted: {
@@ -46,9 +46,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-      timestamps: false,
-      tableName: 'tag'
-    });
+    timestamps: false,
+    tableName: 'tag'
+  });
 
   Tags.associate = function (models) {
     Tags.belongsTo(models.Document, {
@@ -80,6 +80,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'TagNotes',
       foreignKey: 'linkId',
     });
+    Tags.belongsTo(models.Notes, {
+      as: 'tagged_users',
+      foreignKey: 'tagTypeId'
+    })
   };
 
   return Tags;

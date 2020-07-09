@@ -826,6 +826,14 @@ exports.get = {
                                         }
                                     }
                                     : {}),
+                                //QUERY FOR NOTES PRIVACY TYPE
+                                ...(typeof queryString.memberType != "undefined" && queryString.memberType == 'external'
+                                    ? {
+                                        roleId: {
+                                            [Op.notIn]: [5, 6]
+                                        }
+                                    }
+                                    : {}),
                                 usersId: userMemberIds
                             }
                         }).map(o => {
