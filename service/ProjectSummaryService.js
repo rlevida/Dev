@@ -21,8 +21,8 @@ class ProjectSummaryService {
             .replace('{{progressWhereClause}}', projectProgress ? this.projectProcess(projectProgress) : ``)
             .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
             .replace('{{projectWhereClause}}', project ? ` and LOWER(project.project) like '%${project.toLowerCase()}%'` : ``)
-            .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
-
+            .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);    
+            
         const results = await this.sequelize.query(query, {
             replacements: { userId: userId, isActive, isDeleted },
             type: QueryTypes.SELECT
