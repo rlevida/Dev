@@ -54,7 +54,7 @@ exports.get = {
                         include: [
                             {
                                 model: DocumentLink,
-                                as: "project_member",
+                                as: "document_link",
                                 where: {
                                     ...(typeof queryString.projectId != "undefined" && queryString.projectId != "" ? { linkId: queryString.projectId, linkType: "project" } : {})
                                 }
@@ -97,7 +97,7 @@ exports.get = {
         };
         async.parallel(
             {
-                count: function(callback) {
+                count: function (callback) {
                     try {
                         Starred.findAndCountAll({ ..._.omit(options, ["offset", "limit"]), where: whereObj, distinct: true }).then(response => {
                             const pageData = {
@@ -111,7 +111,7 @@ exports.get = {
                         callback(err);
                     }
                 },
-                result: function(callback) {
+                result: function (callback) {
                     try {
                         Starred.findAll({
                             ...options,
@@ -146,7 +146,7 @@ exports.get = {
                     }
                 }
             },
-            function(err, results) {
+            function (err, results) {
                 if (err != null) {
                     cb({ status: false, error: err });
                 } else {
