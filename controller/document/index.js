@@ -359,7 +359,7 @@ exports.get = {
                         },
                         {
                             linkId: {
-                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
                             }
                         },
                         {

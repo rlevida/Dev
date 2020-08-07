@@ -232,7 +232,7 @@ exports.get = {
                             [Op.in]: Sequelize.literal(`(SELECT DISTINCT workstream.projectId
                                 FROM
                                     workstream
-                                LEFT JOIN
+                                JOIN
                                     task
                                 ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                                 WHERE task.dueDate >= "${moment(queryString.dueDate, "YYYY-MM-DD")
@@ -246,7 +246,7 @@ exports.get = {
                                 workstream.projectId
                             FROM
                                 workstream
-                            LEFT JOIN
+                            JOIN
                                 task
                             ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                             WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
@@ -263,7 +263,7 @@ exports.get = {
                             workstream.projectId
                         FROM
                             workstream
-                        LEFT JOIN
+                        JOIN
                             task
                         ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                         WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
@@ -464,7 +464,6 @@ exports.get = {
         let associationIncludes = [],
             hasInfo = parseInt(queryString.info) ? true : false;
 
-        console.log(typeof queryString.memberStatus)
         if (hasInfo) {
             associationIncludes = [
                 {

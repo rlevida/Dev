@@ -256,7 +256,7 @@ exports.get = {
                             [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT workstream.id
                                 FROM
                                     workstream
-                                LEFT JOIN
+                                 JOIN
                                     task
                                 ON task.workstreamId = workstream.id
                                 WHERE task.dueDate >= "${moment(queryString.dueDate, "YYYY-MM-DD")
@@ -269,7 +269,7 @@ exports.get = {
                                 workstream.id
                             FROM
                                 workstream
-                            LEFT JOIN
+                             JOIN
                                 task
                             ON task.workstreamId = workstream.id
                             WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")
@@ -286,7 +286,7 @@ exports.get = {
                             workstream.id
                         FROM
                             workstream
-                        LEFT JOIN
+                         JOIN
                             task
                         ON task.workstreamId = workstream.id
                         WHERE task.dueDate < "${moment(queryString.dueDate, "YYYY-MM-DD")

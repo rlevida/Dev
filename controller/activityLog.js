@@ -29,7 +29,7 @@ exports.get = {
                 [Sequelize.Op.or]: [
                     {
                         linkId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task_checklist.id FROM task LEFT JOIN task_checklist on task.id = task_checklist.taskId WHERE task.id = ${queryString.taskId})`)
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task_checklist.id FROM task JOIN task_checklist on task.id = task_checklist.taskId WHERE task.id = ${queryString.taskId})`)
                         },
                         linkType: "checklist"
                     },

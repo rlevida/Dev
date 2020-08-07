@@ -151,11 +151,11 @@ exports.get = {
         }
         if (typeof queryString.message !== "undefined" && queryString.message !== "") {
             taggedUserQuery = "(";
-            taggedUserQuery += `SELECT tagTypeId from tag where linkType = "user" AND linkId=${queryString.userId} AND tagType = "notes" AND tagTypeId IN ( SELECT DISTINCT notes.id FROM notes LEFT JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${queryString.message}%'))`;
+            taggedUserQuery += `SELECT tagTypeId from tag where linkType = "user" AND linkId=${queryString.userId} AND tagType = "notes" AND tagTypeId IN ( SELECT DISTINCT notes.id FROM notes JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${queryString.message}%'))`;
             taggedUserQuery += ")";
 
             conversationQuery = "(";
-            conversationQuery += `SELECT DISTINCT notes.id FROM notes LEFT JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${queryString.message}%')`;
+            conversationQuery += `SELECT DISTINCT notes.id FROM notes JOIN conversation on notes.id = conversation.linkId WHERE conversation.linkType = "notes" AND LOWER(conversation.comment) LIKE LOWER('%${queryString.message}%')`;
             conversationQuery += ")";
         }
 

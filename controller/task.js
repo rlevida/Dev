@@ -557,7 +557,7 @@ exports.get = {
             whereObj[Sequelize.Op.and] = {
                 id: {
                     [Sequelize.Op.in]: Sequelize.literal(
-                        `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${queryString.assigned} AND members.isDeleted = 0)`
+                        `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${queryString.assigned} AND members.isDeleted = 0)`
                     )
                 }
             };
@@ -576,7 +576,7 @@ exports.get = {
                             {
                                 id: {
                                     [Sequelize.Op.in]: Sequelize.literal(
-                                        `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`
+                                        `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`
                                     )
                                 }
                             },
@@ -590,7 +590,7 @@ exports.get = {
                             {
                                 id: {
                                     [Sequelize.Op.in]: Sequelize.literal(
-                                        `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="forApproval" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`
+                                        `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="forApproval" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`
                                     )
                                 }
                             },
@@ -643,7 +643,7 @@ exports.get = {
                                 });
 
                             let myTeamQuery = "(";
-                            myTeamQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.projectId IN (${myProjects.join(
+                            myTeamQuery += `SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.projectId IN (${myProjects.join(
                                 ","
                             )}) AND members.userTypeLinkId IN (${allTeams.join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo"`;
                             myTeamQuery += ")";
@@ -657,7 +657,7 @@ exports.get = {
                         break;
                     case "following":
                         let followingQuery = "(";
-                        followingQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.memberType = "follower" AND members.isDeleted=0`;
+                        followingQuery += `SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.memberType = "follower" AND members.isDeleted=0`;
 
                         if (typeof queryString.assigned != "undefined" && queryString.assigned != "") {
                             followingQuery += ` AND task.id IN(
@@ -665,7 +665,7 @@ exports.get = {
                                     task.id
                                 FROM
                                     task
-                                LEFT JOIN members ON task.id = members.linkId
+                                 JOIN members ON task.id = members.linkId
                                 WHERE
                                     members.linkType = "task" AND members.userTypeLinkId = ${queryString.assigned} AND members.memberType = "assignedTo")`;
                         }
@@ -1141,7 +1141,7 @@ exports.get = {
                                     ? {
                                         id: {
                                             [Op.in]: Sequelize.literal(
-                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                                `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
                                             )
                                         }
                                     }
@@ -1174,7 +1174,7 @@ exports.get = {
                                     ? {
                                         id: {
                                             [Op.in]: Sequelize.literal(
-                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                                `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
                                             )
                                         }
                                     }
@@ -1210,7 +1210,7 @@ exports.get = {
                                     ? {
                                         id: {
                                             [Op.in]: Sequelize.literal(
-                                                `(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
+                                                `(SELECT DISTINCT task.id FROM task JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`
                                             )
                                         }
                                     }

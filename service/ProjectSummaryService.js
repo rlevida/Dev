@@ -21,8 +21,8 @@ class ProjectSummaryService {
             .replace('{{progressWhereClause}}', projectProgress ? this.projectProcess(projectProgress) : ``)
             .replace('{{typeIdWhereClause}}', typeId ? ` and project.typeId = ${typeId}` : ``)
             .replace('{{projectWhereClause}}', project ? ` and LOWER(project.project) like '%${project.toLowerCase()}%'` : ``)
-            .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);    
-            
+            .replace('{{page}}', ` limit 25 offset ${(page - 1) * 25}`);
+
         const results = await this.sequelize.query(query, {
             replacements: { userId: userId, isActive, isDeleted },
             type: QueryTypes.SELECT
@@ -92,7 +92,7 @@ class ProjectSummaryService {
                     SELECT  DISTINCT workstream.projectId
                             FROM
                                 workstream
-                            LEFT JOIN
+                            JOIN
                                 task
                             ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                             WHERE task.dueDate >=  DATE(NOW())
@@ -104,7 +104,7 @@ class ProjectSummaryService {
                     SELECT  DISTINCT workstream.projectId
                             FROM
                                 workstream
-                            LEFT JOIN
+                            JOIN
                                 task
                             ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                             WHERE task.dueDate < DATE(NOW())
@@ -120,7 +120,7 @@ class ProjectSummaryService {
                             workstream.projectId
                     FROM
                             workstream
-                    LEFT JOIN
+                    JOIN
                             task ON task.workstreamId = workstream.id AND workstream.isDeleted = 0
                     WHERE task.dueDate < DATE(NOW())
                             AND (task.status != "Completed" OR task.status IS NULL) 
