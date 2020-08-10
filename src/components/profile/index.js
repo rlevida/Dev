@@ -10,6 +10,7 @@ import ProfileTask from "./profileTask";
 import ProfileProject from "./profileProject";
 import UserForm from "../users/users/userForm";
 import ProfileNotification from "./profileNotification";
+import imageCompression from 'browser-image-compression';
 
 import { postData, showToast } from "../../globalFunction";
 
@@ -39,9 +40,25 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_USER_SELECTED", Selected: loggedUser.data });
     }
 
-    onDrop(picture) {
+    async onDrop(picture) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_FILES", Files: picture });
+
+        const options = {
+            maxSizeMB: 1,
+            useWebWorker: true
+        }
+
+        try {
+            const compressedFile = await imageCompression(picture[0], options);
+
+            let file = new File([compressedFile], compressedFile.name, { type: compressedFile.type });
+            file.preview =  URL.createObjectURL(compressedFile)
+
+            dispatch({ type: "SET_DOCUMENT_FILES", Files: [file] });
+
+        } catch (error) {
+            showToast('error', 'Something went wrong. Please try again.')
+        }
     }
 
     upload() {
@@ -49,9 +66,11 @@ export default class Component extends React.Component {
         let data = new FormData();
 
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
+
         _.map(document.Files, file => {
             data.append("file", file);
             data.append("profile_id", loggedUser.data.id);
+
         });
 
         postData(`/api/user/upload`, data, c => {

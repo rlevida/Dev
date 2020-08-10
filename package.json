@@ -19,6 +19,7 @@
     "body-parser": "^1.15.2",
     "bootstrap": "^3.3.7",
     "bootstrap-validator": "^0.11.9",
+    "browser-image-compression": "^1.0.12",
     "cookie-parser": "^1.4.3",
     "cron": "^1.8.2",
     "deferred": "^0.7.5",
